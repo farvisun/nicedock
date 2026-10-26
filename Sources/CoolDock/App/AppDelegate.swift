@@ -34,7 +34,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        if !store.settings.onboardingDone {
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--settings") {
+            let pane = args.count > i + 1 ? SettingsPane(rawValue: args[i + 1]) : nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { SettingsWindow.show(pane: pane ?? .general) }
+        } else if args.contains("--widgets") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { WidgetBrowser.show() }
+        } else if args.contains("--onboarding") || !store.settings.onboardingDone {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { OnboardingWindow.show() }
         }
     }

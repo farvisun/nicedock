@@ -72,7 +72,7 @@ final class CalendarService {
     func subscribeEvents() {
         eventSubscribers += 1
         if eventSubscribers == 1 {
-            if eventsAccess == .notDetermined { Task { await requestEvents() } } else { reloadEvents() }
+            if eventsAccess == .notDetermined && !RenderHarness.isActive { Task { await requestEvents() } } else { reloadEvents() }
             startMinuteTimer()
         }
     }
@@ -81,7 +81,7 @@ final class CalendarService {
     func subscribeReminders() {
         reminderSubscribers += 1
         if reminderSubscribers == 1 {
-            if remindersAccess == .notDetermined { Task { await requestReminders() } } else { reloadReminders() }
+            if remindersAccess == .notDetermined && !RenderHarness.isActive { Task { await requestReminders() } } else { reloadReminders() }
         }
     }
     func unsubscribeReminders() { reminderSubscribers = max(0, reminderSubscribers - 1) }

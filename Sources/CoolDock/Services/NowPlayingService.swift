@@ -7,7 +7,8 @@ enum Script {
 
     @discardableResult
     static func run(_ source: String) async -> NSAppleEventDescriptor? {
-        await withCheckedContinuation { cont in
+        if RenderHarness.isActive { return nil }
+        return await withCheckedContinuation { cont in
             queue.async {
                 var error: NSDictionary?
                 let result = NSAppleScript(source: source)?.executeAndReturnError(&error)

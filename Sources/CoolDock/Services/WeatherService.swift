@@ -89,7 +89,7 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
         let trimmed = city.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty {
             if let current { return current }
-            if let loc = await currentLocation() { current = loc; return loc }
+            if !RenderHarness.isActive, let loc = await currentLocation() { current = loc; return loc }
             return try await ipLocation()
         }
         if let hit = geocoded[trimmed.lowercased()] { return hit }

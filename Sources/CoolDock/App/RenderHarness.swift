@@ -9,6 +9,9 @@ import SwiftUI
 /// compared side by side with the reference frames.
 @MainActor
 enum RenderHarness {
+    /// True for developer renders: services must not trigger permission prompts or AppleScript.
+    nonisolated static let isActive = CommandLine.arguments.contains("--render")
+
     static func runIfRequested() -> Bool {
         let args = CommandLine.arguments
         guard let i = args.firstIndex(of: "--render"), args.count > i + 2 else { return false }
