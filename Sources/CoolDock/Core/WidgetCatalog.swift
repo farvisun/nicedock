@@ -280,7 +280,8 @@ enum WidgetCatalog {
                               fields: [ConfigField(key: "emoji", title: "Emoji", type: .text(placeholder: "😂✨✅🔥🥹🙏💡🚀❤️"))],
                               defaults: ["emoji": "😂✨✅🔥🥹🙏💡🚀❤️"])
         case .colorPicker:
-            return WidgetSpec(category: .utilities, title: "Color Picker", summary: "Pick colors from anywhere on screen.", symbol: "eyedropper", width: 65)
+            return WidgetSpec(category: .utilities, title: "Color Picker", summary: "Pick colors from anywhere on screen.", symbol: "eyedropper", width: 65,
+                              defaults: ["colors": "#EE5450\n#3499DC\n#FAC716"])
         case .converter:
             return WidgetSpec(category: .utilities, title: "Converter", summary: "Currency and unit conversion.", symbol: "arrow.left.arrow.right", width: 183,
                               fields: [ConfigField(key: "from", title: "From", type: .choice(currencyChoices)),

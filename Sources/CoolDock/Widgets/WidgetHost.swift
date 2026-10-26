@@ -58,7 +58,9 @@ struct WidgetMenu: View {
         if !spec.fields.isEmpty {
             Button(spec.connected ? L("Connection & Settings…") : L("Customize…")) { WidgetSetup.customize(instance) }
         }
-        if spec.connected || [.weatherCompact, .stockQuote, .cryptoQuote, .mail, .notes, .reminders, .calendarToday].contains(instance.kind) {
+        if spec.connected || [.weatherCompact, .weatherHero, .weatherLocation, .forecastDays, .weatherToday, .weatherCondition, .forecastHourly, .sunriseSunset, .wind,
+                                 .dateTimeWeather, .weekStrip, .stockQuote, .stockChart, .stockWatchlist, .cryptoQuote, .cryptoChart, .cryptoWatchlist,
+                                 .mail, .mailLatest, .notes, .reminders, .calendarToday, .agenda, .nextMeeting, .converter].contains(instance.kind) {
             Button(L("Refresh")) { NotificationCenter.default.post(name: .coolDockRefresh, object: instance.id) }
         }
         let rules = [VisibilityRule.always] + spec.visibility
@@ -85,11 +87,18 @@ struct WidgetMenu: View {
 struct WidgetExtraMenu: View {
     let instance: WidgetInstance
     var body: some View {
-        switch instance.kind.spec.category {
-        case .apps, .folders: AppsWidgets.menu(instance)
-        case .media, .photos, .mail, .notes, .phone: MediaWidgets.menu(instance)
-        case .clocks: ClockWidgets.menu(instance)
-        default: EmptyView()
+        let w = instance
+        switch w.kind.spec.category {
+        case .apps, .folders:
+            if w.kind == .bookmarks || w.kind == .searchWeb { UtilityWidgets.menu(w) } else { AppsWidgets.menu(w) }
+        case .clocks: ClockWidgets.menu(w)
+        case .calendar, .reminders: CalendarWidgets.menu(w)
+        case .weather: WeatherWidgets.menu(w)
+        case .system: SystemWidgets.menu(w)
+        case .controls, .utilities: UtilityWidgets.menu(w)
+        case .media, .photos, .mail, .notes, .phone: MediaWidgets.menu(w)
+        case .stocks, .crypto: FinanceWidgets.menu(w)
+        case .finance, .commerce, .analytics, .developer, .social, .ai: ConnectedWidgets.menu(w)
         }
     }
 }
