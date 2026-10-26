@@ -302,12 +302,11 @@ struct ScenarioCard: View {
             HStack(alignment: .top, spacing: 10) {
                 ScenarioDiagram(scenario: scenario).frame(width: 64, height: 44)
                 VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(scenario.title).font(.ui(12.5, .semibold))
-                        if scenario.recommended {
-                            Text(L("Recommended")).font(.ui(9.5, .bold)).padding(.horizontal, 5).padding(.vertical, 1.5)
-                                .background(Capsule().fill(Color.cdGreen.opacity(0.18))).foregroundStyle(Color.cdGreen)
-                        }
+                    Text(scenario.title).font(.ui(12.5, .semibold))
+                    if scenario.recommended {
+                        Text(L("Recommended")).font(.ui(9.5, .bold)).padding(.horizontal, 5).padding(.vertical, 1.5)
+                            .background(Capsule().fill(Color.cdGreen.opacity(0.18))).foregroundStyle(Color.cdGreen)
+                            .fixedSize()
                     }
                     Text(scenario.summary).font(.ui(11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.leading)
                 }

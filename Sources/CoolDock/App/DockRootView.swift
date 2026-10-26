@@ -60,24 +60,28 @@ struct DockPlate: View {
             .background { plateBackground(shape: shape, style: s.dockStyle) }
             .overlay { if s.dockStyle != .transparent && s.dockStyle != .liquidGlass { shape.strokeBorder(p.plateStroke, lineWidth: 0.5) } }
             .clipShape(shape)
-            .shadow(color: .black.opacity(s.shadow && s.dockStyle != .transparent ? 0.28 : 0), radius: 12, y: 4)
-            .padding(.vertical, s.shadow ? 10 : 0)
-            .padding(.horizontal, s.shadow ? 14 : 0)
-            .contentShape(Rectangle())
+            .contentShape(shape)
             .gesture(plateDrag)
             .contextMenu { DockContextMenu() }
             .onDrop(of: [.coolDockWidget, .fileURL], isTargeted: nil) { providers in handleDrop(providers) }
+            .shadow(color: .black.opacity(s.shadow && s.dockStyle != .transparent ? 0.28 : 0), radius: 12, y: 4)
+            .padding(.vertical, s.shadow ? 10 : 0)
+            .padding(.horizontal, s.shadow ? 14 : 0)
     }
 
     @ViewBuilder private var content: some View {
         let widgets = store.activeProfile.widgets
-        if widgets.isEmpty {
+        if !model.revealed && store.settings.pauseWhenHidden && model.lastStripSize != .zero {
+            // Hidden dock: unmount widgets so their timers and services stop, keep the footprint.
+            Color.clear.frame(width: model.lastStripSize.width, height: model.lastStripSize.height)
+        } else if widgets.isEmpty && store.settings.runningApps == .hidden {
             EmptyDockPrompt()
         } else if store.settings.overflow == .scroll {
             ScrollView(.horizontal, showsIndicators: false) { WidgetStrip(model: model) }
                 .frame(maxWidth: model.availableWidth - m.padding * 2 - 28)
         } else {
             WidgetStrip(model: model)
+                .background(GeometryReader { g in Color.clear.onAppear { model.lastStripSize = g.size }.onChange(of: g.size) { _, v in model.lastStripSize = v } })
         }
     }
 
@@ -121,7 +125,7 @@ struct DockPlate: View {
                 if model.floating {
                     DockController.shared.window(for: model.screenID)?.floatingDrag(began: false, ended: true)
                     dragOffset = 0
-                } else if store.settings.dragToSwitchProfiles && !Panels.shared.isOpen && !store.browserOpen {
+                } else if store.settings.dragToSwitchProfiles && !Panels.shared.isOpen && !store.browserOpen && !DragState.reordering {
                     let dx = v.translation.width * (store.layoutDirection == .rightToLeft ? -1 : 1)
                     if abs(dx) > 50 { store.switchProfile(by: dx < 0 ? 1 : -1) }
                 }
@@ -175,6 +179,13 @@ struct EmptyDockPrompt: View {
 
 // MARK: - Widget strip with ⌘-drag reordering
 
+@MainActor
+enum DragState {
+    static var reordering = false
+    /// Stable id for the virtual running-apps cluster.
+    static let runningAppsID = UUID(uuidString: "00000000-0000-0000-0000-00000000A115")!
+}
+
 struct WidgetFramesKey: PreferenceKey {
     static let defaultValue: [UUID: CGRect] = [:]
     static func reduce(value: inout [UUID: CGRect], nextValue: () -> [UUID: CGRect]) { value.merge(nextValue()) { $1 } }
@@ -191,8 +202,7 @@ struct WidgetStrip: View {
     private let visibility = VisibilityEvaluator.shared
 
     var body: some View {
-        let all = store.activeProfile.widgets
-        let shown = all.filter { visibility.isVisible($0) }
+        let shown = withRunningApps(store.activeProfile.widgets.filter { visibility.isVisible($0) })
         HStack(spacing: m.gap) {
             ForEach(shown) { w in
                 WidgetHost(instance: w)
@@ -212,7 +222,26 @@ struct WidgetStrip: View {
         .animation(store.settings.animations ? .spring(response: 0.32, dampingFraction: 0.82) : nil, value: shown.map(\.id))
     }
 
+    /// Inserts the running-apps cluster according to Settings → Dock.
+    private func withRunningApps(_ list: [WidgetInstance]) -> [WidgetInstance] {
+        let placement = store.settings.runningApps
+        guard placement != .hidden else { return list }
+        var running = WidgetInstance(kind: .runningApps)
+        running.id = DragState.runningAppsID
+        var out = list
+        let appKinds: Set<WidgetKind> = [.app, .appFolder, .applications]
+        switch placement {
+        case .hidden: break
+        case .left: out.insert(running, at: 0)
+        case .right: out.append(running)
+        case .beforeApps: out.insert(running, at: out.firstIndex { appKinds.contains($0.kind) } ?? 0)
+        case .afterApps: out.insert(running, at: (out.lastIndex { appKinds.contains($0.kind) }).map { $0 + 1 } ?? out.count)
+        }
+        return out
+    }
+
     private func canReorder(_ w: WidgetInstance) -> Bool {
+        if w.id == DragState.runningAppsID { return false }
         if store.browserOpen { return true }
         if NSEvent.modifierFlags.contains(.command) { return true }
         let isApp = [.app, .appFolder, .folder, .applications, .trash].contains(w.kind)
@@ -225,6 +254,7 @@ struct WidgetStrip: View {
                 if dragging == nil {
                     guard canReorder(w) else { return }
                     dragging = w.id
+                    DragState.reordering = true
                     Panels.shared.close()
                 }
                 guard dragging == w.id, let f = frames[w.id] else { return }
@@ -244,6 +274,7 @@ struct WidgetStrip: View {
                 dragging = nil
                 dragX = 0
                 target = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { DragState.reordering = false }
             }
     }
 }

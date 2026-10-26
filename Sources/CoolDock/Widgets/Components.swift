@@ -302,14 +302,19 @@ enum IconCache {
 
 struct AppIcon: View {
     @Environment(\.metrics) private var m
+    @Environment(\.colorScheme) private var scheme
     var path: String
     var size: CGFloat
 
     var body: some View {
+        let style = AppStore.shared.settings.iconStyle
+        let dark = style == .dark || (style == .auto && NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua)
         Image(nsImage: IconCache.icon(path: path, size: m.u(size)))
             .resizable()
             .interpolation(.high)
             .frame(width: m.u(size), height: m.u(size))
+            .saturation(style == .monochrome ? 0 : (dark ? 0.75 : 1))
+            .brightness(dark ? -0.18 : 0)
     }
 }
 

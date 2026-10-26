@@ -104,6 +104,7 @@ final class DockWindowModel {
     var floating = false
     var hovering = false
     var revealed = true
+    var lastStripSize: CGSize = .zero
 
     init(screenID: String) { self.screenID = screenID }
 }
@@ -349,12 +350,12 @@ final class DockWindow {
 
     func hide(animated: Bool) {
         isShown = false
-        model.revealed = false
         panel.ignoresMouseEvents = true
         let target = settings.scenario == .fixed || settings.scenario == .floating ? panel.frame : targetFrame(revealed: false)
         guard animated && settings.animations, panel.isVisible else {
             panel.alphaValue = 0
             panel.orderOut(nil)
+            model.revealed = false
             return
         }
         NSAnimationContext.runAnimationGroup({ ctx in
@@ -366,6 +367,7 @@ final class DockWindow {
             MainActor.assumeIsolated {
                 guard let self, !self.isShown else { return }
                 self.panel.orderOut(nil)
+                self.model.revealed = false
             }
         })
     }
