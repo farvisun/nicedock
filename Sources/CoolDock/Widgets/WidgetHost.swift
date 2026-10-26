@@ -60,7 +60,8 @@ struct WidgetMenu: View {
         }
         if spec.connected || [.weatherCompact, .weatherHero, .weatherLocation, .forecastDays, .weatherToday, .weatherCondition, .forecastHourly, .sunriseSunset, .wind,
                                  .dateTimeWeather, .weekStrip, .stockQuote, .stockChart, .stockWatchlist, .cryptoQuote, .cryptoChart, .cryptoWatchlist,
-                                 .mail, .mailLatest, .notes, .reminders, .calendarToday, .agenda, .nextMeeting, .converter].contains(instance.kind) {
+                                 .mail, .mailLatest, .notes, .reminders, .calendarToday, .agenda, .nextMeeting, .converter,
+                                 .quickContacts, .wallpaper, .recentPhoto, .youtubeVideo, .linear, .todo].contains(instance.kind) {
             Button(L("Refresh")) { NotificationCenter.default.post(name: .coolDockRefresh, object: instance.id) }
         }
         let rules = [VisibilityRule.always] + spec.visibility

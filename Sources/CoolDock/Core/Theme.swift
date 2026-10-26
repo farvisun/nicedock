@@ -187,6 +187,10 @@ struct DockPalette {
             p.plate = reduceTransparency ? Color(red: 11 / 255, green: 11 / 255, blue: 13 / 255) : Color.black.opacity(0.9)
             p.tileFill = .white.opacity(0.045)
             p.tileStroke = .white.opacity(0.10)
+            // Reference text is ≈86 % white (primary) and ≈59 % (secondary) on the dark plate.
+            p.primary = .white.opacity(0.86)
+            p.secondary = .white.opacity(0.55)
+            p.tertiary = .white.opacity(0.32)
         case .white:
             p.plate = Color(white: 0.97)
             p.plateStroke = .black.opacity(0.08)
@@ -195,6 +199,9 @@ struct DockPalette {
             p.plateStroke = .white.opacity(0.08)
             p.tileFill = .white.opacity(0.06)
             p.tileStroke = .white.opacity(0.12)
+            p.primary = .white.opacity(0.88)
+            p.secondary = .white.opacity(0.56)
+            p.tertiary = .white.opacity(0.32)
         case .transparent:
             p.plate = .clear
             p.plateStroke = .clear
