@@ -9,6 +9,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         DockFonts.registerBundledFonts()
         let store = AppStore.shared
+        if let i = CommandLine.arguments.firstIndex(of: "--lang"), CommandLine.arguments.count > i + 1,
+           let lang = AppLanguage(rawValue: CommandLine.arguments[i + 1]) {
+            store.settings.language = lang
+        }
         store.applyAppTheme()
         buildMainMenu()
 

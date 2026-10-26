@@ -746,7 +746,7 @@ struct PerformancePane: View {
         }
         SettingsGroup(title: L("Caches")) {
             SettingsRow(title: L("Clear cached data"), subtitle: L("Weather, quotes, favicons and thumbnails are re-downloaded when needed.")) {
-                Button(L("Clear")) { DiskCache.clear(); IconCache.purge(); URLCache.shared.removeAllCachedResponses() }
+                Button(L("Clear Cache")) { DiskCache.clear(); IconCache.purge(); URLCache.shared.removeAllCachedResponses() }
             }
         }
     }

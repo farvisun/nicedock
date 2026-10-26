@@ -228,7 +228,7 @@ enum WeatherCode {
 
     static func title(_ code: Int) -> String {
         switch code {
-        case 0: return L("Clear")
+        case 0: return L("Clear Sky")
         case 1: return L("Mostly Clear")
         case 2: return L("Partly Cloudy")
         case 3: return L("Cloudy")

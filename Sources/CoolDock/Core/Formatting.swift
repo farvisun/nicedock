@@ -212,13 +212,14 @@ enum Fmt {
         let sign = value < 0 ? "-" : ""
         let (v, suffix): (Double, String)
         switch a {
-        case 1_000_000_000...: (v, suffix) = (a / 1_000_000_000, L("B"))
-        case 1_000_000...: (v, suffix) = (a / 1_000_000, L("M"))
-        case 10_000...: (v, suffix) = (a / 1_000, L("K"))
+        case 1_000_000_000...: (v, suffix) = (a / 1_000_000_000, LD("compact.billion", "B"))
+        case 1_000_000...: (v, suffix) = (a / 1_000_000, LD("compact.million", "M"))
+        case 10_000...: (v, suffix) = (a / 1_000, LD("compact.thousand", "K"))
         default: return sign + int(Int(a))
         }
         let decimals = v < 10 && v != floor(v) ? 1 : 0
-        return sign + number(v, decimals: decimals) + suffix
+        // Word suffixes (e.g. Persian «هزار») need a space; letter suffixes (K, M) attach directly.
+        return sign + number(v, decimals: decimals) + (suffix.count > 2 ? " " : "") + suffix
     }
 
     static func currency(_ value: Double, code: String, decimals: Int? = nil) -> String {
@@ -244,12 +245,13 @@ enum Fmt {
     }
 
     static func bytes(_ value: Double, perSecond: Bool = false) -> String {
-        let units = ["B", "KB", "MB", "GB", "TB"]
+        let units = ["bytes", "KB", "MB", "GB", "TB"]
         var v = value
         var i = 0
         while v >= 1000 && i < units.count - 1 { v /= 1000; i += 1 }
         let decimals = v < 10 && i > 0 ? 1 : 0
-        return number(v, decimals: decimals) + " " + L(units[i]) + (perSecond ? L("/s") : "")
+        let unit = i == 0 ? LD("unit.bytes", "B") : L(units[i])
+        return number(v, decimals: decimals) + " " + unit + (perSecond ? L("/s") : "")
     }
 
     static func temperature(_ celsius: Double, unit: TemperatureUnit, symbolOnly: Bool = true) -> String {

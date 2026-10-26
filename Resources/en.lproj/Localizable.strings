@@ -48,9 +48,6 @@
 "Yesterday" = "Yesterday";
 "%dh" = "%dh";
 "%dm" = "%dm";
-"B" = "B";
-"M" = "M";
-"K" = "K";
 "/s" = "/s";
 "Celsius (°C)" = "Celsius (°C)";
 "Fahrenheit (°F)" = "Fahrenheit (°F)";
@@ -419,7 +416,7 @@
 "Request failed (%d)" = "Request failed (%d)";
 "Location unavailable" = "Location unavailable";
 "Offline" = "Offline";
-"Clear" = "Clear";
+"Clear Sky" = "Clear Sky";
 "Mostly Clear" = "Mostly Clear";
 "Partly Cloudy" = "Partly Cloudy";
 "Cloudy" = "Cloudy";
@@ -608,6 +605,7 @@
 "Caches" = "Caches";
 "Clear cached data" = "Clear cached data";
 "Weather, quotes, favicons and thumbnails are re-downloaded when needed." = "Weather, quotes, favicons and thumbnails are re-downloaded when needed.";
+"Clear Cache" = "Clear Cache";
 "Version %@ (%@)" = "Version %@ (%@)";
 "Inspired by cooldock.app. Built natively with Swift and SwiftUI." = "Inspired by cooldock.app. Built natively with Swift and SwiftUI.";
 "Persian typeface: Estedad by Amin Abedi — SIL Open Font License 1.1." = "Persian typeface: Estedad by Amin Abedi — SIL Open Font License 1.1.";
@@ -696,6 +694,10 @@
 "Up to six contacts." = "Up to six contacts.";
 "Connection & Settings…" = "Connection & Settings…";
 "Refresh" = "Refresh";
+"compact.billion" = "B";
+"compact.million" = "M";
+"compact.thousand" = "K";
+"unit.bytes" = "B";
 "KB" = "KB";
 "GB" = "GB";
 "TB" = "TB";

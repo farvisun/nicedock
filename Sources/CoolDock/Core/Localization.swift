@@ -118,6 +118,12 @@ enum Localizer {
 @inline(__always)
 func L(_ key: String) -> String { Localizer.string(key) }
 
+/// Localized string for a semantic key whose English text differs from the key (used to disambiguate homographs).
+func LD(_ key: String, _ english: String) -> String {
+    let v = Localizer.string(key)
+    return v == key ? english : v
+}
+
 /// Localized format string; numeric arguments are rendered with the active number system.
 func L(_ key: String, _ args: CVarArg...) -> String {
     let format = Localizer.string(key)
