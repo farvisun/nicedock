@@ -95,8 +95,8 @@ struct AppearancePane: View {
             SliderRow(title: L("Widget Spacing"), value: setting(\.widgetSpacing), range: 0...20, step: 1, minLabel: L("Compact"), maxLabel: L("Spacious")) {
                 Fmt.int(Int($0)) + " " + L("pt")
             }
-            SliderRow(title: L("Corner Radius"), value: setting(\.cornerRadius), range: 4...22, step: 1, minLabel: L("Square"), maxLabel: L("Round")) {
-                Fmt.int(Int($0)) + " " + L("pt")
+            SliderRow(title: L("Corner Radius"), value: setting(\.cornerRadius), range: 4...22, step: 0.5, minLabel: L("Square"), maxLabel: L("Round")) {
+                Fmt.number($0, decimals: $0 == $0.rounded() ? 0 : 1) + " " + L("pt")
             }
             SettingsRow(title: L("When widgets don't fit")) {
                 Picker("", selection: setting(\.overflow)) { ForEach(OverflowMode.allCases) { Text($0.title).tag($0) } }

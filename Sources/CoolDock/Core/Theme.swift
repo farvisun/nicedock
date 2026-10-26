@@ -183,13 +183,18 @@ struct DockPalette {
             p.tileFill = .white.opacity(0.14)
             p.tileStroke = .white.opacity(0.18)
         case .darkGlass:
-            p.plate = reduceTransparency ? Color(white: 0.06) : Color.black.opacity(0.9)
+            // Measured from the reference frames: plate ≈ #0B0B0D, tile ≈ +4.5 % white, border ≈ 12 % white.
+            p.plate = reduceTransparency ? Color(red: 11 / 255, green: 11 / 255, blue: 13 / 255) : Color.black.opacity(0.9)
+            p.tileFill = .white.opacity(0.045)
+            p.tileStroke = .white.opacity(0.10)
         case .white:
             p.plate = Color(white: 0.97)
             p.plateStroke = .black.opacity(0.08)
         case .black:
             p.plate = .black
             p.plateStroke = .white.opacity(0.08)
+            p.tileFill = .white.opacity(0.06)
+            p.tileStroke = .white.opacity(0.12)
         case .transparent:
             p.plate = .clear
             p.plateStroke = .clear
@@ -208,7 +213,7 @@ struct DockPalette {
 struct DockMetrics {
     var scale: CGFloat = 1
     var spacing: CGFloat = 6
-    var cornerRadius: CGFloat = 12
+    var cornerRadius: CGFloat = 9.5
 
     static let baseTileHeight: CGFloat = 62
     static let basePadding: CGFloat = 8

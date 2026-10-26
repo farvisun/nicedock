@@ -25,6 +25,7 @@ enum RenderHarness {
         let store = AppStore.shared
         if let lang = value(after: "--lang").flatMap(AppLanguage.init(rawValue:)) { store.settings.language = lang }
         if let style = value(after: "--style").flatMap(DockStyle.init(rawValue:)) { store.settings.dockStyle = style }
+        if let radius = value(after: "--radius").flatMap(Double.init) { store.settings.cornerRadius = radius }
 
         let kinds: [WidgetKind]
         if selector == "all" {

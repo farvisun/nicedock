@@ -168,11 +168,11 @@ struct Settings: Codable, Equatable {
 
     // Appearance
     var appTheme: AppTheme = .auto
-    var dockStyle: DockStyle = .lightGlass
+    var dockStyle: DockStyle = .darkGlass
     var widgetSurface: WidgetSurface = .glass
     var dockScale: Double = 1.0
     var widgetSpacing: Double = 6
-    var cornerRadius: Double = 12
+    var cornerRadius: Double = 9.5
     var overflow: OverflowMode = .adapt
     var monochrome = false
     var tileBackgrounds = true
