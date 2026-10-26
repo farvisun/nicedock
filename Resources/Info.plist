@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleExecutable</key><string>CoolDock</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundleIdentifier</key><string>app.cooldock.CoolDock</string>
+    <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+    <key>CFBundleName</key><string>CoolDock</string>
+    <key>CFBundleDisplayName</key><string>CoolDock</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>1.0.0</string>
+    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string><string>fa</string><string>ar</string><string>de</string><string>fr</string>
+        <string>es</string><string>tr</string><string>ru</string><string>zh-Hans</string><string>ja</string>
+    </array>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>LSUIElement</key><true/>
+    <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
+    <key>NSPrincipalClass</key><string>NSApplication</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 CoolDock</string>
+    <key>NSAppleEventsUsageDescription</key><string>CoolDock controls Music, Spotify, Mail and Notes to show what is playing, unread mail and your latest note.</string>
+    <key>NSCalendarsFullAccessUsageDescription</key><string>CoolDock shows your upcoming events and meetings in the Dock.</string>
+    <key>NSCalendarsUsageDescription</key><string>CoolDock shows your upcoming events and meetings in the Dock.</string>
+    <key>NSRemindersFullAccessUsageDescription</key><string>CoolDock shows and completes your reminders in the Dock.</string>
+    <key>NSRemindersUsageDescription</key><string>CoolDock shows and completes your reminders in the Dock.</string>
+    <key>NSContactsUsageDescription</key><string>CoolDock shows your favorite contacts for quick calls and messages.</string>
+    <key>NSMicrophoneUsageDescription</key><string>CoolDock records voice memos when you ask it to.</string>
+    <key>NSLocationUsageDescription</key><string>CoolDock uses your approximate location for local weather.</string>
+    <key>NSLocationWhenInUseUsageDescription</key><string>CoolDock uses your approximate location for local weather.</string>
+    <key>NSPhotoLibraryUsageDescription</key><string>CoolDock shows your most recent photo.</string>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>app.cooldock.widget-kind</string>
+            <key>UTTypeDescription</key><string>CoolDock Widget</string>
+            <key>UTTypeConformsTo</key><array><string>public.data</string></array>
+        </dict>
+    </array>
+</dict>
+</plist>
