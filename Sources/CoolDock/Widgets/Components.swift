@@ -92,6 +92,8 @@ struct RingGauge<Center: View>: View {
             center()
         }
         .frame(width: m.u(diameter), height: m.u(diameter))
+        // Rings always fill clockwise from 12 o'clock, also in right-to-left languages.
+        .environment(\.layoutDirection, .leftToRight)
     }
 }
 
