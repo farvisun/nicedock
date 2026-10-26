@@ -1,0 +1,419 @@
+import AppKit
+import Observation
+import SwiftUI
+
+/// Watches launches/quits of one app so tiles can flip between live data and "Open …" instantly.
+@MainActor
+private final class MediaAppWatcher {
+    private var tokens: [NSObjectProtocol] = []
+
+    init(bundleID: String, onChange: @escaping @MainActor (Bool) -> Void) {
+        let nc = NSWorkspace.shared.notificationCenter
+        for (name, running) in [(NSWorkspace.didLaunchApplicationNotification, true), (NSWorkspace.didTerminateApplicationNotification, false)] {
+            tokens.append(nc.addObserver(forName: name, object: nil, queue: .main) { note in
+                let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+                guard app?.bundleIdentifier == bundleID else { return }
+                MainActor.assumeIsolated { onChange(running) }
+            })
+        }
+    }
+}
+
+// MARK: - Mail service
+
+struct MediaMailSnapshot: Codable, Equatable {
+    var unread: Int
+    var today: Int
+    var sender: String
+    var subject: String
+}
+
+/// Unread mail via AppleScript — only while Mail is already running (never launches it).
+@Observable
+@MainActor
+final class MediaMailService {
+    static let shared = MediaMailService()
+    static let bundleID = "com.apple.mail"
+
+    private(set) var running = Script.isRunning(MediaMailService.bundleID)
+    private(set) var snapshot: MediaMailSnapshot? = DiskCache.load(MediaMailSnapshot.self, "media-mail")
+    @ObservationIgnored private var lastFetch = Date.distantPast
+    @ObservationIgnored private var inFlight = false
+    @ObservationIgnored private var watcher: MediaAppWatcher?
+
+    private init() {
+        watcher = MediaAppWatcher(bundleID: Self.bundleID) { running in
+            let s = MediaMailService.shared
+            s.running = running
+            if running { Task { try? await Task.sleep(for: .seconds(3)); await s.refresh(force: true) } }
+        }
+    }
+
+    /// Two-minute refresh loop for a visible tile (cancelled with the view's task).
+    func keepFresh() async {
+        while !Task.isCancelled {
+            await refresh()
+            try? await Task.sleep(for: .seconds(120))
+        }
+    }
+
+    func refresh(force: Bool = false) async {
+        running = Script.isRunning(Self.bundleID)
+        guard running, !MediaEnv.isRender, !inFlight else { return }
+        guard force || Date().timeIntervalSince(lastFetch) > 60 else { return }
+        inFlight = true
+        defer { inFlight = false }
+        let src = """
+        tell application "Mail"
+            set n to unread count of inbox
+            set t to 0
+            set s to ""
+            set subj to ""
+            if n > 0 then
+                try
+                    set d to current date
+                    set time of d to 0
+                    set t to count of (messages of inbox whose read status is false and date received is greater than or equal to d)
+                end try
+                try
+                    set m to first message of inbox whose read status is false
+                    set s to extract name from (sender of m)
+                    set subj to subject of m
+                end try
+            end if
+            return {n, t, s, subj}
+        end tell
+        """
+        guard let d = await Script.run(src), d.numberOfItems >= 4 else { return }
+        lastFetch = Date()
+        let snap = MediaMailSnapshot(unread: Int(d.atIndex(1)?.int32Value ?? 0), today: Int(d.atIndex(2)?.int32Value ?? 0),
+                                     sender: d.atIndex(3)?.stringValue ?? "", subject: d.atIndex(4)?.stringValue ?? "")
+        if snap != snapshot {
+            snapshot = snap
+            DiskCache.save(snap, "media-mail")
+        }
+    }
+
+    /// What tiles display: live data, sample data for demo renders, or nil when Mail is closed.
+    var display: MediaMailSnapshot? {
+        if MediaEnv.demo { return MediaMailSnapshot(unread: 12, today: 3, sender: "Alex Morgan", subject: "Project kickoff timeline") }
+        return running ? snapshot : nil
+    }
+}
+
+// MARK: - Mail tiles
+
+/// Mail app-style icon: blue gradient squircle with a white envelope (brand surface).
+struct MediaMailIcon: View {
+    @Environment(\.metrics) private var m
+    var size: CGFloat = 36
+
+    var body: some View {
+        let s = m.u(size)
+        ZStack {
+            RoundedRectangle(cornerRadius: s * 0.225, style: .continuous)
+                .fill(LinearGradient(colors: [Color(hex: "#5CC4F7"), Color(hex: "#1B6EFB")], startPoint: .top, endPoint: .bottom))
+            Canvas { ctx, size in
+                let w = size.width, h = size.height
+                let body = CGRect(x: w * 0.12, y: h * 0.25, width: w * 0.76, height: h * 0.5)
+                let rr = Path(roundedRect: body, cornerRadius: w * 0.05, style: .continuous)
+                ctx.fill(rr, with: .linearGradient(Gradient(colors: [Color(hex: "#FFFFFF"), Color(hex: "#D7E6FB")]),
+                                                   startPoint: CGPoint(x: 0, y: body.minY), endPoint: CGPoint(x: 0, y: body.maxY)))
+                // lower folds
+                var folds = Path()
+                folds.move(to: CGPoint(x: body.minX + w * 0.01, y: body.maxY - h * 0.01))
+                folds.addLine(to: CGPoint(x: body.midX, y: body.minY + body.height * 0.5))
+                folds.addLine(to: CGPoint(x: body.maxX - w * 0.01, y: body.maxY - h * 0.01))
+                ctx.stroke(folds, with: .color(Color(hex: "#B9D2F5")), lineWidth: max(0.5, w * 0.012))
+                // top flap with a soft shadow
+                var flap = Path()
+                flap.move(to: CGPoint(x: body.minX + w * 0.015, y: body.minY + h * 0.012))
+                flap.addLine(to: CGPoint(x: body.midX, y: body.minY + body.height * 0.6))
+                flap.addLine(to: CGPoint(x: body.maxX - w * 0.015, y: body.minY + h * 0.012))
+                flap.closeSubpath()
+                var shadowCtx = ctx
+                shadowCtx.addFilter(.shadow(color: Color(hex: "#1B4E9B").opacity(0.35), radius: w * 0.025, y: w * 0.012))
+                shadowCtx.fill(flap, with: .linearGradient(Gradient(colors: [Color(hex: "#FFFFFF"), Color(hex: "#EEF4FD")]),
+                                                           startPoint: CGPoint(x: 0, y: body.minY), endPoint: CGPoint(x: 0, y: body.midY)))
+            }
+        }
+        .frame(width: s, height: s)
+        .compositingGroup()
+    }
+}
+
+struct MediaMailTile: View {
+    let w: WidgetInstance
+    @Environment(\.metrics) private var m
+    @Environment(\.palette) private var p
+
+    var body: some View {
+        let svc = MediaMailService.shared
+        let snap = svc.display
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 13.5)) {
+            HStack(spacing: 0) {
+                MediaMailIcon(size: 36)
+                VStack(alignment: .leading, spacing: m.u(2)) {
+                    if let snap {
+                        T(Fmt.int(snap.unread)).dock(21, .bold)
+                        HStack(spacing: m.u(6)) {
+                            Text(L("Unread"))
+                            if snap.today > 0 {
+                                Text(verbatim: "·")
+                                Text(L("+%@ today", Fmt.int(snap.today)))
+                            }
+                        }
+                        .font(.dock(m.u(9), .semibold))
+                        .foregroundStyle(p.secondary)
+                        .lineLimit(1)
+                    } else {
+                        Text(L("Mail")).dock(19, .bold)
+                        Text(L("Open Mail")).dock(9, .semibold, p.secondary)
+                    }
+                }
+                .padding(.leading, m.u(12.5))
+                Spacer(minLength: m.u(6))
+                MediaComposeButton { Open.url("mailto:") }
+            }
+        }
+        .onTapGesture { Open.bundle(MediaMailService.bundleID) }
+        .task { await svc.keepFresh() }
+        .onWidgetRefresh(w.id) { Task { await svc.refresh(force: true) } }
+    }
+}
+
+struct MediaMailLatestTile: View {
+    let w: WidgetInstance
+    @Environment(\.metrics) private var m
+    @Environment(\.palette) private var p
+
+    var body: some View {
+        let svc = MediaMailService.shared
+        let snap = svc.display
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 17, bottom: 0, trailing: 13)) {
+            HStack(spacing: 0) {
+                MediaMailIcon(size: 36)
+                VStack(alignment: .leading, spacing: m.u(2)) {
+                    if let snap, snap.unread > 0 {
+                        Text(snap.sender.isEmpty ? L("New mail") : L("%@ sent", snap.sender)).dock(9, .semibold, p.secondary)
+                        Text(snap.subject.isEmpty ? L("(No Subject)") : snap.subject).dock(13, .bold)
+                        if snap.unread > 1 {
+                            Text(L("+%@ more unread", Fmt.int(snap.unread - 1))).dock(9, .semibold, p.secondary)
+                                .padding(.top, m.u(1.5))
+                        }
+                    } else if snap != nil {
+                        Text(L("Inbox")).dock(9, .semibold, p.secondary)
+                        Text(L("No unread mail")).dock(13, .bold)
+                        Text(L("All caught up")).dock(9, .semibold, p.secondary)
+                    } else {
+                        Text(L("Mail")).dock(13, .bold)
+                        Text(L("Open Mail")).dock(9, .semibold, p.secondary)
+                    }
+                }
+                .padding(.leading, m.u(12.5))
+                Spacer(minLength: m.u(6))
+                MediaComposeButton { Open.url("mailto:") }
+            }
+        }
+        .onTapGesture { Open.bundle(MediaMailService.bundleID) }
+        .task { await svc.keepFresh() }
+        .onWidgetRefresh(w.id) { Task { await svc.refresh(force: true) } }
+    }
+}
+
+// MARK: - Notes service
+
+struct MediaNoteSnapshot: Codable, Equatable {
+    var title: String
+    var body: String
+    var count: Int
+}
+
+@Observable
+@MainActor
+final class MediaNotesService {
+    static let shared = MediaNotesService()
+    static let bundleID = "com.apple.Notes"
+
+    private(set) var running = Script.isRunning(MediaNotesService.bundleID)
+    private(set) var snapshot: MediaNoteSnapshot? = DiskCache.load(MediaNoteSnapshot.self, "media-notes")
+    @ObservationIgnored private var lastFetch = Date.distantPast
+    @ObservationIgnored private var inFlight = false
+    @ObservationIgnored private var watcher: MediaAppWatcher?
+
+    private init() {
+        watcher = MediaAppWatcher(bundleID: Self.bundleID) { running in
+            let s = MediaNotesService.shared
+            s.running = running
+            if running { Task { try? await Task.sleep(for: .seconds(2)); await s.refresh(force: true) } }
+        }
+    }
+
+    func keepFresh() async {
+        while !Task.isCancelled {
+            await refresh()
+            try? await Task.sleep(for: .seconds(120))
+        }
+    }
+
+    func refresh(force: Bool = false) async {
+        running = Script.isRunning(Self.bundleID)
+        guard running, !MediaEnv.isRender, !inFlight else { return }
+        guard force || Date().timeIntervalSince(lastFetch) > 60 else { return }
+        inFlight = true
+        defer { inFlight = false }
+        // Pick the most recently modified note that is not in Recently Deleted.
+        let src = """
+        tell application "Notes"
+            set ds to modification date of every note
+            set c to count of ds
+            if c = 0 then return {"", "", 0}
+            repeat 5 times
+                set best to 0
+                set bestDate to missing value
+                repeat with i from 1 to c
+                    set d to item i of ds
+                    if d is not missing value then
+                        if bestDate is missing value then
+                            set bestDate to d
+                            set best to i
+                        else if d > bestDate then
+                            set bestDate to d
+                            set best to i
+                        end if
+                    end if
+                end repeat
+                if best = 0 then exit repeat
+                set n to note best
+                set isTrash to false
+                try
+                    if name of container of n is "Recently Deleted" then set isTrash to true
+                end try
+                if not isTrash then
+                    set t to plaintext of n
+                    if (length of t) > 400 then set t to text 1 thru 400 of t
+                    return {name of n, t, c}
+                end if
+                set item best of ds to missing value
+            end repeat
+            return {"", "", c}
+        end tell
+        """
+        guard let d = await Script.run(src), d.numberOfItems >= 3 else { return }
+        lastFetch = Date()
+        let title = d.atIndex(1)?.stringValue ?? ""
+        let snap = MediaNoteSnapshot(title: title, body: Self.preview(d.atIndex(2)?.stringValue ?? "", title: title),
+                                     count: Int(d.atIndex(3)?.int32Value ?? 0))
+        if snap != snapshot {
+            snapshot = snap
+            DiskCache.save(snap, "media-notes")
+        }
+    }
+
+    /// First ~80 characters of the body, without the title line, whitespace collapsed.
+    static func preview(_ text: String, title: String) -> String {
+        var lines = text.components(separatedBy: .newlines)
+        if let first = lines.first, first.trimmingCharacters(in: .whitespaces) == title.trimmingCharacters(in: .whitespaces) {
+            lines.removeFirst()
+        }
+        let flat = lines.joined(separator: " ").split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
+        return flat.count > 80 ? String(flat.prefix(80)) + "…" : flat
+    }
+
+    func newNote() {
+        Task {
+            let ok = await Script.run("""
+            tell application "Notes"
+                activate
+                set n to make new note with properties {body:""}
+                try
+                    show n
+                end try
+                return true
+            end tell
+            """)
+            if ok == nil { Open.bundle(Self.bundleID) }
+            await refresh(force: true)
+        }
+    }
+
+    var display: MediaNoteSnapshot? {
+        if MediaEnv.demo { return MediaNoteSnapshot(title: "Meeting notes", body: "Discuss launch timeline and assign owners for each workstream.", count: 8) }
+        return running ? snapshot : nil
+    }
+}
+
+// MARK: - Notes tile
+
+/// Notes app-style icon: white paper with a yellow header, perforation and ruled lines (brand surface).
+struct MediaNotesIcon: View {
+    @Environment(\.metrics) private var m
+    var size: CGFloat = 36
+
+    var body: some View {
+        let s = m.u(size)
+        Canvas { ctx, sz in
+            let w = sz.width, h = sz.height
+            let shape = Path(roundedRect: CGRect(origin: .zero, size: sz), cornerRadius: w * 0.225, style: .continuous)
+            ctx.clip(to: shape)
+            ctx.fill(Path(CGRect(origin: .zero, size: sz)), with: .linearGradient(Gradient(colors: [Color(hex: "#FBFBFB"), Color(hex: "#EBEBEB")]),
+                                                                                    startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
+            let band = h * 0.27
+            ctx.fill(Path(CGRect(x: 0, y: 0, width: w, height: band)),
+                     with: .linearGradient(Gradient(colors: [Color(hex: "#FFD84A"), Color(hex: "#FFC925")]), startPoint: .zero, endPoint: CGPoint(x: 0, y: band)))
+            // perforation dots
+            let dots = 13
+            let r = max(0.35, w * 0.012)
+            for i in 0..<dots {
+                let x = w * 0.09 + (w * 0.82) * CGFloat(i) / CGFloat(dots - 1)
+                ctx.fill(Path(ellipseIn: CGRect(x: x - r, y: band + h * 0.035 - r, width: r * 2, height: r * 2)), with: .color(Color(hex: "#C9C9C9")))
+            }
+            // ruled lines
+            for y in [0.5, 0.72] {
+                ctx.fill(Path(CGRect(x: w * 0.13, y: h * y, width: w * 0.74, height: max(0.5, h * 0.022))), with: .color(Color(hex: "#C8C8C8")))
+            }
+        }
+        .frame(width: s, height: s)
+    }
+}
+
+struct MediaNotesTile: View {
+    let w: WidgetInstance
+    @Environment(\.metrics) private var m
+    @Environment(\.palette) private var p
+
+    var body: some View {
+        let svc = MediaNotesService.shared
+        let snap = svc.display
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 13)) {
+            HStack(spacing: 0) {
+                MediaNotesIcon(size: 36)
+                VStack(alignment: .leading, spacing: m.u(2)) {
+                    if let snap, !snap.title.isEmpty {
+                        Text(snap.title).dock(11, .bold)
+                        if !snap.body.isEmpty {
+                            Text(snap.body)
+                                .font(.dock(m.u(9), .semibold))
+                                .foregroundStyle(p.secondary)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    } else if snap != nil {
+                        Text(L("No notes")).dock(11, .bold)
+                        Text(L("Create a new note")).dock(9, .semibold, p.secondary)
+                    } else {
+                        Text(L("Notes")).dock(11, .bold)
+                        Text(L("Open Notes")).dock(9, .semibold, p.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, m.u(12))
+                Spacer(minLength: m.u(8))
+                MediaComposeButton { svc.newNote() }
+            }
+        }
+        .onTapGesture { Open.bundle(MediaNotesService.bundleID) }
+        .task { await svc.keepFresh() }
+        .onWidgetRefresh(w.id) { Task { await svc.refresh(force: true) } }
+    }
+}
