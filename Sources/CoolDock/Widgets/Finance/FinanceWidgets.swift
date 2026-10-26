@@ -229,7 +229,7 @@ private struct FinPanel: View {
                 let crypto = key.market == .crypto
                 Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
                     GridRow {
-                        stat(crypto ? L("24h Open") : L("Open"), q.open.map { FinFormat.value($0, like: q) })
+                        stat(crypto ? L("24h Open") : LD("stock.openPrice", "Open"), q.open.map { FinFormat.value($0, like: q) })
                         stat(crypto ? L("24h Range") : L("Day Range"), range(q))
                     }
                     GridRow {

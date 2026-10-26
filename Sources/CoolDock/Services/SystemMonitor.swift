@@ -59,7 +59,8 @@ final class SystemMonitor {
         sampleCPU()
         sampleMemory()
         sampleNetwork()
-        if tickCount % 5 == 1 { sampleDisk(); samplePower() }
+        if tickCount % 5 == 1 { samplePower() }
+        if tickCount % 30 == 1 { sampleDisk() }
         thermal = ProcessInfo.processInfo.thermalState
         if tickCount % 3 == 1 { temperature = TemperatureSensors.cpuTemperature() }
     }
@@ -143,11 +144,20 @@ final class SystemMonitor {
 
     // MARK: Disk
 
+    /// "Important usage" capacity needs an XPC round-trip (~50 ms), so it runs off the main thread and rarely.
     private func sampleDisk() {
-        let url = URL(fileURLWithPath: "/")
-        if let v = try? url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]) {
-            diskFreeGB = Double(v.volumeAvailableCapacityForImportantUsage ?? 0) / 1_000_000_000
-            diskTotalGB = Double(v.volumeTotalCapacity ?? 0) / 1_000_000_000
+        DispatchQueue.global(qos: .utility).async {
+            let url = URL(fileURLWithPath: "/")
+            guard let v = try? url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]) else { return }
+            let free = Double(v.volumeAvailableCapacityForImportantUsage ?? 0) / 1_000_000_000
+            let total = Double(v.volumeTotalCapacity ?? 0) / 1_000_000_000
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    let m = SystemMonitor.shared
+                    if abs(m.diskFreeGB - free) > 0.05 { m.diskFreeGB = free }
+                    if m.diskTotalGB != total { m.diskTotalGB = total }
+                }
+            }
         }
     }
 

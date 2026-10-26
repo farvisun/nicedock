@@ -68,7 +68,6 @@ struct SysRing<Center: View>: View {
                 .stroke(style, style: StrokeStyle(lineWidth: m.u(lineWidth), lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .shadow(color: glow ? accent.opacity(0.55) : .clear, radius: glow ? m.u(3) : 0)
-                .animation(.easeOut(duration: 0.5), value: clamped)
             center()
         }
         .frame(width: m.u(diameter), height: m.u(diameter))

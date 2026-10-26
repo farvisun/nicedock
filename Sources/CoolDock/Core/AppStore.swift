@@ -180,7 +180,7 @@ final class AppStore {
         guard profiles.count < 8 else { return nil }
         var p = DockProfile(name: name ?? L("Profile %d", profiles.count + 1))
         if let source {
-            p.name = String((source.name + " " + L("Copy")).prefix(24))
+            p.name = String((source.name + " " + LD("profile.copySuffix", "Copy")).prefix(24))
             p.symbol = source.symbol
             p.widgets = source.widgets.map { var w = $0; let old = w.id; w.id = UUID(); Secrets.copyAll(from: old, to: w.id); return w }
         }

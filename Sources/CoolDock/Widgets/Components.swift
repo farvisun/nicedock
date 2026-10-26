@@ -88,7 +88,6 @@ struct RingGauge<Center: View>: View {
                 .stroke(gradient ? AnyShapeStyle(AngularGradient(colors: [accent.opacity(0.55), accent], center: .center, startAngle: .degrees(0), endAngle: .degrees(360 * clamped))) : AnyShapeStyle(accent),
                         style: StrokeStyle(lineWidth: m.u(lineWidth), lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .animation(.easeOut(duration: 0.5), value: clamped)
             center()
         }
         .frame(width: m.u(diameter), height: m.u(diameter))
