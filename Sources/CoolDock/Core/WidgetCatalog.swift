@@ -88,7 +88,7 @@ enum WidgetCatalog {
                               fields: [ConfigField(key: "name", title: "Name", type: .text(placeholder: "Folder")),
                                        ConfigField(key: "apps", title: "Apps", type: .apps),
                                        ConfigField(key: "color", title: "Folder Color", type: .color)],
-                              defaults: ["name": "Favorites", "apps": "/System/Applications/Finder.app\n/System/Applications/Music.app\n/System/Applications/Photos.app\n/System/Applications/Mail.app"])
+                              defaults: ["name": "Favorites", "apps": "/System/Library/CoreServices/Finder.app\n/System/Applications/Music.app\n/System/Applications/Photos.app\n/System/Applications/Mail.app"])
         case .applications:
             return WidgetSpec(category: .apps, title: "Applications", summary: "Browse every installed app.", symbol: "square.grid.3x3.fill", width: 62, bare: true)
         case .trash:

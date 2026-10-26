@@ -33,12 +33,12 @@ final class Panels {
 
     var isOpen: Bool { panel?.isVisible == true }
 
-    func toggle<V: View>(_ id: AnyHashable, @ViewBuilder content: () -> V) {
+    func toggle<V: View>(_ id: AnyHashable, takeFocus: Bool = true, @ViewBuilder content: () -> V) {
         if currentID == id, isOpen { close(); return }
-        show(id, content: content)
+        show(id, takeFocus: takeFocus, content: content)
     }
 
-    func show<V: View>(_ id: AnyHashable, @ViewBuilder content: () -> V) {
+    func show<V: View>(_ id: AnyHashable, takeFocus: Bool = true, @ViewBuilder content: () -> V) {
         close()
         let store = AppStore.shared
         dock = DockController.shared.activeWindow
@@ -66,7 +66,7 @@ final class Panels {
         resize(h.intrinsicContentSize)
         p.alphaValue = 0
         p.orderFrontRegardless()
-        p.makeKey()
+        if takeFocus { p.makeKey() }
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.16
             p.animator().alphaValue = 1

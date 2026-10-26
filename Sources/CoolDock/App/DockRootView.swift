@@ -37,8 +37,14 @@ struct DockRootView: View {
     private func naturalWidth() -> CGFloat {
         let s = store.settings
         let widgets = store.activeProfile.widgets
-        let widths = widgets.reduce(CGFloat(0)) { $0 + $1.kind.spec.width * CGFloat(s.dockScale) }
-        let gaps = CGFloat(max(0, widgets.count - 1)) * CGFloat(s.widgetSpacing * s.dockScale)
+        var widths = widgets.reduce(CGFloat(0)) { $0 + $1.kind.spec.width * CGFloat(s.dockScale) }
+        var count = widgets.count
+        if s.runningApps != .hidden {
+            let running = s.runningAppsCollapsed ? 1 : max(1, RunningApps.shared.apps.count)
+            widths += CGFloat(running) * 62 * CGFloat(s.dockScale)
+            count += 1
+        }
+        let gaps = CGFloat(max(0, count - 1)) * CGFloat(s.widgetSpacing * s.dockScale)
         return widths + gaps + DockMetrics.basePadding * 2 * CGFloat(s.dockScale) + 8
     }
 }
