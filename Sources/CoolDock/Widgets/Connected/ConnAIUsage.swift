@@ -52,7 +52,7 @@ enum ConnPrices {
 }
 
 /// Token tally shared by local scanners and API providers.
-private struct ConnTally {
+struct ConnTally {
     var input = 0.0, output = 0.0, cacheWrite = 0.0, cacheRead = 0.0, cost = 0.0, calls = 0.0
 
     var promptSide: Double { input + cacheWrite + cacheRead }
@@ -81,7 +81,7 @@ private struct ConnTally {
 enum ConnLogSource: String, Sendable { case claude, codex }
 
 /// One assistant message / token_count event, compacted (32 bytes) for incremental re-aggregation.
-private struct ConnLogEntry: Sendable {
+struct ConnLogEntry: Sendable {
     var key: UInt64          // message+request hash for de-duplication (0 = none)
     var time: UInt32         // unix seconds
     var input: Float
@@ -92,7 +92,7 @@ private struct ConnLogEntry: Sendable {
 }
 
 /// Per-file scan state. JSONL logs are append-only, so refreshes only read new bytes.
-private struct ConnLogFile: Sendable {
+struct ConnLogFile: Sendable {
     var offset = 0           // bytes consumed (through the last complete line)
     var mtime = Date.distantPast
     var entries: [ConnLogEntry] = []
@@ -132,7 +132,7 @@ actor ConnLocalUsage {
 }
 
 /// Byte-level JSONL scanning: `memmem` for the few keys we need, no full JSON parse.
-private enum ConnLogScanner {
+enum ConnLogScanner {
     static func roots(_ source: ConnLogSource) -> [URL] {
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser
@@ -149,8 +149,9 @@ private enum ConnLogScanner {
         return paths.filter { fm.fileExists(atPath: $0.path) }
     }
 
-    static func update(_ source: ConnLogSource, _ previous: [String: ConnLogFile], since: Date) throws -> [String: ConnLogFile] {
-        let roots = roots(source)
+    /// `roots` overrides the default log folders (tests point it at fixture directories).
+    static func update(_ source: ConnLogSource, _ previous: [String: ConnLogFile], since: Date, roots custom: [URL]? = nil) throws -> [String: ConnLogFile] {
+        let roots = custom ?? roots(source)
         guard !roots.isEmpty else {
             throw ConnError(source == .claude ? L("No Claude Code logs found") : L("No Codex logs found"))
         }
@@ -209,8 +210,9 @@ private enum ConnLogScanner {
                   let date = line.date(tsRange) else { return }
             let model = line.string(line.value(after: Needle.model, from: 0)) ?? ""
             if model == "<synthetic>" { return }
-            // Streaming writes one line per content block with identical usage; resumed sessions copy
-            // history into new files — hash message + request ids so each call counts once.
+            // Streaming writes one line per content block (output_tokens grows until the last one);
+            // resumed sessions copy history into new files — hash message + request ids so each
+            // call counts once (`aggregate` keeps the most complete line).
             var hash = ConnFNV()
             if let r = line.value(after: Needle.messageID, from: 0) { hash.add(line, r) }
             if let r = line.value(after: Needle.requestID, from: 0) { hash.add(line, r) }
@@ -256,24 +258,30 @@ private enum ConnLogScanner {
         }
     }
 
-    static func aggregate(_ files: [String: ConnLogFile], range: ConnRange) -> ConnSnapshot {
-        let now = Date()
+    static func aggregate(_ files: [String: ConnLogFile], range: ConnRange, now: Date = Date()) -> ConnSnapshot {
         let start = UInt32(max(range.start(now).timeIntervalSince1970, 0))
         var buckets = ConnBuckets(range: range, now: now)
         var tally = ConnTally()
-        var seen = Set<UInt64>()
+        func add(_ e: ConnLogEntry) {
+            tally.input += Double(e.input)
+            tally.output += Double(e.output)
+            tally.cacheWrite += Double(e.cacheWrite)
+            tally.cacheRead += Double(e.cacheRead)
+            tally.cost += Double(e.cost)
+            tally.calls += 1
+            buckets.add(Double(e.input + e.output + e.cacheWrite + e.cacheRead), at: Date(timeIntervalSince1970: TimeInterval(e.time)))
+        }
+        // Lines of one streamed message share a key but only the last carries the final
+        // output_tokens (earlier blocks log a partial count) — keep the largest per key.
+        var keyed: [UInt64: ConnLogEntry] = [:]
         for file in files.values {
             for e in file.entries where e.time >= start {
-                if e.key != 0, !seen.insert(e.key).inserted { continue }
-                tally.input += Double(e.input)
-                tally.output += Double(e.output)
-                tally.cacheWrite += Double(e.cacheWrite)
-                tally.cacheRead += Double(e.cacheRead)
-                tally.cost += Double(e.cost)
-                tally.calls += 1
-                buckets.add(Double(e.input + e.output + e.cacheWrite + e.cacheRead), at: Date(timeIntervalSince1970: TimeInterval(e.time)))
+                guard e.key != 0 else { add(e); continue }
+                if let kept = keyed[e.key], kept.output >= e.output { continue }
+                keyed[e.key] = e
             }
         }
+        keyed.values.forEach(add)
         return tally.snapshot(series: buckets, now: now, estimate: true)
     }
 
@@ -387,6 +395,7 @@ private enum ConnBytes {
 
 // MARK: - Admin APIs (Anthropic, OpenAI)
 
+/// HTTP loops here; the per-page parsing (`add…Usage`, `…CostPage`) is pure so fixtures can cover it.
 enum ConnAIUsageAPI {
     static func anthropic(key: String, range: ConnRange) async throws -> ConnSnapshot {
         let now = Date()
@@ -400,24 +409,7 @@ enum ConnAIUsageAPI {
             var query = [("starting_at", ConnDate.isoUTC(start)), ("bucket_width", width), ("limit", range == .day ? "24" : "31"), ("group_by[]", "model")]
             if let page { query.append(("page", page)) }
             let obj = try await ConnHTTP.object(ConnHTTP.url("https://api.anthropic.com/v1/organizations/usage_report/messages", query), headers: headers)
-            for bucket in J.array(obj["data"]) {
-                let at = ConnDate.parse(bucket["starting_at"]) ?? start
-                for r in J.array(bucket["results"]) {
-                    let input = J.num(r["uncached_input_tokens"]) ?? 0
-                    let output = J.num(r["output_tokens"]) ?? 0
-                    let read = J.num(r["cache_read_input_tokens"]) ?? 0
-                    let w5 = J.num(J.path(r, "cache_creation.ephemeral_5m_input_tokens")) ?? 0
-                    let w1 = J.num(J.path(r, "cache_creation.ephemeral_1h_input_tokens")) ?? 0
-                    let price = ConnPrices.claude(J.str(r["model"]) ?? "")
-                    tally.input += input
-                    tally.output += output
-                    tally.cacheRead += read
-                    tally.cacheWrite += w5 + w1
-                    tally.cost += (input * price.input + output * price.output + read * price.cacheRead + w5 * price.cacheWrite + w1 * price.input * 2) / 1_000_000
-                    buckets.add(input + output + read + w5 + w1, at: at)
-                }
-            }
-            guard (obj["has_more"] as? Bool) == true, let next = J.str(obj["next_page"]) else { break }
+            guard let next = addAnthropicUsage(obj, start: start, tally: &tally, buckets: &buckets) else { break }
             page = next
         }
         var estimate = true
@@ -429,6 +421,28 @@ enum ConnAIUsageAPI {
         return tally.snapshot(series: buckets, now: now, estimate: estimate)
     }
 
+    /// Adds one usage-report page to the tally (cost estimated from list prices); returns the next page cursor.
+    static func addAnthropicUsage(_ obj: [String: Any], start: Date, tally: inout ConnTally, buckets: inout ConnBuckets) -> String? {
+        for bucket in J.array(obj["data"]) {
+            let at = ConnDate.parse(bucket["starting_at"]) ?? start
+            for r in J.array(bucket["results"]) {
+                let input = J.num(r["uncached_input_tokens"]) ?? 0
+                let output = J.num(r["output_tokens"]) ?? 0
+                let read = J.num(r["cache_read_input_tokens"]) ?? 0
+                let w5 = J.num(J.path(r, "cache_creation.ephemeral_5m_input_tokens")) ?? 0
+                let w1 = J.num(J.path(r, "cache_creation.ephemeral_1h_input_tokens")) ?? 0
+                let price = ConnPrices.claude(J.str(r["model"]) ?? "")
+                tally.input += input
+                tally.output += output
+                tally.cacheRead += read
+                tally.cacheWrite += w5 + w1
+                tally.cost += (input * price.input + output * price.output + read * price.cacheRead + w5 * price.cacheWrite + w1 * price.input * 2) / 1_000_000
+                buckets.add(input + output + read + w5 + w1, at: at)
+            }
+        }
+        return nextPage(obj)
+    }
+
     private static func anthropicCost(headers: [String: String], start: Date) async throws -> Double {
         var total = 0.0
         var page: String?
@@ -436,13 +450,21 @@ enum ConnAIUsageAPI {
             var query = [("starting_at", ConnDate.isoUTC(start)), ("bucket_width", "1d"), ("limit", "31")]
             if let page { query.append(("page", page)) }
             let obj = try await ConnHTTP.object(ConnHTTP.url("https://api.anthropic.com/v1/organizations/cost_report", query), headers: headers)
-            for bucket in J.array(obj["data"]) {
-                for r in J.array(bucket["results"]) { total += (J.num(r["amount"]) ?? 0) / 100 }
-            }
-            guard (obj["has_more"] as? Bool) == true, let next = J.str(obj["next_page"]) else { break }
+            let p = anthropicCostPage(obj)
+            total += p.dollars
+            guard let next = p.next else { break }
             page = next
         }
         return total
+    }
+
+    /// Cost-report page → USD (amounts are decimal strings in cents) and the next page cursor.
+    static func anthropicCostPage(_ obj: [String: Any]) -> (dollars: Double, next: String?) {
+        var total = 0.0
+        for bucket in J.array(obj["data"]) {
+            for r in J.array(bucket["results"]) { total += (J.num(r["amount"]) ?? 0) / 100 }
+        }
+        return (total, nextPage(obj))
     }
 
     static func openai(key: String, range: ConnRange) async throws -> ConnSnapshot {
@@ -458,23 +480,7 @@ enum ConnAIUsageAPI {
                          ("limit", range == .day ? "24" : "31"), ("group_by", "model")]
             if let page { query.append(("page", page)) }
             let obj = try await ConnHTTP.object(ConnHTTP.url("https://api.openai.com/v1/organization/usage/completions", query), headers: headers)
-            for bucket in J.array(obj["data"]) {
-                let at = ConnDate.parse(bucket["start_time"]) ?? start
-                for r in J.array(bucket["results"]) {
-                    let input = J.num(r["input_tokens"]) ?? 0
-                    let cached = J.num(r["input_cached_tokens"]) ?? 0
-                    let output = J.num(r["output_tokens"]) ?? 0
-                    let price = ConnPrices.openai(J.str(r["model"]) ?? "")
-                    let uncached = max(input - cached, 0)
-                    tally.input += uncached
-                    tally.cacheRead += cached
-                    tally.output += output
-                    tally.calls += J.num(r["num_model_requests"]) ?? 0
-                    tally.cost += (uncached * price.input + cached * price.cacheRead + output * price.output) / 1_000_000
-                    buckets.add(input + output, at: at)
-                }
-            }
-            guard (obj["has_more"] as? Bool) == true, let next = J.str(obj["next_page"]) else { break }
+            guard let next = addOpenAIUsage(obj, start: start, tally: &tally, buckets: &buckets) else { break }
             page = next
         }
         var estimate = true
@@ -485,6 +491,30 @@ enum ConnAIUsageAPI {
         return tally.snapshot(series: buckets, now: now, estimate: estimate)
     }
 
+    /// Adds one completions-usage page; returns the next page cursor. `input_tokens` includes
+    /// cached and cache-write tokens, so both are split out of it.
+    static func addOpenAIUsage(_ obj: [String: Any], start: Date, tally: inout ConnTally, buckets: inout ConnBuckets) -> String? {
+        for bucket in J.array(obj["data"]) {
+            let at = ConnDate.parse(bucket["start_time"]) ?? start
+            for r in J.array(bucket["results"]) {
+                let input = J.num(r["input_tokens"]) ?? 0
+                let cached = J.num(r["input_cached_tokens"]) ?? 0
+                let written = min(J.num(r["input_cache_write_tokens"]) ?? 0, max(input - cached, 0))
+                let output = J.num(r["output_tokens"]) ?? 0
+                let price = ConnPrices.openai(J.str(r["model"]) ?? "")
+                let uncached = max(input - cached - written, 0)
+                tally.input += uncached
+                tally.cacheRead += cached
+                tally.cacheWrite += written
+                tally.output += output
+                tally.calls += J.num(r["num_model_requests"]) ?? 0
+                tally.cost += (uncached * price.input + cached * price.cacheRead + written * price.cacheWrite + output * price.output) / 1_000_000
+                buckets.add(input + output, at: at)
+            }
+        }
+        return nextPage(obj)
+    }
+
     private static func openaiCost(headers: [String: String], start: Date) async throws -> Double {
         var total = 0.0
         var page: String?
@@ -492,12 +522,26 @@ enum ConnAIUsageAPI {
             var query = [("start_time", String(Int(start.timeIntervalSince1970))), ("bucket_width", "1d"), ("limit", "31")]
             if let page { query.append(("page", page)) }
             let obj = try await ConnHTTP.object(ConnHTTP.url("https://api.openai.com/v1/organization/costs", query), headers: headers)
-            for bucket in J.array(obj["data"]) {
-                for r in J.array(bucket["results"]) { total += J.num(J.path(r, "amount.value")) ?? 0 }
-            }
-            guard (obj["has_more"] as? Bool) == true, let next = J.str(obj["next_page"]) else { break }
+            let p = openaiCostPage(obj)
+            total += p.dollars
+            guard let next = p.next else { break }
             page = next
         }
         return total
+    }
+
+    /// Costs page → USD (`amount.value` is dollars) and the next page cursor.
+    static func openaiCostPage(_ obj: [String: Any]) -> (dollars: Double, next: String?) {
+        var total = 0.0
+        for bucket in J.array(obj["data"]) {
+            for r in J.array(bucket["results"]) { total += J.num(J.path(r, "amount.value")) ?? 0 }
+        }
+        return (total, nextPage(obj))
+    }
+
+    /// `has_more` + `next_page` (both APIs share the shape).
+    static func nextPage(_ obj: [String: Any]) -> String? {
+        guard (obj["has_more"] as? Bool) == true, let next = J.str(obj["next_page"]) else { return nil }
+        return next
     }
 }

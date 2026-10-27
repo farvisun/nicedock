@@ -24,7 +24,12 @@ struct ConnError: LocalizedError {
 
 // MARK: - HTTP
 
+/// GET with headers → body + response. Paginating providers take one so tests can replay pages.
+typealias ConnSend = (URL, [String: String]) async throws -> (Data, HTTPURLResponse)
+
 enum ConnHTTP {
+    static let live: ConnSend = { url, headers in try await send(url, headers: headers) }
+
     /// GET/POST returning body and response so callers can follow `Link` pagination.
     static func send(_ url: URL, headers: [String: String] = [:], method: String = "GET", body: Data? = nil) async throws -> (Data, HTTPURLResponse) {
         var req = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
@@ -43,14 +48,12 @@ enum ConnHTTP {
 
     static func json(_ url: URL, headers: [String: String] = [:], method: String = "GET", body: Data? = nil) async throws -> Any {
         let (data, _) = try await send(url, headers: headers, method: method, body: body)
-        return try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+        return try ConnJSON.decode(data)
     }
 
     static func object(_ url: URL, headers: [String: String] = [:], method: String = "GET", body: Data? = nil) async throws -> [String: Any] {
-        guard let obj = try await json(url, headers: headers, method: method, body: body) as? [String: Any] else {
-            throw ConnError(L("Unexpected response"))
-        }
-        return obj
+        let (data, _) = try await send(url, headers: headers, method: method, body: body)
+        return try ConnJSON.object(data)
     }
 
     static func bearer(_ token: String) -> [String: String] { ["Authorization": "Bearer \(token)"] }
@@ -68,19 +71,59 @@ enum ConnHTTP {
 
     /// `<https://…?page_info=abc>; rel="next"` → URL
     static func nextLink(_ response: HTTPURLResponse) -> URL? {
-        guard let link = response.value(forHTTPHeaderField: "Link") else { return nil }
-        for part in link.split(separator: ",") where part.contains("rel=\"next\"") {
-            if let open = part.firstIndex(of: "<"), let close = part.firstIndex(of: ">"), open < close {
-                return URL(string: String(part[part.index(after: open)..<close]))
-            }
+        nextLink(header: response.value(forHTTPHeaderField: "Link"))
+    }
+
+    /// RFC 8288 `Link` header → the `rel="next"` target. Entries are split on commas *outside*
+    /// `<…>` so targets that carry unencoded commas (e.g. `fields=a,b`) survive.
+    static func nextLink(header raw: String?) -> URL? {
+        guard var link = raw else { return nil }
+        // Shopify's pagination docs render targets in backticks (`…`; rel=next) — accept that too.
+        if !link.contains("<"), link.contains("`") {
+            var open = true
+            link = String(link.map { c -> Character in
+                guard c == "`" else { return c }
+                defer { open.toggle() }
+                return open ? "<" : ">"
+            })
+        }
+        var rest = Substring(link)
+        while let open = rest.firstIndex(of: "<") {
+            guard let close = rest[open...].firstIndex(of: ">") else { return nil }
+            let target = rest[rest.index(after: open)..<close]
+            let params = rest[rest.index(after: close)...]
+            let paramsEnd = params.firstIndex(of: "<") ?? params.endIndex
+            if linkRelations(params[..<paramsEnd]).contains("next") { return URL(string: String(target)) }
+            rest = params[paramsEnd...]
         }
         return nil
+    }
+
+    /// `; rel="previous next"` / `; rel=next` → ["previous", "next"]
+    private static func linkRelations(_ params: Substring) -> [String] {
+        for param in params.split(separator: ";") {
+            let pair = param.split(separator: "=", maxSplits: 1)
+            guard pair.count == 2, pair[0].trimmingCharacters(in: .whitespaces).lowercased() == "rel" else { continue }
+            let value = pair[1].trimmingCharacters(in: CharacterSet.whitespaces.union(CharacterSet(charactersIn: "\",")))
+            return value.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
+        }
+        return []
     }
 }
 
 // MARK: - JSON access
 
 enum ConnJSON {
+    static func decode(_ data: Data) throws -> Any {
+        try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+    }
+
+    /// Top-level JSON object or `Unexpected response`.
+    static func object(_ data: Data) throws -> [String: Any] {
+        guard let obj = try decode(data) as? [String: Any] else { throw ConnError(L("Unexpected response")) }
+        return obj
+    }
+
     static func dict(_ v: Any?) -> [String: Any]? { v as? [String: Any] }
     static func array(_ v: Any?) -> [[String: Any]] { (v as? [Any])?.compactMap { $0 as? [String: Any] } ?? [] }
 
@@ -202,6 +245,10 @@ enum ConnDate {
         }
         // "+00" → "+00:00"
         if let r = s.range(of: #"[+-]\d{2}$"#, options: .regularExpression) { s.replaceSubrange(r, with: s[r] + ":00") }
+        // ISO 8601 without seconds, e.g. Supabase's "2024-01-01T04:24Z" → "…T04:24:00Z"
+        if s.range(of: #"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})?$"#, options: .regularExpression) != nil {
+            s.insert(contentsOf: ":00", at: s.index(s.startIndex, offsetBy: 16))
+        }
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let d = f.date(from: s) { return d }
@@ -356,8 +403,18 @@ struct ConnBuckets {
 enum ConnMoney {
     /// ISO 4217 currencies without minor units.
     private static let zeroDecimal: Set<String> = ["BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF"]
+    /// ISO 4217 currencies with three minor digits (amounts in fils / baisa / millimes).
+    private static let threeDecimal: Set<String> = ["BHD", "IQD", "JOD", "KWD", "LYD", "OMR", "TND"]
 
     static func fromMinor(_ amount: Double, _ currency: String) -> Double {
-        zeroDecimal.contains(currency.uppercased()) ? amount : amount / 100
+        let c = currency.uppercased()
+        if zeroDecimal.contains(c) { return amount }
+        return threeDecimal.contains(c) ? amount / 1000 : amount / 100
+    }
+
+    /// Stripe amounts: ISO minor units, except UGX which Stripe keeps two-decimal for backward
+    /// compatibility (https://docs.stripe.com/currencies#special-cases).
+    static func fromStripe(_ amount: Double, _ currency: String) -> Double {
+        currency.uppercased() == "UGX" ? amount / 100 : fromMinor(amount, currency)
     }
 }

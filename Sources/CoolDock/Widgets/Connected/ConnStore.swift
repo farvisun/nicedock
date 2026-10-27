@@ -234,7 +234,9 @@ enum ConnService {
         func has(_ key: String) -> Bool { !w.string(key).trimmingCharacters(in: .whitespaces).isEmpty }
         switch w.kind {
         case .shopifyChart, .shopifyToday, .shopifyOverview: return hasToken && has("shop")
-        case .plausible, .visitorsChart, .simpleAnalytics: return hasToken && has("site")
+        case .plausible, .visitorsChart: return hasToken && has("site")
+        // Public Simple Analytics sites need no key.
+        case .simpleAnalytics: return has("site")
         case .githubContributions: return has("user") || hasToken
         case .supabase: return hasToken && has("project")
         case .socialX: return hasToken && has("user")
@@ -344,7 +346,7 @@ enum ConnProviders {
             return try await ConnShopify.fetch(shop: w.string("shop"), token: need(), range: .day)
         case .plausible, .visitorsChart:
             return try await ConnPlausible.fetch(host: ConnPlausible.host(w), site: w.string("site"), token: need(), range: range)
-        case .simpleAnalytics: return try await ConnSimpleAnalytics.fetch(site: w.string("site"), token: need(), range: range)
+        case .simpleAnalytics: return try await ConnSimpleAnalytics.fetch(site: w.string("site"), token: token, range: range)
         case .dataFast: return try await ConnDataFast.fetch(token: need(), range: range)
         case .dubStats: return try await ConnDub.fetch(token: need(), range: range)
         case .resendStats: return try await ConnResend.fetch(token: need())

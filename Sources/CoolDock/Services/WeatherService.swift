@@ -99,20 +99,29 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
         var comps = URLComponents(string: "https://geocoding-api.open-meteo.com/v1/search")!
         let lang = Localizer.language == .fa ? "fa" : Localizer.language.rawValue.prefix(2).description
         comps.queryItems = [.init(name: "name", value: trimmed), .init(name: "count", value: "1"), .init(name: "language", value: lang)]
-        let obj = try await Net.json(comps.url!) as? [String: Any]
-        guard let first = (obj?["results"] as? [[String: Any]])?.first,
-              let lat = first["latitude"] as? Double, let lon = first["longitude"] as? Double else { return nil }
-        let result = (lat, lon, (first["name"] as? String) ?? trimmed)
+        guard let result = Self.parseGeocoding(try await Net.json(comps.url!), fallbackName: trimmed) else { return nil }
         geocoded[trimmed.lowercased()] = result
         return result
     }
 
+    /// Open-Meteo geocoding → first match (no `results` key when nothing matches).
+    nonisolated static func parseGeocoding(_ obj: Any, fallbackName: String) -> (lat: Double, lon: Double, name: String)? {
+        guard let first = ((obj as? [String: Any])?["results"] as? [[String: Any]])?.first,
+              let lat = first["latitude"] as? Double, let lon = first["longitude"] as? Double else { return nil }
+        return (lat, lon, (first["name"] as? String) ?? fallbackName)
+    }
+
     private func ipLocation() async throws -> (lat: Double, lon: Double, name: String)? {
-        let obj = try await Net.json(URL(string: "https://ipwho.is/")!) as? [String: Any]
-        guard let lat = obj?["latitude"] as? Double, let lon = obj?["longitude"] as? Double else { return nil }
-        let r = (lat, lon, (obj?["city"] as? String) ?? "")
+        guard let r = Self.parseIPLocation(try await Net.json(URL(string: "https://ipwho.is/")!)) else { return nil }
         current = r
         return r
+    }
+
+    /// ipwho.is → coordinates and city.
+    nonisolated static func parseIPLocation(_ obj: Any) -> (lat: Double, lon: Double, name: String)? {
+        let obj = obj as? [String: Any]
+        guard let lat = obj?["latitude"] as? Double, let lon = obj?["longitude"] as? Double else { return nil }
+        return (lat, lon, (obj?["city"] as? String) ?? "")
     }
 
     private func currentLocation() async -> (lat: Double, lon: Double, name: String)? {
@@ -172,7 +181,12 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
             .init(name: "daily", value: "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum"),
             .init(name: "timezone", value: "auto"), .init(name: "forecast_days", value: "7"), .init(name: "timeformat", value: "unixtime")
         ]
-        guard let obj = try await Net.json(comps.url!) as? [String: Any],
+        return try Self.parseForecast(try await Net.json(comps.url!), name: name, now: Date())
+    }
+
+    /// Open-Meteo forecast (`timeformat=unixtime`) → snapshot with the next 24 hours from an hour before `now`.
+    nonisolated static func parseForecast(_ root: Any, name: String, now date: Date) throws -> WeatherSnapshot {
+        guard let obj = root as? [String: Any],
               let cur = obj["current"] as? [String: Any] else { throw Net.HTTPError(status: 0, body: "") }
         let tz = obj["timezone"] as? String ?? TimeZone.current.identifier
         func num(_ d: [String: Any]?, _ k: String) -> Double { (d?[k] as? NSNumber)?.doubleValue ?? 0 }
@@ -181,7 +195,7 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
         let hourly = obj["hourly"] as? [String: Any]
         let hTimes = arr(hourly, "time"), hTemp = arr(hourly, "temperature_2m"), hCode = arr(hourly, "weather_code")
         let hDay = arr(hourly, "is_day"), hProb = arr(hourly, "precipitation_probability")
-        let now = Date().timeIntervalSince1970 - 3600
+        let now = date.timeIntervalSince1970 - 3600
         var hours: [WeatherSnapshot.Hour] = []
         for i in hTimes.indices where hTimes[i] >= now && hours.count < 24 {
             hours.append(.init(time: Date(timeIntervalSince1970: hTimes[i]), temp: hTemp[safe: i] ?? 0, code: Int(hCode[safe: i] ?? 0),
@@ -195,7 +209,7 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
                                 sunrise: dRise[safe: i].map { Date(timeIntervalSince1970: $0) }, sunset: dSet[safe: i].map { Date(timeIntervalSince1970: $0) },
                                 precip: dPrec[safe: i] ?? 0)
         }
-        return WeatherSnapshot(place: name, fetched: Date(), timeZone: tz, temp: num(cur, "temperature_2m"), feelsLike: num(cur, "apparent_temperature"),
+        return WeatherSnapshot(place: name, fetched: date, timeZone: tz, temp: num(cur, "temperature_2m"), feelsLike: num(cur, "apparent_temperature"),
                                code: Int(num(cur, "weather_code")), isDay: num(cur, "is_day") > 0, humidity: Int(num(cur, "relative_humidity_2m")),
                                windSpeed: num(cur, "wind_speed_10m"), windDirection: num(cur, "wind_direction_10m"), windGusts: num(cur, "wind_gusts_10m"),
                                precipitation: num(cur, "precipitation"), hours: hours, days: days)

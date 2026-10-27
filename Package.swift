@@ -34,6 +34,12 @@ let package = Package(
                 .linkedFramework("UniformTypeIdentifiers"),
                 .linkedFramework("QuickLookThumbnailing")
             ]
+        ),
+        // Parser tests over real (curl-captured) and documentation-shaped fixtures in Tests/Fixtures.
+        .testTarget(
+            name: "CoolDockTests",
+            dependencies: ["CoolDock"],
+            path: "Tests/CoolDockTests"
         )
     ]
 )

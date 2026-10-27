@@ -1,0 +1,24 @@
+{
+  "kind": "youtube#channelListResponse",
+  "etag": "8rQ5Rm3ShZ0a2xQyDbXcLwH1uQk",
+  "pageInfo": { "totalResults": 1, "resultsPerPage": 5 },
+  "items": [
+    {
+      "kind": "youtube#channel",
+      "etag": "pH3mY1Jk3o0wXnI0V8sQe1yq1aA",
+      "id": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "snippet": {
+        "title": "Google for Developers",
+        "description": "Subscribe to join a community of creative developers and learn the latest in Google technology.",
+        "customUrl": "@googledevelopers",
+        "publishedAt": "2007-08-23T00:34:43Z"
+      },
+      "statistics": {
+        "viewCount": "283749274",
+        "subscriberCount": "2510000",
+        "hiddenSubscriberCount": false,
+        "videoCount": "6417"
+      }
+    }
+  ]
+}

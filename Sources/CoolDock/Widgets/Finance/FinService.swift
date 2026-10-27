@@ -131,31 +131,24 @@ final class FinService {
 
     private nonisolated static let browserUA = ["User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"]
 
-    private struct FinError: LocalizedError {
+    struct FinError: LocalizedError {
         var invalidSymbol = true
         var errorDescription: String? { L("Not found") }
     }
 
+    /// Yahoo answers cookie-less browser user agents with 429 while the app's own agent
+    /// (`Net.session` default) gets data, so the browser agent is only the last resort.
+    nonisolated static let yahooAttempts: [(host: String, headers: [String: String])] = [
+        ("query1.finance.yahoo.com", [:]), ("query2.finance.yahoo.com", [:]), ("query1.finance.yahoo.com", browserUA)
+    ]
+
     private nonisolated static func fetchYahoo(_ symbol: String, interval: String) async throws -> FinQuote {
         let sym = symbol.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? symbol
         var lastError: Error = FinError()
-        for host in ["query1.finance.yahoo.com", "query2.finance.yahoo.com"] {
-            guard let url = URL(string: "https://\(host)/v8/finance/chart/\(sym)?range=1d&interval=\(interval)") else { continue }
+        for attempt in yahooAttempts {
+            guard let url = URL(string: "https://\(attempt.host)/v8/finance/chart/\(sym)?range=1d&interval=\(interval)") else { continue }
             do {
-                let root = try await Net.json(url, headers: browserUA) as? [String: Any]
-                guard let chart = root?["chart"] as? [String: Any],
-                      let result = (chart["result"] as? [[String: Any]])?.first,
-                      let meta = result["meta"] as? [String: Any],
-                      let price = num(meta["regularMarketPrice"]) else { throw FinError() }
-                let quote = ((result["indicators"] as? [String: Any])?["quote"] as? [[String: Any]])?.first
-                let closes = (quote?["close"] as? [Any])?.compactMap(num) ?? []
-                let opens = (quote?["open"] as? [Any])?.compactMap(num) ?? []
-                let prev = num(meta["chartPreviousClose"]) ?? num(meta["previousClose"]) ?? closes.first ?? price
-                let change = price - prev
-                let name = (meta["longName"] as? String) ?? (meta["shortName"] as? String) ?? symbol
-                return FinQuote(symbol: symbol, name: name, price: price, change: change, percent: prev != 0 ? change / prev * 100 : 0,
-                                open: opens.first, prevClose: prev, high: num(meta["regularMarketDayHigh"]), low: num(meta["regularMarketDayLow"]),
-                                points: closes.isEmpty ? [prev, price] : closes, fetched: Date())
+                return try parseYahooChart(try await Net.json(url, headers: attempt.headers), symbol: symbol, fetched: Date())
             } catch let e as Net.HTTPError where e.status == 404 {
                 throw e
             } catch {
@@ -163,6 +156,23 @@ final class FinService {
             }
         }
         throw lastError
+    }
+
+    /// `/v8/finance/chart` → quote. Change is against `chartPreviousClose`; null candles are skipped.
+    nonisolated static func parseYahooChart(_ root: Any, symbol: String, fetched: Date) throws -> FinQuote {
+        guard let chart = (root as? [String: Any])?["chart"] as? [String: Any],
+              let result = (chart["result"] as? [[String: Any]])?.first,
+              let meta = result["meta"] as? [String: Any],
+              let price = num(meta["regularMarketPrice"]) else { throw FinError() }
+        let quote = ((result["indicators"] as? [String: Any])?["quote"] as? [[String: Any]])?.first
+        let closes = (quote?["close"] as? [Any])?.compactMap(num) ?? []
+        let opens = (quote?["open"] as? [Any])?.compactMap(num) ?? []
+        let prev = num(meta["chartPreviousClose"]) ?? num(meta["previousClose"]) ?? closes.first ?? price
+        let change = price - prev
+        let name = (meta["longName"] as? String) ?? (meta["shortName"] as? String) ?? symbol
+        return FinQuote(symbol: symbol, name: name, price: price, change: change, percent: prev != 0 ? change / prev * 100 : 0,
+                        open: opens.first, prevClose: prev, high: num(meta["regularMarketDayHigh"]), low: num(meta["regularMarketDayLow"]),
+                        points: closes.isEmpty ? [prev, price] : closes, fetched: fetched)
     }
 
     // MARK: Binance (public market-data mirror as second host; short timeouts keep the fallback quick)
@@ -191,16 +201,25 @@ final class FinService {
     }
 
     private nonisolated static func fetchBinance(_ symbol: String) async throws -> FinQuote {
-        guard let t = try await binance("/api/v3/ticker/24hr?symbol=\(symbol)USDT") as? [String: Any],
-              let price = num(t["lastPrice"]) else { throw FinError() }
+        try parseBinanceTicker(try await binance("/api/v3/ticker/24hr?symbol=\(symbol)USDT"), symbol: symbol, fetched: Date())
+    }
+
+    /// `/api/v3/ticker/24hr` (decimal strings) → quote.
+    nonisolated static func parseBinanceTicker(_ obj: Any, symbol: String, fetched: Date) throws -> FinQuote {
+        guard let t = obj as? [String: Any], let price = num(t["lastPrice"]) else { throw FinError() }
         let change = num(t["priceChange"]) ?? 0
         return FinQuote(symbol: symbol, name: coinNames[symbol] ?? symbol, price: price, change: change,
                         percent: num(t["priceChangePercent"]) ?? 0, open: num(t["openPrice"]), prevClose: num(t["prevClosePrice"]),
-                        high: num(t["highPrice"]), low: num(t["lowPrice"]), points: [], fetched: Date())
+                        high: num(t["highPrice"]), low: num(t["lowPrice"]), points: [], fetched: fetched)
     }
 
     private nonisolated static func fetchKlines(_ symbol: String) async throws -> [Double] {
-        guard let rows = try await binance("/api/v3/klines?symbol=\(symbol)USDT&interval=15m&limit=96") as? [[Any]] else { throw FinError() }
+        try parseKlines(try await binance("/api/v3/klines?symbol=\(symbol)USDT&interval=15m&limit=96"))
+    }
+
+    /// `/api/v3/klines` rows `[openTime, open, high, low, close, …]` → closes, oldest first.
+    nonisolated static func parseKlines(_ obj: Any) throws -> [Double] {
+        guard let rows = obj as? [[Any]] else { throw FinError() }
         return rows.compactMap { $0.count > 4 ? num($0[4]) : nil }
     }
 
