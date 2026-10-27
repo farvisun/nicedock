@@ -68,14 +68,24 @@ enum RenderHarness {
                 let renderer = ImageRenderer(content: view)
                 renderer.scale = 2
                 if let cg = renderer.cgImage {
-                    let rep = NSBitmapImageRep(cgImage: cg)
-                    try? rep.representation(using: .png, properties: [:])?.write(to: outDir.appendingPathComponent("\(w.kind.rawValue).png"))
+                    try? png(cg)?.write(to: outDir.appendingPathComponent("\(w.kind.rawValue).png"))
                 }
             }
             print("Rendered \(instances.count) widget(s) to \(outDir.path)")
             exit(0)
         }
         return true
+    }
+
+    /// 8-bit sRGB PNG. A frame that contains NSWorkspace app icons comes back from ImageRenderer as 16-bit HDR (PQ);
+    /// written as is it reads as washed-out grey, background included. Converting here keeps every frame SDR.
+    static func png(_ image: CGImage) -> Data? {
+        guard let srgb = CGColorSpace(name: CGColorSpace.sRGB),
+              let ctx = CGContext(data: nil, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: 0,
+                                  space: srgb, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        ctx.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        guard let out = ctx.makeImage() else { return nil }
+        return NSBitmapImageRep(cgImage: out).representation(using: .png, properties: [:])
     }
 
     /// One widget at a time: seed its reference data, mount it so loaders run, then render.
@@ -109,8 +119,7 @@ enum RenderHarness {
                 let renderer = ImageRenderer(content: host().background(Color(red: 11 / 255, green: 11 / 255, blue: 11 / 255)))
                 renderer.scale = 2
                 if let cg = renderer.cgImage {
-                    let rep = NSBitmapImageRep(cgImage: cg)
-                    try? rep.representation(using: .png, properties: [:])?.write(to: outDir.appendingPathComponent("\(frame.name).png"))
+                    try? png(cg)?.write(to: outDir.appendingPathComponent("\(frame.name).png"))
                 }
                 mount.contentView = nil
                 render(index + 1)
