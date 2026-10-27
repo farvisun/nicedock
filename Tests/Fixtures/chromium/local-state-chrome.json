@@ -1,0 +1,51 @@
+{
+  "browser": {
+    "enabled_labs_experiments": [],
+    "last_redirect_origin": ""
+  },
+  "hardware_acceleration_mode_previous": true,
+  "profile": {
+    "info_cache": {
+      "Default": {
+        "active_time": 1792900000.0,
+        "avatar_icon": "chrome://theme/IDR_PROFILE_AVATAR_26",
+        "background_apps": false,
+        "gaia_given_name": "",
+        "gaia_name": "",
+        "is_consented_primary_account": false,
+        "is_ephemeral": false,
+        "is_using_default_avatar": true,
+        "is_using_default_name": false,
+        "managed_user_id": "",
+        "name": "Personal",
+        "shortcut_name": "Personal",
+        "user_name": ""
+      },
+      "Profile 1": {
+        "active_time": 1792800000.0,
+        "avatar_icon": "chrome://theme/IDR_PROFILE_AVATAR_14",
+        "is_ephemeral": false,
+        "is_using_default_name": false,
+        "name": "Work",
+        "shortcut_name": "Work"
+      },
+      "Profile 3": {
+        "active_time": 1792700000.0,
+        "avatar_icon": "chrome://theme/IDR_PROFILE_AVATAR_4",
+        "is_ephemeral": false,
+        "name": "Side Project"
+      },
+      "Guest Profile": {
+        "name": "Guest"
+      },
+      "System Profile": {
+        "name": "System"
+      }
+    },
+    "last_active_profiles": ["Default", "Profile 1"],
+    "last_used": "Default",
+    "profiles_created": 4,
+    "profiles_order": ["Default", "Profile 3", "Profile 1"]
+  },
+  "variations_country": "us"
+}

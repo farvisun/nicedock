@@ -23,9 +23,15 @@ extension DockPalette {
 struct AppsFileItem: Identifiable, Hashable, Sendable {
     let url: URL
     let name: String
+    /// Date added to the folder (falls back to creation, then modification).
     let date: Date
     let size: Int64?
     let isFolder: Bool
+    var modified: Date = .distantPast
+    /// Uniform type identifier ("public.png"); empty when unknown.
+    var type: String = ""
+    /// Finder's "Kind" ("PNG image").
+    var kind: String = ""
     var id: String { url.path }
 }
 
@@ -50,7 +56,7 @@ enum AppsFS {
     }
 
     private static let keys: [URLResourceKey] = [.addedToDirectoryDateKey, .creationDateKey, .contentModificationDateKey,
-                                                 .fileSizeKey, .isDirectoryKey, .isPackageKey, .localizedNameKey]
+                                                 .fileSizeKey, .isDirectoryKey, .isPackageKey, .localizedNameKey, .contentTypeKey]
 
     /// Newest-first (by date added) listing, done off the main thread. `nil` when unreadable / missing.
     static func list(_ dir: String, limit: Int) async -> [AppsFileItem]? {
@@ -69,8 +75,24 @@ enum AppsFS {
         let v = try? u.resourceValues(forKeys: Set(keys))
         let folder = (v?.isDirectory ?? false) && !(v?.isPackage ?? false)
         let date = v?.addedToDirectoryDate ?? v?.creationDate ?? v?.contentModificationDate ?? .distantPast
+        let type = v?.contentType ?? (folder ? .folder : UTType(filenameExtension: u.pathExtension))
         return AppsFileItem(url: u, name: v?.localizedName ?? u.lastPathComponent, date: date,
-                            size: folder ? nil : v?.fileSize.map(Int64.init), isFolder: folder)
+                            size: folder ? nil : v?.fileSize.map(Int64.init), isFolder: folder,
+                            modified: v?.contentModificationDate ?? date, type: type?.identifier ?? "",
+                            kind: type?.localizedDescription ?? "")
+    }
+
+    /// The privacy-protected location (Desktop, Documents, Downloads, iCloud Drive, another volume) `path` is in.
+    /// Reading one of these can show a permission prompt, so previews never cross into a different one.
+    static func protectedZone(_ path: String) -> String? {
+        let p = URL(fileURLWithPath: expand(path)).standardizedFileURL.path
+        let home = NSHomeDirectory()
+        for zone in ["Desktop", "Documents", "Downloads", "Library/Mobile Documents", "Library/CloudStorage"].map({ home + "/" + $0 })
+        where p == zone || p.hasPrefix(zone + "/") {
+            return zone
+        }
+        if p.hasPrefix("/Volumes/") { return "/Volumes/" + (p.dropFirst(9).split(separator: "/").first.map(String.init) ?? "") }
+        return nil
     }
 }
 
@@ -314,25 +336,16 @@ enum AppsLaunch {
     }
 
     static func iconPath(_ app: NSRunningApplication) -> String? { app.bundleURL?.path }
-}
 
-/// "Show in Finder / Hide / Quit / Force Quit" items for one app.
-struct AppsAppActions: View {
-    var path: String?
-    var app: NSRunningApplication?
-
-    var body: some View {
-        if let path { Button(L("Show in Finder")) { Open.reveal(path) } }
-        if let app, !app.isTerminated {
-            Divider()
-            if app.isHidden {
-                Button(L("Show")) { app.unhide() }
-            } else {
-                Button(L("Hide")) { app.hide() }
-            }
-            Button(L("Quit")) { app.terminate() }
-            Button(L("Force Quit")) { app.forceTerminate() }
-        }
+    /// App tiles of the active profile that show this app ("Keep in Dock").
+    static func pinned(_ path: String) -> [UUID] {
+        let target = resolve(path)
+        let id = bundleID(target)
+        return AppStore.shared.activeProfile.widgets.filter { w in
+            guard w.kind == .app else { return false }
+            let p = resolve(w.string("path"))
+            return p == target || (id != nil && bundleID(p) == id)
+        }.map(\.id)
     }
 }
 

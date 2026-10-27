@@ -114,17 +114,33 @@ struct AppsFolderTile: View {
     @State private var model: AppsFolderModel?
 
     var body: some View {
+        if ReferenceScene.isActive, let variant = ReferenceScene.variant, variant.hasPrefix("panel") {
+            // Scene renders of the folder window (`folder-panel…` frames); see AppsScene.
+            AppsScenePanel { AppsFolderPanel(path: AppsFS.expand(w.string("path")), title: AppsFolderTile.title(w.string("path")), widget: w) }
+        } else if ReferenceScene.isActive, ReferenceScene.variant == "colors" {
+            HStack(spacing: m.gap) {
+                ForEach(AppsFolderColors.palette, id: \.self) { c in
+                    AppsBareSlot { AppIcon(path: AppsFS.expand(w.string("path")), size: 54).modifier(AppsFolderTint(hex: c.hex)) }
+                }
+            }
+        } else {
+            tile
+        }
+    }
+
+    private var tile: some View {
         let path = AppsFS.expand(w.string("path", "~/Documents"))
         let stack = w.string("display") == "stack"
         let tint = w.string("color")
         let missing = !AppsFS.exists(path, directory: true)
-        Button {
+        return Button {
             if missing {
                 WidgetSetup.customize(w)
             } else if AppStore.shared.settings.openFoldersInFinder {
                 Open.path(path)
             } else {
-                Panels.shared.toggle(w.id) { AppsFolderPanel(path: path, title: AppsFolderTile.title(path)) }
+                let current = AppStore.shared.widget(w.id) ?? w
+                Panels.shared.toggle(w.id) { AppsFolderPanel(path: path, title: AppsFolderTile.title(path), widget: current) }
             }
         } label: {
             AppsBareSlot(targeted: targeted) {
@@ -171,7 +187,7 @@ struct AppsFolderTile: View {
 }
 
 /// Optional colour tint for folder icons (grayscale × colour keeps the folder's shading).
-private struct AppsFolderTint: ViewModifier {
+struct AppsFolderTint: ViewModifier {
     @Environment(\.palette) private var p
     var hex: String
 
@@ -203,62 +219,6 @@ private struct AppsStackPreview: View {
     }
 }
 
-/// Gallery of a folder's newest items (also used by Dropbox).
-private struct AppsFolderPanel: View {
-    @Environment(\.palette) private var p
-    let path: String
-    let title: String
-    @State private var model: AppsFolderModel
-    private let columns = 5
-
-    init(path: String, title: String) {
-        self.path = path
-        self.title = title
-        _model = State(initialValue: AppsFolderModel(path: path, limit: 30))
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            PanelHeader(title: title, subtitle: AppsFS.shortLocation(path)) {
-                AppsPanelButton(symbol: "folder", title: L("Open in Finder")) {
-                    Open.path(path)
-                    Panels.shared.close()
-                }
-            }
-            if !model.loaded {
-                ProgressView().controlSize(.small).frame(maxWidth: .infinity, minHeight: 140)
-            } else if model.missing {
-                AppsPanelMessage(symbol: "questionmark.folder", text: L("Folder not found"))
-            } else if model.denied {
-                AppsPanelMessage.denied
-            } else if model.items.isEmpty {
-                AppsPanelMessage(symbol: "folder", text: L("This folder is empty"))
-            } else {
-                AppsScroll(height: AppsGrid.height(count: model.items.count, columns: columns, icon: 46),
-                           max: AppsGrid.height(count: columns * 4, columns: columns, icon: 46) + 44) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(74), spacing: 2), count: columns), spacing: 4) {
-                        ForEach(model.items) { item in
-                            AppsGridCell(title: item.name, dragURL: item.url, width: 74) {
-                                AppsFileOps.open(item.url)
-                            } icon: {
-                                AppsFileIcon(url: item.url, size: 46)
-                            }
-                            .contextMenu {
-                                Button(L("Open")) { AppsFileOps.open(item.url) }
-                                Button(L("Show in Finder")) { Open.reveal(item.url.path); Panels.shared.close() }
-                            }
-                        }
-                    }
-                }
-                Text(L("⌘-click to show in Finder")).font(.dock(10.5, .medium)).foregroundStyle(p.tertiary)
-            }
-        }
-        .frame(width: CGFloat(columns) * 74 + CGFloat(columns - 1) * 2)
-        .onAppear { model.start(watch: true) }
-        .onDisappear { model.stop() }
-    }
-}
-
 struct AppsDropboxTile: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
@@ -274,7 +234,7 @@ struct AppsDropboxTile: View {
             } else {
                 Panels.shared.toggle(w.id) {
                     if let path {
-                        AppsFolderPanel(path: path, title: L("Dropbox"))
+                        AppsFolderPanel(path: path, title: L("Dropbox"), widget: AppStore.shared.widget(w.id) ?? w)
                     } else {
                         AppsDropboxMissingPanel(w: w)
                     }

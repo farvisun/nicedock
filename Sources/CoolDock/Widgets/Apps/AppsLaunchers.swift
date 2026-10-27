@@ -13,7 +13,40 @@ struct AppsAppTile: View {
     var body: some View {
         let path = AppsLaunch.resolve(w.string("path"))
         let settings = AppStore.shared.settings
-        if path.isEmpty || !AppsFS.exists(path) {
+        if ReferenceScene.isActive, ReferenceScene.variant == "badges" {
+            // Scene render of Dock badges (`app-badges` frame) with the flat scene artwork; see AppsScene.
+            HStack(spacing: m.gap) {
+                ForEach(AppsScene.badgeApps, id: \.self) { app in
+                    AppsBareSlot {
+                        Group {
+                            if let art = AppsScene.icon(app) {
+                                Image(nsImage: art.image).resizable().interpolation(.high)
+                                    .frame(width: m.u(54 * art.scale), height: m.u(54 * art.scale))
+                                    .frame(width: m.u(54), height: m.u(54))
+                            } else {
+                                Color.clear.frame(width: m.u(54), height: m.u(54))
+                            }
+                        }
+                        .appsBadge(AppsDockBadges.shared.badge(app))
+                    }
+                }
+            }
+        } else if ReferenceScene.isActive, ReferenceScene.variant == "menu" {
+            // Scene render of the native app menus (`app-menu` frame); see AppsScene.
+            // A running app with Quit / ⌥ Force Quit: the render process itself.
+            let contexts = ([path] + AppsScene.menuApps.dropFirst()).map { AppsAppMenu.Context(path: $0) }
+                + [AppsAppMenu.Context(path: Bundle.main.bundlePath, app: .current)]
+            Grid(alignment: .topLeading, horizontalSpacing: 16, verticalSpacing: 16) {
+                ForEach([0, 3], id: \.self) { row in
+                    GridRow {
+                        ForEach(row..<min(row + 3, contexts.count), id: \.self) { i in
+                            AppsSceneMenu(title: AppsLaunch.displayName(contexts[i].path ?? ""), menu: AppsAppMenu.build(contexts[i]))
+                        }
+                    }
+                }
+            }
+            .padding(12)
+        } else if path.isEmpty || !AppsFS.exists(path) {
             Button { WidgetSetup.customize(w) } label: {
                 AppsBareSlot {
                     RoundedRectangle(cornerRadius: m.u(10), style: .continuous)
@@ -29,12 +62,16 @@ struct AppsAppTile: View {
             Button { AppsLaunch.open(path) } label: {
                 AppsBareSlot(dot: running && settings.showRunningIndicators, targeted: targeted) {
                     AppIcon(path: path, size: 54).appsIconStyle()
+                        .appsBadge(running ? AppsDockBadges.shared.badge(path) : nil)
                 }
             }
             .buttonStyle(PressableStyle())
             .appsFileDrop($targeted) { providers in
                 AppsDrop.files(providers) { urls in AppsLaunch.open(urls, with: path) }
             }
+            .appsAppMenu { AppsAppMenu.Context(path: path) }
+            .demand(AppsDockBadges.shared)
+            .task(id: path) { AppsAppMenu.prefetch(path) }
             .accessibilityLabel(AppsLaunch.displayName(path))
             .help(settings.showAppLabelsOnHover ? AppsLaunch.displayName(path) : "")
         }
@@ -108,8 +145,9 @@ private struct AppsAppFolderPanel: View {
                                 Panels.shared.close()
                             } icon: {
                                 AppIcon(path: path, size: 50)
+                                    .appsBadge(AppsLaunch.running(path) != nil ? AppsDockBadges.shared.badge(path) : nil)
                             }
-                            .contextMenu { AppsAppActions(path: path, app: AppsLaunch.running(path)) }
+                            .appsAppMenu { AppsAppMenu.Context(path: path, folder: id, inPanel: true) }
                         }
                     }
                 }
@@ -256,14 +294,16 @@ private struct AppsRunningPanel: View {
                             } icon: {
                                 AppsRunningIcon(app: app, size: 48)
                                     .opacity(app.isHidden ? 0.5 : 1)
+                                    .appsBadge(AppsDockBadges.shared.badge(app.bundleURL?.path))
                             }
-                            .contextMenu { AppsAppActions(path: app.bundleURL?.path, app: app) }
+                            .appsAppMenu { AppsAppMenu.Context(path: app.bundleURL?.path, app: app, inPanel: true) }
                         }
                     }
                 }
             }
         }
         .frame(minWidth: 280, alignment: .leading)
+        .demand(AppsDockBadges.shared)
     }
 }
 
@@ -319,22 +359,19 @@ struct AppsRunningAppsTile: View {
                             AppsRunningIcon(app: app, size: 54)
                                 .appsIconStyle()
                                 .opacity(app.isHidden ? 0.55 : 1)
+                                .appsBadge(AppsDockBadges.shared.badge(app.bundleURL?.path))
                         }
                     }
                     .buttonStyle(PressableStyle())
                     .accessibilityLabel(app.localizedName ?? "")
                     .help(settings.showAppLabelsOnHover ? (app.localizedName ?? "") : "")
-                    .contextMenu {
-                        AppsAppActions(path: app.bundleURL?.path, app: app)
-                        if let path = app.bundleURL?.path {
-                            Button(L("Keep in Dock")) { AppStore.shared.addWidget(.app, config: ["path": path]) }
-                        }
-                        Divider()
-                        WidgetMenu(instance: w)
-                    }
+                    // Native app menu (Keep in Dock lives in Options ▸); the cluster's own items follow it.
+                    .appsAppMenu { AppsAppMenu.Context(path: app.bundleURL?.path, app: app) }
+                    .task(id: app.processIdentifier) { if let path = app.bundleURL?.path { AppsAppMenu.prefetch(path) } }
                 }
             }
             .animation(.spring(response: 0.3, dampingFraction: 0.85), value: apps.map(\.processIdentifier))
+            .demand(AppsDockBadges.shared)
         }
     }
 }
