@@ -60,7 +60,7 @@ enum UtilFX {
                   let raw = rates[other] as? String, let r = Double(raw), r > 0 else { throw URLError(.cannotParseResponse) }
             return from == "BTC" ? r : 1 / r
         }
-        if let url = URL(string: "https://api.frankfurter.app/latest?from=\(from)&to=\(to)"),
+        if let url = URL(string: "https://api.frankfurter.dev/v1/latest?from=\(from)&to=\(to)"),
            let json = try? await Net.json(url) as? [String: Any],
            let r = (json["rates"] as? [String: Any])?[to] as? Double {
             return r
