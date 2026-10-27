@@ -25,7 +25,7 @@ enum MediaScene {
     static func prepare(_ kind: WidgetKind, _ variant: String?) -> [String: String]? {
         switch kind {
         case .nowPlaying, .nowPlayingHero:
-            track = Track(name: "Evil Ways (feat. J. Cole)", artist: "Drake", artwork: ReferenceScene.asset("album-drake-180.webp"),
+            track = Track(name: "Evil Ways (feat. J. Cole)", artist: "Drake", artwork: ReferenceScene.asset("frame-nowplaying-artwork.png"),
                           isPlaying: false, duration: 254, position: 3, titleScroll: kind == .nowPlaying ? 40 : 0)
             return [:]
         case .backgroundSounds:
@@ -40,10 +40,10 @@ enum MediaScene {
             note = MediaNoteSnapshot(title: "Meeting notes", body: "Discuss launch timeline and assign owners for each workstream.", count: 8)
             return [:]
         case .quickContacts:
-            // The people in the reference frame are not among the bundled assets; this is the closest-matching order.
-            let people = [("lazar", "Lazar Stojkovic", "lazar-stojkovic-180.webp"),
-                          ("james", "James Ferguson", "james-ferguson-180.webp"),
-                          ("dave", "Dave Katague", "dave-katague-180.webp")]
+            // Portraits cut from the reference frame itself (the site doesn't publish them separately).
+            let people = [("maya", "Maya Brooks", "frame-contact-1.png"),
+                          ("leo", "Leo Ramos", "frame-contact-2.png"),
+                          ("daniel", "Daniel Hart", "frame-contact-3.png")]
             contacts = people.map { id, name, file in
                 let initials = name.split(separator: " ").compactMap(\.first).map(String.init).joined()
                 return MediaContact(id: "scene-\(id)", name: name, initials: initials, phone: "+1 555 0100", email: "\(id)@example.com",
