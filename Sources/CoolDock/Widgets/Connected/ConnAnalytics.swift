@@ -61,7 +61,7 @@ enum ConnSimpleAnalytics {
     static func request(site: String, range: ConnRange, now: Date) throws -> URL {
         try ConnHTTP.url("https://simpleanalytics.com/\(connCleanSite(site)).json", [
             ("version", "6"), ("fields", "pageviews,visitors,histogram"),
-            ("start", ConnDate.day(range.start(now))), ("end", "today"), ("timezone", TimeZone.current.identifier)
+            ("start", ConnDate.day(range.start(now))), ("end", "today"), ("timezone", ConnDate.zone.identifier)
         ])
     }
 
@@ -99,7 +99,7 @@ enum ConnDataFast {
         let now = Date()
         let start = range.start(now)
         let headers = ConnHTTP.bearer(token)
-        let window = [("startAt", ConnDate.iso(start)), ("endAt", ConnDate.iso(now)), ("timezone", TimeZone.current.identifier)]
+        let window = [("startAt", ConnDate.iso(start)), ("endAt", ConnDate.iso(now)), ("timezone", ConnDate.zone.identifier)]
         let overviewURL = try ConnHTTP.url("https://datafa.st/api/v1/analytics/overview", window)
         let seriesURL = try ConnHTTP.url("https://datafa.st/api/v1/analytics/timeseries", window + [("interval", range == .day ? "hour" : "day"), ("fields", "visitors")])
         async let overview = ConnHTTP.json(overviewURL, headers: headers)
@@ -136,7 +136,7 @@ enum ConnDub {
     static func fetch(token: String, range: ConnRange) async throws -> ConnSnapshot {
         let interval = range == .day ? "24h" : range.rawValue
         let headers = ConnHTTP.bearer(token)
-        let base = [("event", "composite"), ("interval", interval), ("timezone", TimeZone.current.identifier)]
+        let base = [("event", "composite"), ("interval", interval), ("timezone", ConnDate.zone.identifier)]
         let countURL = try ConnHTTP.url("https://api.dub.co/analytics", base + [("groupBy", "count")])
         let seriesURL = try ConnHTTP.url("https://api.dub.co/analytics", base + [("groupBy", "timeseries")])
         async let counts = ConnHTTP.json(countURL, headers: headers)

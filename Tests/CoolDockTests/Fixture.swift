@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 @testable import CoolDock
 
 /// Fixture files under `Tests/Fixtures/<provider>/`. Real responses were captured with curl on the
@@ -31,4 +32,20 @@ enum TestDate {
 extension Double {
     /// Equality within `eps` for money/float sums.
     func near(_ other: Double, _ eps: Double = 1e-9) -> Bool { abs(self - other) <= eps * max(1, abs(other)) }
+}
+
+/// Runs a suite with `ConnDate` pinned to one time zone. Fixtures carry fixed UTC instants, so day/month buckets
+/// only match the expectations where those instants fall on the same local days; pinning keeps the suites
+/// valid on a machine in any zone (UTC+13/+14 included).
+struct FixedTimeZone: TestTrait, SuiteTrait, TestScoping {
+    let zone: TimeZone
+    var isRecursive: Bool { true }
+
+    func provideScope(for test: Test, testCase: Test.Case?, performing function: @Sendable () async throws -> Void) async throws {
+        try await ConnDate.$zoneOverride.withValue(zone) { try await function() }
+    }
+}
+
+extension Trait where Self == FixedTimeZone {
+    static func timeZone(_ identifier: String) -> Self { FixedTimeZone(zone: TimeZone(identifier: identifier)!) }
 }

@@ -27,7 +27,8 @@ enum Script {
     }
 }
 
-/// Now Playing for Apple Music and Spotify, driven by their distributed notifications (no polling while idle).
+/// Now Playing for whatever app owns the system's Now Playing session (MediaRemote through `MediaRemoteBridge`),
+/// falling back to Apple Music and Spotify via their distributed notifications and AppleScript. No polling while idle.
 @Observable
 @MainActor
 final class NowPlayingService {
@@ -42,10 +43,16 @@ final class NowPlayingService {
     private(set) var duration: Double = 0
     private(set) var isPlaying = false
     private(set) var artwork: NSImage?
+    /// The app playing, e.g. "Safari" or "Spotify" (empty until known).
+    private(set) var appName = ""
+    private(set) var appBundleID: String?
     @ObservationIgnored private var positionBase: Double = 0
     @ObservationIgnored private var positionStamp = Date()
     @ObservationIgnored private var artworkKey = ""
     @ObservationIgnored private var started = false
+    @ObservationIgnored private var remote: MediaRemoteBridge?
+    /// MediaRemote is answering: it is the source of truth and the AppleScript paths stay quiet.
+    private var remoteActive: Bool { remote?.isReady == true }
 
     var hasTrack: Bool { !title.isEmpty }
 
@@ -66,10 +73,63 @@ final class NowPlayingService {
             let info = note.userInfo ?? [:]
             MainActor.assumeIsolated { NowPlayingService.shared.handle(.spotify, info) }
         }
+        startRemote()
         Task { await refreshFromPlayers() }
     }
 
+    private func startRemote() {
+        guard !ReferenceScene.isActive, !MediaEnv.demo, MediaRemoteBridge.isAvailable else { return }
+        let bridge = MediaRemoteBridge()
+        bridge.onUpdate = { [weak self] in self?.apply($0) }
+        bridge.onUnavailable = { [weak self] in
+            self?.remote = nil
+            Task { await self?.refreshFromPlayers() }
+        }
+        remote = bridge
+        bridge.start()
+    }
+
+    /// One MediaRemote message (see `Helpers/MediaRemote/CoolDockMediaRemote.m`).
+    func apply(_ u: MediaRemoteBridge.Update, now: Date = Date()) {
+        guard u.type == "info", let t = u.title, !t.isEmpty else { clear(); return }
+        player = nil
+        title = t
+        artist = u.artist ?? ""
+        album = u.album ?? ""
+        duration = max(0, u.duration ?? 0)
+        isPlaying = u.playing ?? ((u.rate ?? 0) > 0)
+        // `elapsed` was sampled at `timestamp`; carry it forward to now while playing.
+        var elapsed = u.elapsed ?? 0
+        if isPlaying, let stamp = u.timestamp { elapsed += max(0, now.timeIntervalSince1970 - stamp) * max(u.rate ?? 1, 0) }
+        positionBase = duration > 0 ? min(elapsed, duration) : elapsed
+        positionStamp = now
+        let app = Self.app(bundle: u.parent ?? u.bundle, pid: u.pid)
+        appBundleID = app.bundleID
+        appName = app.name
+        if let id = u.artworkID {
+            if id != artworkKey {
+                artworkKey = id
+                artwork = u.artwork.flatMap { Data(base64Encoded: $0) }.flatMap { Self.downsample($0) }
+            }
+        } else {
+            artworkKey = ""
+            artwork = nil
+        }
+    }
+
+    /// Resolves the playing app: the client's parent app (a browser for its web content process), else its pid.
+    static func app(bundle: String?, pid: Int32?) -> (bundleID: String?, name: String) {
+        if let bundle, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundle) {
+            return (bundle, FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: ""))
+        }
+        if let pid, pid > 0, let app = NSRunningApplication(processIdentifier: pid) {
+            return (app.bundleIdentifier ?? bundle, app.localizedName ?? "")
+        }
+        return (bundle, "")
+    }
+
     private func handle(_ p: Player, _ info: [AnyHashable: Any]) {
+        guard !remoteActive else { return }
         let state = info["Player State"] as? String ?? ""
         if state == "Stopped" {
             if player == p { clear() }
@@ -80,6 +140,8 @@ final class NowPlayingService {
         artist = info["Artist"] as? String ?? ""
         album = info["Album"] as? String ?? ""
         isPlaying = state == "Playing"
+        appName = p.rawValue
+        appBundleID = p == .music ? "com.apple.Music" : "com.spotify.client"
         if p == .music, let ms = info["Total Time"] as? Double { duration = ms / 1000 }
         if p == .spotify, let ms = info["Duration"] as? Double { duration = ms / 1000 }
         if let pos = info["Playback Position"] as? Double { positionBase = pos; positionStamp = Date() }
@@ -88,9 +150,11 @@ final class NowPlayingService {
 
     private func clear() {
         player = nil; title = ""; artist = ""; album = ""; isPlaying = false; artwork = nil; duration = 0; artworkKey = ""
+        appName = ""; appBundleID = nil
     }
 
     func refreshFromPlayers() async {
+        guard !remoteActive else { return }
         for p in [Player.spotify, .music] {
             let bundle = p == .music ? "com.apple.Music" : "com.spotify.client"
             guard Script.isRunning(bundle) else { continue }
@@ -112,6 +176,8 @@ final class NowPlayingService {
             positionBase = d.atIndex(6)?.doubleValue ?? 0
             positionStamp = Date()
             isPlaying = state == "playing"
+            appName = p.rawValue
+            appBundleID = bundle
             await refreshArtwork()
             return
         }
@@ -153,12 +219,16 @@ final class NowPlayingService {
 
     // MARK: Controls
 
-    func playPause() { command("playpause"); isPlaying.toggle(); positionBase = position(); positionStamp = Date() }
-    func next() { command("next track") }
-    func previous() { command("previous track") }
+    func playPause() {
+        let pos = position()
+        if remoteActive { remote?.send(isPlaying ? "pause" : "play") } else { command("playpause") }
+        isPlaying.toggle(); positionBase = pos; positionStamp = Date()
+    }
+    func next() { if remoteActive { remote?.send("next") } else { command("next track") } }
+    func previous() { if remoteActive { remote?.send("previous") } else { command("previous track") } }
 
     func openPlayer() {
-        Open.bundle(player == .spotify ? "com.spotify.client" : "com.apple.Music")
+        Open.bundle(appBundleID ?? (player == .spotify ? "com.spotify.client" : "com.apple.Music"))
     }
 
     private func command(_ cmd: String) {

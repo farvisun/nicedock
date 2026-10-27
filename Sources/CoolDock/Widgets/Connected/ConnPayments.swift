@@ -12,7 +12,7 @@ enum ConnPolar {
     static func request(range: ConnRange, now: Date) throws -> URL {
         try ConnHTTP.url("https://api.polar.sh/v1/metrics/", [
             ("start_date", ConnDate.day(range.start(now))), ("end_date", ConnDate.day(now)),
-            ("interval", range == .day ? "hour" : "day"), ("timezone", TimeZone.current.identifier)
+            ("interval", range == .day ? "hour" : "day"), ("timezone", ConnDate.zone.identifier)
         ])
     }
 

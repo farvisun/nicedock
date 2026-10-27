@@ -305,7 +305,7 @@ extension ConnAIUsageAPI {
             end = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: now)) ?? now
         }
         let body: [String: Any] = ["analyticsRequest": [
-            "timeRange": ["startTime": wallClock(start), "endTime": wallClock(end), "timezone": TimeZone.current.identifier],
+            "timeRange": ["startTime": wallClock(start), "endTime": wallClock(end), "timezone": ConnDate.zone.identifier],
             "timeUnit": range == .day ? "TIME_UNIT_HOUR" : "TIME_UNIT_DAY",
             "values": [["name": "usd", "aggregation": "AGGREGATION_SUM"]],
             "groupBy": [String](), "filters": [String]()

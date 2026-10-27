@@ -5,7 +5,7 @@ import Testing
 /// Resend — fixtures follow https://resend.com/docs/api-reference/emails/list-emails (verbatim item
 /// shape incl. the Postgres-style `created_at` "2026-04-03 22:13:42.674981+00", `object/has_more/data`
 /// envelope) and cursor pagination per https://resend.com/docs/api-reference/pagination (`after=<id>`).
-@Suite struct ResendTests {
+@Suite(.timeZone("UTC")) struct ResendTests {
     let now = TestDate.local(2026, 10, 27, 15)
 
     @Test func pagesUntilPreviousMonth() async throws {
@@ -43,7 +43,7 @@ import Testing
 /// (`V1ProjectWithDatabaseResponse`; usage.api-counts `{result: [{timestamp, total_*_requests}]}` with
 /// the spec's minute-precision `date-time` pattern), see also
 /// https://supabase.com/docs/reference/api/v1-get-project-usage-api-count
-@Suite struct SupabaseTests {
+@Suite(.timeZone("UTC")) struct SupabaseTests {
     @Test func projectAndRequestCounts() throws {
         let snap = ConnSupabase.parse(project: try Fixture.object("supabase/project-docs-2026-10-27.json"),
                                       usage: try Fixture.json("supabase/usage-api-counts-docs-2026-10-27.json"))
@@ -73,7 +73,7 @@ import Testing
 /// Linear GraphQL — fixture follows the schema https://github.com/linear/linear/blob/master/packages/sdk/src/schema.graphql
 /// (`IssueConnection.nodes`, `priority: Float!` 0–4, `dueDate: TimelessDate`, `WorkflowState.color` hex);
 /// the auth error is the live 401 body. Docs: https://linear.app/developers/graphql
-@Suite struct LinearTests {
+@Suite(.timeZone("UTC")) struct LinearTests {
     @Test func dueIssuesFirst() throws {
         let issues = try CalLinearAPI.parse(try Fixture.json("linear/assigned-issues-docs-2026-10-27.json"))
         #expect(issues.map(\.identifier) == ["ENG-355", "ENG-377", "ENG-398", "ENG-412", "ENG-360"])

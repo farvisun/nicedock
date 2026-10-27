@@ -22,6 +22,12 @@ if [ ! -f build/AppIcon.icns ] || [ scripts/make-icon.swift -nt build/AppIcon.ic
 fi
 cp build/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
+# System-wide Now Playing helper (loaded into /usr/bin/perl, see Helpers/MediaRemote).
+mkdir -p "$APP/Contents/Resources/MediaRemote"
+clang -dynamiclib -fobjc-arc -O2 -Wall -Werror -arch arm64 -arch x86_64 -mmacosx-version-min=14.0 -framework Foundation \
+  Helpers/MediaRemote/CoolDockMediaRemote.m -o "$APP/Contents/Resources/MediaRemote/libCoolDockMediaRemote.dylib"
+cp Helpers/MediaRemote/mediaremote.pl "$APP/Contents/Resources/MediaRemote/"
+
 if [ "$CONFIG" = "release" ]; then strip -x "$APP/Contents/MacOS/CoolDock" || true; fi
 codesign --force --deep --sign - --timestamp=none "$APP" >/dev/null
 echo "Built $APP ($(du -sh "$APP" | cut -f1))"

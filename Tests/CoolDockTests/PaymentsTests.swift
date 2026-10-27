@@ -30,7 +30,7 @@ final class FixtureServer: @unchecked Sendable {
 /// https://docs.stripe.com/api/balance_transactions/object (list envelope `object/url/has_more/data`,
 /// `net` = `amount - fee` in minor units, `created` in Unix seconds, lowercase `currency`);
 /// cursor pagination per https://docs.stripe.com/api/pagination (`starting_after` = last id).
-@Suite struct StripeTests {
+@Suite(.timeZone("UTC")) struct StripeTests {
     let now = TestDate.local(2026, 10, 27, 15)
 
     @Test func pageCursor() throws {
@@ -83,7 +83,7 @@ final class FixtureServer: @unchecked Sendable {
 /// `total_price` / `current_total_price` decimal strings in shop currency, ISO 8601 `created_at` with
 /// offset, `cancelled_at` null unless cancelled, `test`) and the Shop resource (`shop.currency`).
 /// Pagination per https://shopify.dev/docs/api/usage/pagination-rest (`Link` header, `rel="next"`).
-@Suite struct ShopifyTests {
+@Suite(.timeZone("UTC")) struct ShopifyTests {
     let now = TestDate.local(2026, 10, 27, 15)
     let nextURL = "https://acme.myshopify.com/admin/api/2024-10/orders.json?limit=250&fields=total_price,current_total_price,created_at,currency,cancelled_at,test&page_info=eyJsYXN0X2lkIjo1ODA5MTQ2MjQ5Mzg1fQ"
 
@@ -149,7 +149,7 @@ final class FixtureServer: @unchecked Sendable {
 /// Fixture follows https://docs.dodopayments.com/api-reference/payments/get-payments (`items[]` only;
 /// required item fields, `status` nullable, `refund_status` partial/full/null, uppercase `currency`) and
 /// `total_amount` "in the currency's smallest unit" per https://docs.dodopayments.com/api-reference/payments/get-payments-1.
-@Suite struct DodoTests {
+@Suite(.timeZone("UTC")) struct DodoTests {
     let now = TestDate.local(2026, 10, 27, 15)
 
     @Test func succeededRevenue() throws {
@@ -182,7 +182,7 @@ final class FixtureServer: @unchecked Sendable {
 /// Fixture follows https://polar.sh/docs/api-reference/metrics/get (`MetricsResponse`: `periods[]` with
 /// `timestamp` + optional numeric/null metrics, `totals`, `metrics` descriptors); "Currency values are
 /// output in cents" (https://polar.sh/docs/features/analytics).
-@Suite struct PolarTests {
+@Suite(.timeZone("UTC")) struct PolarTests {
     let now = TestDate.local(2026, 10, 27, 15)
 
     @Test func netRevenueFromTotals() throws {

@@ -32,7 +32,12 @@ enum MediaWidgets {
                 Button(L("Next Track")) { np.next() }
                 Button(L("Previous Track")) { np.previous() }
             }
-            Button(np.player == .spotify ? L("Open Spotify") : L("Open Music")) { np.openPlayer() }
+            if !np.appName.isEmpty {
+                Button(L("Open %@", np.appName)) { np.openPlayer() }
+            } else if !np.hasTrack || np.player != nil {
+                // A command-line player has no app to open.
+                Button(np.player == .spotify ? L("Open Spotify") : L("Open Music")) { np.openPlayer() }
+            }
             Divider()
         case .backgroundSounds:
             let engine = MediaSoundEngine.shared

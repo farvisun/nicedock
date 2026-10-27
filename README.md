@@ -36,7 +36,7 @@ width) to inspect widget panels without UI scripting.
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
   8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
   `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.55 %, every frame ≥ 98.5 %; `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
-- **Data providers** — `swift test` runs 342 tests; the provider suites feed real captured responses (Open-Meteo, Yahoo
+- **Data providers** — `swift test` runs 347 tests (they pass in any time zone, UTC−11 to UTC+14); the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
   fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,
   Anthropic, OpenAI, Cursor, GitHub Copilot, Gemini API, Perplexity, xAI, Z.ai) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
@@ -76,7 +76,7 @@ width) to inspect widget panels without UI scripting.
 | Weather | Weather, Weather & Forecast, Details, Daily, Today & Forecast, Conditions, Hourly, Sunrise & Sunset, Wind |
 | System & controls | Battery, CPU, Memory, Storage, Temperature, CPU History, Network, Devices Battery, Audio, Quick Toggles, Clipboard, Screenshots, Recent Screenshots, Voice Memo, Emoji |
 | Utilities | Color Picker, Converter, Calculator, Bookmarks, Search Web, Window Manager, Separator, Space |
-| Media & people | Now Playing (Music/Spotify), Now Playing Large, Background Sounds, YouTube Video, Recent Photo, Wallpaper, Mail, Latest Mail, Notes, Quick Contacts, Contact Card |
+| Media & people | Now Playing (any app: Music, Spotify, browsers, Podcasts, VLC…), Now Playing Large, Background Sounds, YouTube Video, Recent Photo, Wallpaper, Mail, Latest Mail, Notes, Quick Contacts, Contact Card |
 | Markets | Stock, Stock Chart, Watchlist, Crypto, Crypto Chart, Crypto Watchlist |
 | Connected | Polar, Stripe, Dodo Payments, Shopify ×3, Plausible, Simple Analytics, DataFast, Visitors Chart, Dub, Resend, GitHub, Supabase, X, TikTok, YouTube, AI Usage (Claude Code, Codex, OpenCode, Antigravity, Cursor, GitHub Copilot, Gemini API, Perplexity, Grok, GLM / Z.ai, Anthropic/OpenAI admin APIs) |
 

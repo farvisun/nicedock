@@ -237,10 +237,14 @@ enum ConnJSON {
 // MARK: - Dates
 
 enum ConnDate {
+    /// Fixture tests pin their suite to one zone (`.timeZone("UTC")`); the app always uses the user's.
+    @TaskLocal static var zoneOverride: TimeZone?
+    static var zone: TimeZone { zoneOverride ?? .current }
+
     /// Gregorian calendar in the user's time zone — API dates are always Gregorian.
     static var calendar: Calendar {
         var c = Calendar(identifier: .gregorian)
-        c.timeZone = .current
+        c.timeZone = zone
         c.locale = Locale(identifier: "en_US_POSIX")
         return c
     }
@@ -255,7 +259,7 @@ enum ConnDate {
     static func iso(_ d: Date) -> String {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime]
-        f.timeZone = .current
+        f.timeZone = zone
         return f.string(from: d)
     }
 
