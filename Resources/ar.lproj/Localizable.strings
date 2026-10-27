@@ -1065,3 +1065,4 @@
 "NW" = "ش.غ";
 "profile.copySuffix" = "(نسخة)";
 "stock.openPrice" = "الافتتاح";
+"CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "لا يستطيع CoolDock قراءة هذا المجلد. اسمح بالوصول من «الخصوصية والأمن ← الملفات والمجلدات».";

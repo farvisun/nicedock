@@ -170,6 +170,8 @@ private struct ClockHeroView: View {
                 }
             }
         }
+        .contentShape(Rectangle())
+        .onTapGesture { Panels.shared.toggle(w.id) { CalMonthPanel() } }
     }
 }
 

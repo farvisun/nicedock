@@ -99,6 +99,8 @@ final class AppsFolderModel {
     private(set) var items: [AppsFileItem] = []
     private(set) var loaded = false
     private(set) var missing = false
+    /// The folder exists but macOS refused the read (Files & Folders privacy).
+    private(set) var denied = false
     @ObservationIgnored private var watcher: AppsDirWatcher?
     @ObservationIgnored private var work: Task<Void, Never>?
 
@@ -129,6 +131,7 @@ final class AppsFolderModel {
             guard !Task.isCancelled, let self else { return }
             self.items = result ?? []
             self.missing = result == nil && !AppsFS.exists(path, directory: true)
+            self.denied = result == nil && !self.missing
             self.loaded = true
         }
     }

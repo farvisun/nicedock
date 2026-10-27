@@ -229,6 +229,8 @@ private struct AppsFolderPanel: View {
                 ProgressView().controlSize(.small).frame(maxWidth: .infinity, minHeight: 140)
             } else if model.missing {
                 AppsPanelMessage(symbol: "questionmark.folder", text: L("Folder not found"))
+            } else if model.denied {
+                AppsPanelMessage.denied
             } else if model.items.isEmpty {
                 AppsPanelMessage(symbol: "folder", text: L("This folder is empty"))
             } else {
@@ -421,6 +423,8 @@ private struct AppsDownloadsPanel: View {
             }
             if !model.loaded {
                 ProgressView().controlSize(.small).frame(maxWidth: .infinity, minHeight: 120)
+            } else if model.denied {
+                AppsPanelMessage.denied
             } else if model.items.isEmpty {
                 AppsPanelMessage(symbol: "arrow.down.circle", text: model.missing ? L("Downloads folder not found") : L("No downloads yet"))
             } else {

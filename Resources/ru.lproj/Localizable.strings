@@ -1065,3 +1065,4 @@
 "NW" = "СЗ";
 "profile.copySuffix" = "(копия)";
 "stock.openPrice" = "Открытие";
+"CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "CoolDock не может прочитать эту папку. Разрешите доступ в разделе «Конфиденциальность и безопасность → Файлы и папки».";

@@ -732,6 +732,8 @@
 "Hide" = "Hide";
 "Quit" = "Quit";
 "Force Quit" = "Force Quit";
+"CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders.";
+"Privacy Settings…" = "Privacy Settings…";
 "Open All" = "Open All";
 "Open Applications Folder" = "Open Applications Folder";
 "Clear Shelf" = "Clear Shelf";
@@ -986,7 +988,6 @@
 "Clear" = "Clear";
 "macOS asks before apps read the clipboard. Allow CoolDock to keep a history, or set it to Always Allow in Privacy & Security." = "macOS asks before apps read the clipboard. Allow CoolDock to keep a history, or set it to Always Allow in Privacy & Security.";
 "Enable History" = "Enable History";
-"Privacy Settings…" = "Privacy Settings…";
 "Copied text and images appear here." = "Copied text and images appear here.";
 "Image" = "Image";
 "Unpin" = "Unpin";

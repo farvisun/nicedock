@@ -1065,3 +1065,4 @@
 "NW" = "西北";
 "profile.copySuffix" = "副本";
 "stock.openPrice" = "开盘价";
+"CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "CoolDock 无法读取此文件夹。请在“隐私与安全性 → 文件和文件夹”中允许访问。";

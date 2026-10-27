@@ -131,6 +131,13 @@ struct CalProgressRingWidget: View {
             }
             .help(Self.title(period, ctx.date))
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // Click cycles day → week → month → year.
+            let order: [CalPeriod] = [.day, .week, .month, .year]
+            let next = order[((order.firstIndex(of: period) ?? 0) + 1) % order.count]
+            AppStore.shared.updateWidget(w.id) { $0.config["period"] = next.rawValue }
+        }
     }
 
     private static func title(_ period: CalPeriod, _ now: Date) -> String {

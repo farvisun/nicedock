@@ -55,7 +55,7 @@ struct WidgetBrowserView: View {
                     }
                     .padding(18)
                 }
-                .background(Color(nsColor: .underPageBackgroundColor))
+                .background(Color(nsColor: .windowBackgroundColor))
             }
         }
         .background(KeyCommand(key: "f", modifiers: .command) { searchFocused = true })

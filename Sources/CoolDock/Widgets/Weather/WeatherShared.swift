@@ -112,17 +112,18 @@ enum WeatherFmt {
     static func hour(_ d: Date, _ tz: String) -> String { formatter(Fmt.uses24h ? "HH" : "ha", tz).string(from: d) }
     /// "6:12" / "20:18"
     static func time(_ d: Date, _ tz: String) -> String { formatter(Fmt.uses24h ? "H:mm" : "h:mm", tz).string(from: d) }
-    static func weekday(_ d: Date, _ tz: String) -> String {
+    /// `compact` swaps long RTL names (Persian «پنجشنبه») for their short form («۵ش») in narrow columns.
+    static func weekday(_ d: Date, _ tz: String, compact: Bool = true) -> String {
         let s = formatter("EEE", tz).string(from: d)
-        guard s.count > 4, Localizer.language.isRTL else { return s }
+        guard compact, s.count > 4, Localizer.language.isRTL else { return s }
         return formatter("EEEEEE", tz).string(from: d)
     }
 
-    static func dayLabel(_ index: Int, _ d: Date, _ tz: String) -> String {
+    static func dayLabel(_ index: Int, _ d: Date, _ tz: String, compact: Bool = true) -> String {
         switch index {
         case 0: return L("Today")
         case 1: return L("Tomorrow")
-        default: return weekday(d, tz)
+        default: return weekday(d, tz, compact: compact)
         }
     }
 
@@ -193,7 +194,7 @@ struct WeatherPanel: View {
                 let hi = s.days.map(\.high).max() ?? 1
                 ForEach(Array(s.days.enumerated()), id: \.offset) { i, d in
                     HStack(spacing: 8) {
-                        Text(verbatim: WeatherFmt.dayLabel(i, d.date, s.timeZone)).font(.dock(12, .semibold)).foregroundStyle(p.primary)
+                        Text(verbatim: WeatherFmt.dayLabel(i, d.date, s.timeZone, compact: false)).font(.dock(12, .semibold)).foregroundStyle(p.primary)
                             .lineLimit(1).frame(width: 74, alignment: .leading)
                         WeatherGlyph(code: d.code, size: 14, color: p.secondary).frame(width: 24)
                         // Low → bar → high reads as a chart, so it stays left-to-right.

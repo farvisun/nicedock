@@ -47,7 +47,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else if args.contains("--onboarding") || !store.settings.onboardingDone {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { OnboardingWindow.show() }
         }
+        #if DEBUG
+        // Dev aids: `--profile 2` switches profile; `--tap 0.42` clicks the dock at 42% of its width so panels can be inspected without UI scripting.
+        if let i = args.firstIndex(of: "--profile"), args.count > i + 1, let index = Int(args[i + 1]) {
+            store.switchProfile(to: index)
+        }
+        if let i = args.firstIndex(of: "--tap"), args.count > i + 1, let fraction = Double(args[i + 1]) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { Self.syntheticTap(fraction) }
+        }
+        #endif
     }
+
+    #if DEBUG
+    private static func syntheticTap(_ fraction: Double) {
+        guard let window = DockController.shared.activeWindow?.panel, let view = window.contentView else { return }
+        let point = NSPoint(x: view.bounds.width * fraction, y: view.bounds.midY)
+        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+            if let e = NSEvent.mouseEvent(with: type, location: point, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                                          windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {
+                window.sendEvent(e)
+            }
+        }
+    }
+    #endif
 
     func applicationWillTerminate(_ notification: Notification) {
         AppStore.shared.saveNow()

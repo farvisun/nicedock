@@ -21,8 +21,10 @@ swift build                            # compile only
 The script compiles with SwiftPM, assembles the `.app` bundle (Info.plist, fonts, translations,
 generated icon) and ad-hoc signs it. Drag `build/CoolDock.app` to `/Applications` to keep it.
 
-Developer launch flags: `--settings <pane>`, `--widgets`, `--onboarding`, and the offscreen widget
+Developer launch flags: `--lang <code>`, `--settings <pane>`, `--widgets`, `--onboarding`, and the offscreen widget
 renderer `--render <dir> <kinds|all|category:name> [--wait s] [--lang fa] [--style darkGlass]`.
+Debug builds also accept `--profile <index>` and `--tap <0…1>` (clicks the dock at that fraction of its
+width) to inspect widget panels without UI scripting.
 
 ## Using it
 
