@@ -298,7 +298,7 @@ private struct ConnTableTile: View {
                         if hasDeltas, let d = row.delta {
                             T(ConnFmt.delta(d)).dock(9, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
                                 .fixedSize()
-                                .padding(.leading, m.u(4.5))
+                                .padding(.leading, m.u(4))
                         }
                     }
                     .padding(.leading, m.u(leading))
@@ -390,9 +390,9 @@ private struct ConnGitHubTile: View {
                     // Sits 2 pt right of centre between its neighbours, as in the reference.
                     stat(s?.metric(ConnKey.week), L("week")).padding(.leading, m.u(4))
                     Spacer(minLength: m.u(3))
-                    HStack(alignment: .firstTextBaseline, spacing: m.u(3.5)) {
-                        Text(verbatim: "🔥").font(.system(size: m.u(8.25)))
-                        HStack(alignment: .firstTextBaseline, spacing: m.u(2.5)) {
+                    HStack(alignment: .firstTextBaseline, spacing: m.u(2.5)) {
+                        Text(verbatim: "🔥").font(.system(size: m.u(8)))
+                        HStack(alignment: .firstTextBaseline, spacing: m.u(4.5)) {
                             T(s?.metric(ConnKey.streak).map { Fmt.int(Int($0)) } ?? dash).dock(7.5, .bold)
                             Text(L("streak")).dock(6, .semibold, p.secondary)
                         }
@@ -401,8 +401,8 @@ private struct ConnGitHubTile: View {
                     .layoutPriority(1)
                 }
                 .minimumScaleFactor(0.75)
-                .padding(.leading, m.u(5.5))
-                .padding(.trailing, m.u(7.5))
+                .padding(.leading, m.u(6))
+                .padding(.trailing, m.u(6))
                 .connBaseline(m.u(13.5))
                 ConnContributionGrid(counts: s?.series ?? [], columns: 14, rows: 4, dot: m.u(7))
                     .frame(height: m.u(34))
@@ -413,7 +413,7 @@ private struct ConnGitHubTile: View {
     }
 
     private func stat(_ v: Double?, _ label: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: m.u(2.5)) {
+        HStack(alignment: .firstTextBaseline, spacing: m.u(2)) {
             T(v.map { Fmt.int(Int($0)) } ?? dash).dock(9, .bold)
             Text(label).dock(8, .semibold, p.secondary)
         }
