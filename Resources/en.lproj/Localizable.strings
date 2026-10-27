@@ -259,6 +259,8 @@
 "Latest Mail" = "Latest Mail";
 "Quick Contacts" = "Quick Contacts";
 "Contacts" = "Contacts";
+"Contact Card" = "Contact Card";
+"Person" = "Person";
 "Stock" = "Stock";
 "Symbol" = "Symbol";
 "Stock Chart" = "Stock Chart";
@@ -381,6 +383,7 @@
 "Newest unread message." = "Newest unread message.";
 "Latest note and quick capture." = "Latest note and quick capture.";
 "Call, message or FaceTime favorites." = "Call, message or FaceTime favorites.";
+"Call, FaceTime or message one person." = "Call, FaceTime or message one person.";
 "Price and daily change." = "Price and daily change.";
 "Intraday chart." = "Intraday chart.";
 "Three symbols at a glance." = "Three symbols at a glance.";
@@ -691,6 +694,7 @@
 "Add Apps…" = "Add Apps…";
 "Allow Contacts access in Settings → Privacy & Permissions." = "Allow Contacts access in Settings → Privacy & Permissions.";
 "Search contacts" = "Search contacts";
+"Choose one contact." = "Choose one contact.";
 "Up to six contacts." = "Up to six contacts.";
 "Are you sure you want to permanently erase the items in the Trash?" = "Are you sure you want to permanently erase the items in the Trash?";
 "You can’t undo this action." = "You can’t undo this action.";
@@ -814,6 +818,7 @@
 "No Claude Code logs found" = "No Claude Code logs found";
 "No Codex logs found" = "No Codex logs found";
 "Unexpected response" = "Unexpected response";
+"Add your API token" = "Add your API token";
 "M" = "M";
 "Add your GitHub username" = "Add your GitHub username";
 "User not found" = "User not found";
@@ -878,7 +883,6 @@
 "Subscriber count is hidden" = "Subscriber count is hidden";
 "Timed out" = "Timed out";
 "Network error" = "Network error";
-"Add your API token" = "Add your API token";
 "Not supported" = "Not supported";
 "Invalid address" = "Invalid address";
 "today" = "today";
@@ -908,6 +912,14 @@
 "Brown" = "Brown";
 "Pink" = "Pink";
 "Off" = "Off";
+"Choose a contact" = "Choose a contact";
+"Allow Contacts access" = "Allow Contacts access";
+"Contacts access off" = "Contacts access off";
+"Open Contacts" = "Open Contacts";
+"Call" = "Call";
+"FaceTime" = "FaceTime";
+"FaceTime Audio" = "FaceTime Audio";
+"Message" = "Message";
 "Unread" = "Unread";
 "+%@ today" = "+%@ today";
 "Open Mail" = "Open Mail";
@@ -940,16 +952,10 @@
 "Open Folder" = "Open Folder";
 "New Message" = "New Message";
 "New Note" = "New Note";
-"Open Contacts" = "Open Contacts";
 "New" = "New";
 "Nothing playing" = "Nothing playing";
 "First Person Shooter (feat. J. Cole)" = "First Person Shooter (feat. J. Cole)";
-"Allow Contacts access" = "Allow Contacts access";
-"Contacts access off" = "Contacts access off";
 "Choose contacts" = "Choose contacts";
-"FaceTime" = "FaceTime";
-"Message" = "Message";
-"Call" = "Call";
 "Open Activity Monitor" = "Open Activity Monitor";
 "Top Processes" = "Top Processes";
 "%d cores" = "%d cores";

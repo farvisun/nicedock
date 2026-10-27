@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "МБ";
 "unit.short.GB" = "ГБ";
 "unit.short.TB" = "ТБ";
+"Contact Card" = "Карточка контакта";
+"Person" = "Человек";
+"Call, FaceTime or message one person." = "Звонок, FaceTime или сообщение одному человеку.";
+"Choose one contact." = "Выберите один контакт.";
+"Choose a contact" = "Выберите контакт";
+"FaceTime Audio" = "Аудиовызов FaceTime";

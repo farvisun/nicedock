@@ -24,7 +24,7 @@ enum WidgetKind: String, Codable, CaseIterable, Identifiable {
     // Media & photos
     case nowPlaying, nowPlayingHero, backgroundSounds, youtubeVideo, recentPhoto, wallpaper
     // Mail, notes, phone
-    case mail, mailLatest, notes, quickContacts
+    case mail, mailLatest, notes, quickContacts, contactCard
     // Stocks & crypto
     case stockQuote, stockChart, stockWatchlist, cryptoQuote, cryptoChart, cryptoWatchlist
     // Finance & commerce
@@ -329,6 +329,10 @@ enum WidgetCatalog {
         case .quickContacts:
             return WidgetSpec(category: .phone, title: "Quick Contacts", summary: "Call, message or FaceTime favorites.", symbol: "person.crop.circle", width: 163,
                               fields: [ConfigField(key: "contacts", title: "Contacts", type: .contacts)])
+        case .contactCard:
+            // Not titled "Contact": that key already means "Contact us" (status menu) in the translations.
+            return WidgetSpec(category: .phone, title: "Contact Card", summary: "Call, FaceTime or message one person.", symbol: "person.crop.rectangle", width: 203,
+                              fields: [ConfigField(key: "contact", title: "Person", type: .contacts)])
 
         // MARK: Stocks & crypto
         case .stockQuote:

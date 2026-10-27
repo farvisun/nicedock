@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "م.ب";
 "unit.short.GB" = "غ.ب";
 "unit.short.TB" = "ت.ب";
+"Contact Card" = "بطاقة جهة الاتصال";
+"Person" = "الشخص";
+"Call, FaceTime or message one person." = "الاتصال بشخص واحد أو مراسلته أو إجراء FaceTime معه.";
+"Choose one contact." = "اختر جهة اتصال واحدة.";
+"Choose a contact" = "اختر جهة اتصال";
+"FaceTime Audio" = "FaceTime الصوتي";

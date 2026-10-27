@@ -13,6 +13,18 @@ struct MediaContact: Identifiable, Equatable, Sendable {
     var thumbnail: Data? = nil
 }
 
+extension MediaContact {
+    /// The phone number reduced to digits and "+", ready for tel: / facetime: URLs.
+    var dialablePhone: String? {
+        guard let phone else { return nil }
+        let digits = String(phone.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) || $0 == "+" }.map(Character.init))
+        return digits.isEmpty ? nil : digits
+    }
+
+    /// Best FaceTime / iMessage handle: the phone number, else the email address.
+    var handle: String? { dialablePhone ?? email }
+}
+
 @Observable
 @MainActor
 final class MediaContactsModel {
@@ -151,8 +163,8 @@ struct MediaContactsTile: View {
     }
 }
 
-/// Round photo with an Apple-style initials fallback.
-private struct MediaAvatar: View {
+/// Round photo with an Apple-style initials fallback (shared with the contact card).
+struct MediaAvatar: View {
     @Environment(\.metrics) private var m
     var contact: MediaContact
     var size: CGFloat
@@ -183,8 +195,8 @@ private struct MediaContactPanel: View {
     @Environment(\.palette) private var p
 
     var body: some View {
-        let phone = contact.phone.map(Self.dialable)
-        let handle = phone ?? contact.email
+        let phone = contact.dialablePhone
+        let handle = contact.handle
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 MediaAvatar(contact: contact, size: 44, scaled: false)
@@ -214,9 +226,5 @@ private struct MediaContactPanel: View {
         }
         .opacity(url == nil ? 0.4 : 1)
         .disabled(url == nil)
-    }
-
-    static func dialable(_ s: String) -> String {
-        String(s.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) || $0 == "+" }.map(Character.init))
     }
 }

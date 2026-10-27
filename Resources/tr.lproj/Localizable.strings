@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "MB";
 "unit.short.GB" = "GB";
 "unit.short.TB" = "TB";
+"Contact Card" = "Kişi Kartı";
+"Person" = "Kişi";
+"Call, FaceTime or message one person." = "Bir kişiyi arayın, mesaj gönderin veya FaceTime ile arayın.";
+"Choose one contact." = "Tek bir kişi seçin.";
+"Choose a contact" = "Bir kişi seçin";
+"FaceTime Audio" = "FaceTime Sesli";

@@ -50,6 +50,13 @@ enum MediaScene {
                                     thumbnail: try? Data(contentsOf: ReferenceScene.assetsURL.appendingPathComponent(file)))
             }
             return [:]
+        case .contactCard:
+            // Same person as the first Quick Contacts portrait; the frame shows no name, only the avatar.
+            // `contactCard-email` (no reference frame) previews the dimmed Call button of an email-only contact.
+            contacts = [MediaContact(id: "scene-maya", name: "Maya Brooks", initials: "MB", phone: variant == "email" ? nil : "+1 555 0100",
+                                     email: "maya@example.com",
+                                     thumbnail: try? Data(contentsOf: ReferenceScene.assetsURL.appendingPathComponent("frame-contact-1.png")))]
+            return ["contact": "scene-maya"]
         default:
             return nil
         }

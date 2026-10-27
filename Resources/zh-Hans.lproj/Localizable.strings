@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "MB";
 "unit.short.GB" = "GB";
 "unit.short.TB" = "TB";
+"Contact Card" = "联系人名片";
+"Person" = "联系人";
+"Call, FaceTime or message one person." = "给一位联系人打电话、发信息或进行 FaceTime 通话。";
+"Choose one contact." = "选取一位联系人。";
+"Choose a contact" = "选取联系人";
+"FaceTime Audio" = "FaceTime 语音";

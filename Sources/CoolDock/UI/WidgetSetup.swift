@@ -189,7 +189,9 @@ struct WidgetSetupView: View {
                 Text(L("City name, or latitude,longitude.")).font(.ui(10.5)).foregroundStyle(.secondary)
             }
         case .contacts:
-            ContactPickerList(selected: Binding(get: { draft.list(f.key) }, set: { draft.config[f.key] = $0.joined(separator: "\n") }))
+            // A field keyed `contact` (singular) holds exactly one person; `contacts` holds a short list.
+            ContactPickerList(selected: Binding(get: { draft.list(f.key) }, set: { draft.config[f.key] = $0.joined(separator: "\n") }),
+                              limit: f.key == "contact" ? 1 : 6)
         }
     }
 }
@@ -220,6 +222,8 @@ struct AppListEditor: View {
 
 struct ContactPickerList: View {
     @Binding var selected: [String]
+    /// 1 turns the list into a single choice: ticking a contact replaces the previous one.
+    var limit = 6
     @State private var contacts: [(id: String, name: String)] = []
     @State private var query = ""
     @State private var denied = false
@@ -234,14 +238,20 @@ struct ContactPickerList: View {
                     VStack(alignment: .leading, spacing: 2) {
                         ForEach(contacts.filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }.prefix(200), id: \.id) { c in
                             Toggle(c.name, isOn: Binding(get: { selected.contains(c.id) }, set: { on in
-                                if on { if selected.count < 6 { selected.append(c.id) } } else { selected.removeAll { $0 == c.id } }
+                                if !on {
+                                    selected.removeAll { $0 == c.id }
+                                } else if limit == 1 {
+                                    selected = [c.id]
+                                } else if selected.count < limit {
+                                    selected.append(c.id)
+                                }
                             }))
                             .toggleStyle(.checkbox)
                         }
                     }
                 }
                 .frame(height: 160)
-                Text(L("Up to six contacts.")).font(.ui(10.5)).foregroundStyle(.secondary)
+                Text(limit == 1 ? L("Choose one contact.") : L("Up to six contacts.")).font(.ui(10.5)).foregroundStyle(.secondary)
             }
         }
         .task { await load() }
