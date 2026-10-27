@@ -221,9 +221,10 @@ struct UtilVoiceMemoView: View {
     }
 
     private var idleTile: some View {
-        SysRingTile(value: 0.5, color: rec.permissionDenied || rec.failed ? .cdRed : .cdGreen, label: nil) {
+        // Decorative arc, as long as in the reference frame.
+        SysRingTile(value: 0.477, color: rec.permissionDenied || rec.failed ? .cdRed : .cdGreen, label: nil) {
             Image(systemName: rec.permissionDenied ? "mic.slash.fill" : "mic.fill")
-                .font(.system(size: m.u(15), weight: .semibold))
+                .font(.system(size: m.u(12.75), weight: .semibold))
         }
         .overlay(alignment: .topTrailing) {
             if hover {
@@ -250,7 +251,7 @@ struct UtilVoiceMemoView: View {
     private var recordingTile: some View {
         let red = p.accent(UtilTint.red)
         let redLight = p.monochrome ? red : UtilTint.redLight
-        return Tile(width: 170, padding: EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 6.5)) {
+        return Tile(width: 170, padding: EdgeInsets(top: 0, leading: 5.5, bottom: 0, trailing: 6.5)) {
             HStack(spacing: 0) {
                 TimelineView(.animation(minimumInterval: 0.08, paused: rec.state != .recording)) { ctx in
                     HStack(spacing: 0) {
@@ -258,7 +259,7 @@ struct UtilVoiceMemoView: View {
                         Text(verbatim: Fmt.duration(rec.elapsed))
                             .dock(21, .bold, mono: true)
                             .minimumScaleFactor(0.6)
-                        Spacer(minLength: m.u(3.25))
+                        Spacer(minLength: m.u(2.5))
                         let levels = rec.sampleLevels(at: ctx.date)
                         UtilWaveform(levels: levels, color: red, topColor: redLight)
                             .frame(width: m.u(CGFloat(levels.count) * 3), height: m.u(17))

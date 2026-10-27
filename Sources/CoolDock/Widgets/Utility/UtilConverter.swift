@@ -106,8 +106,8 @@ struct UtilConverterView: View {
                     Group {
                         if ReferenceScene.isActive {
                             // The reference frame was captured mid-edit: the amount followed by the caret.
-                            HStack(spacing: m.u(0.5)) {
-                                Text(verbatim: amountText).dock(13.5, .medium, p.secondary)
+                            HStack(spacing: m.u(-1.5)) {
+                                Text(verbatim: amountText).dock(13.5, .medium, p.secondary).offset(y: m.u(0.5))
                                 RoundedRectangle(cornerRadius: m.u(0.9)).fill(p.primary).frame(width: m.u(1.85), height: m.u(15.5))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -187,6 +187,7 @@ struct UtilConverterView: View {
         } label: {
             Text(verbatim: code)
                 .dock(8.8, .bold)
+                .offset(y: m.u(-0.5))
                 .frame(width: m.u(39.75), height: m.u(16))
                 .background(Capsule().fill(p.primary.opacity(0.07)))
                 .contentShape(Capsule())

@@ -60,7 +60,7 @@ struct AppsAppFolderTile: View {
         } label: {
             Tile(width: w.kind.spec.width, fill: fill) {
                 AppsIconQuad(paths: apps, rowGap: 2)
-                    .offset(y: m.u(-0.25))
+                    .offset(y: m.u(-0.125))
             }
         }
         .buttonStyle(PressableStyle())
