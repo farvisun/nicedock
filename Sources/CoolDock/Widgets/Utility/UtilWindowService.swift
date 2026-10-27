@@ -119,34 +119,25 @@ final class UtilWindowService: DemandDriven {
 
     // MARK: Actions
 
+    // Each entry point checks Accessibility trust (prompting the user to grant it), then runs the matching
+    // `UtilWinActions` worker, which takes the pid or window directly.
+
     /// Tile button: `action` on the focused window of the app that was in front before the click.
     @discardableResult func perform(_ action: UtilWinAction) -> Bool {
-        guard canAct(), let pid = targetApp, let win = UtilAX.focusedWindow(pid) else { return false }
-        return apply(action, to: win, pid: pid)
+        guard canAct(), let pid = targetApp else { return false }
+        return UtilWinActions.apply(action, toFocusedWindowOf: pid)
     }
 
     @discardableResult func perform(_ action: UtilWinAction, on entry: UtilWinEntry) -> Bool {
-        guard canAct(), let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return false }
-        if entry.minimized { UtilAX.setBool(win, kAXMinimizedAttribute, false) }
-        let ok = apply(action, to: win, pid: entry.pid)
+        guard canAct() else { return false }
+        let ok = UtilWinActions.apply(action, to: entry)
         reloadSoon()
         return ok
     }
 
-    private func apply(_ action: UtilWinAction, to win: AXUIElement, pid: pid_t) -> Bool {
-        guard let frame = UtilAX.frame(win) else { return false }
-        let h = Self.primaryHeight
-        guard let target = UtilWinMath.target(action, window: UtilWinMath.flip(frame, primaryHeight: h), screens: Self.screens()) else { return false }
-        UtilAX.setFrame(win, UtilWinMath.flip(target, primaryHeight: h), pid: pid)
-        return true
-    }
-
     func focus(_ entry: UtilWinEntry) {
         guard !UtilEnv.rendering else { return }
-        if refreshTrust(), let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) {
-            if entry.minimized { UtilAX.setBool(win, kAXMinimizedAttribute, false) }
-            UtilAX.raise(win)
-        }
+        if refreshTrust() { UtilWinActions.raise(entry) }
         NSRunningApplication(processIdentifier: entry.pid)?.activate(options: [])
         targetPID = entry.pid
         focusedID = entry.id
@@ -154,47 +145,34 @@ final class UtilWindowService: DemandDriven {
     }
 
     func toggleMinimized(_ entry: UtilWinEntry) {
-        guard canAct(), let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return }
-        UtilAX.setBool(win, kAXMinimizedAttribute, !entry.minimized)
+        guard canAct() else { return }
+        UtilWinActions.setMinimized(entry, !entry.minimized)
         reloadSoon()
     }
 
     func close(_ entry: UtilWinEntry) {
-        guard canAct(), let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return }
-        UtilAX.close(win)
+        guard canAct() else { return }
+        UtilWinActions.close(entry)
         reloadSoon()
     }
 
     /// Tiles the visible windows on the display of the focused window (or the main display), frontmost first.
     @discardableResult func arrangeAll() -> Bool {
         guard canAct() else { return false }
-        let h = Self.primaryHeight
-        let screens = Self.screens()
-        var index = NSScreen.screens.firstIndex { $0 == NSScreen.main } ?? 0
-        if let pid = targetApp, let win = UtilAX.focusedWindow(pid), let f = UtilAX.frame(win),
-           let i = UtilWinMath.screenIndex(for: UtilWinMath.flip(f, primaryHeight: h), in: screens) {
-            index = i
-        }
-        guard screens.indices.contains(index) else { return false }
-        let windows = onScreenEntries().filter {
-            UtilWinMath.screenIndex(for: UtilWinMath.flip($0.frame, primaryHeight: h), in: screens) == index
-        }.prefix(12)
-        let rects = UtilWinMath.grid(windows.count, in: screens[index].usable)
-        for (entry, rect) in zip(windows, rects) {
-            if let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) {
-                UtilAX.setFrame(win, UtilWinMath.flip(rect, primaryHeight: h), pid: entry.pid)
-            }
-        }
+        let ok = UtilWinActions.arrange(onScreenEntries(), focusedPID: targetApp)
         reloadSoon()
-        return !windows.isEmpty
+        return ok
     }
 
     // MARK: Listing
 
-    /// Visible normal windows of regular apps, front to back (CGWindowList; titles only with Screen Recording).
-    private func onScreenEntries() -> [UtilWinEntry] {
+    private func onScreenEntries() -> [UtilWinEntry] { Self.onScreenEntries(excluding: ownPID) }
+
+    /// Visible normal windows of regular apps other than `own` (CoolDock), front to back (CGWindowList; titles only
+    /// with Screen Recording).
+    static func onScreenEntries(excluding own: pid_t) -> [UtilWinEntry] {
         let infos = (CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]) ?? []
-        return UtilWinList.parse(infos, ownPID: ownPID).compactMap { e in
+        return UtilWinList.parse(infos, ownPID: own).compactMap { e in
             guard let app = NSRunningApplication(processIdentifier: e.pid), app.activationPolicy == .regular else { return nil }
             var e = e
             e.appName = app.localizedName ?? e.appName
@@ -221,7 +199,9 @@ final class UtilWindowService: DemandDriven {
         }
     }
 
-    private func merge(_ cg: [UtilWinEntry], _ ax: UtilAXSnapshot) {
+    /// CGWindowList entries plus the Accessibility snapshot: AX titles, and minimized windows (CGWindowList lists
+    /// on-screen windows only).
+    func merge(_ cg: [UtilWinEntry], _ ax: UtilAXSnapshot) {
         var entries = cg
         for i in entries.indices {
             guard let infos = ax.windows[entries[i].pid] else { continue }
@@ -253,6 +233,83 @@ final class UtilWindowService: DemandDriven {
             try? await Task.sleep(for: .milliseconds(350))
             reload()
         }
+    }
+}
+
+// MARK: - Actions without the permission check
+
+/// The Window Manager's actions on one window (or one set of windows) of any app. They do not check Accessibility
+/// trust: `UtilWindowService`'s entry points do that first, because other apps' windows need it. A process needs no
+/// permission for its own windows, so the live tests (`AXLiveTests`) call these with the test process's pid; apart
+/// from the pid the code path is the one the buttons take. `screens` defaults to the real displays
+/// (`UtilWindowService.screens()`, with CoolDock's docked Dock taken out).
+@MainActor
+enum UtilWinActions {
+    /// `action` on the focused window of `pid`.
+    @discardableResult static func apply(_ action: UtilWinAction, toFocusedWindowOf pid: pid_t,
+                                         screens: [UtilWinScreen]? = nil) -> Bool {
+        guard let win = UtilAX.focusedWindow(pid) else { return false }
+        return apply(action, to: win, pid: pid, screens: screens ?? UtilWindowService.screens())
+    }
+
+    /// `action` on one listed window (restored first when it is minimized).
+    @discardableResult static func apply(_ action: UtilWinAction, to entry: UtilWinEntry,
+                                         screens: [UtilWinScreen]? = nil) -> Bool {
+        guard let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return false }
+        if entry.minimized { UtilAX.setBool(win, kAXMinimizedAttribute, false) }
+        return apply(action, to: win, pid: entry.pid, screens: screens ?? UtilWindowService.screens())
+    }
+
+    private static func apply(_ action: UtilWinAction, to win: AXUIElement, pid: pid_t, screens: [UtilWinScreen]) -> Bool {
+        guard let frame = UtilAX.frame(win) else { return false }
+        let h = UtilWindowService.primaryHeight
+        guard let target = UtilWinMath.target(action, window: UtilWinMath.flip(frame, primaryHeight: h), screens: screens) else { return false }
+        UtilAX.setFrame(win, UtilWinMath.flip(target, primaryHeight: h), pid: pid)
+        return true
+    }
+
+    /// Brings the window forward (restoring it when minimized); activating its app is up to the caller.
+    @discardableResult static func raise(_ entry: UtilWinEntry) -> Bool {
+        guard let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return false }
+        if entry.minimized { UtilAX.setBool(win, kAXMinimizedAttribute, false) }
+        UtilAX.raise(win)
+        return true
+    }
+
+    @discardableResult static func setMinimized(_ entry: UtilWinEntry, _ minimized: Bool) -> Bool {
+        guard let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return false }
+        UtilAX.setBool(win, kAXMinimizedAttribute, minimized)
+        return true
+    }
+
+    @discardableResult static func close(_ entry: UtilWinEntry) -> Bool {
+        guard let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) else { return false }
+        UtilAX.close(win)
+        return true
+    }
+
+    /// Arrange All over `entries` (front to back): the ones on the display of `focusedPID`'s focused window (or the
+    /// main display), at most twelve, tiled frontmost first.
+    @discardableResult static func arrange(_ entries: [UtilWinEntry], focusedPID: pid_t?,
+                                           screens: [UtilWinScreen]? = nil) -> Bool {
+        let screens = screens ?? UtilWindowService.screens()
+        let h = UtilWindowService.primaryHeight
+        var index = NSScreen.screens.firstIndex { $0 == NSScreen.main } ?? 0
+        if let pid = focusedPID, let win = UtilAX.focusedWindow(pid), let f = UtilAX.frame(win),
+           let i = UtilWinMath.screenIndex(for: UtilWinMath.flip(f, primaryHeight: h), in: screens) {
+            index = i
+        }
+        guard screens.indices.contains(index) else { return false }
+        let windows = entries.filter {
+            UtilWinMath.screenIndex(for: UtilWinMath.flip($0.frame, primaryHeight: h), in: screens) == index
+        }.prefix(12)
+        let rects = UtilWinMath.grid(windows.count, in: screens[index].usable)
+        for (entry, rect) in zip(windows, rects) {
+            if let win = UtilAX.window(pid: entry.pid, id: entry.id, frame: entry.frame) {
+                UtilAX.setFrame(win, UtilWinMath.flip(rect, primaryHeight: h), pid: entry.pid)
+            }
+        }
+        return !windows.isEmpty
     }
 }
 

@@ -3,7 +3,9 @@ import ApplicationServices
 
 /// Accessibility notifications for other apps' windows: created, moved, resized and restored (deminiaturized).
 ///
-/// One `AXObserver` per running regular app, registered on the app element and on each of its windows. Observers exist
+/// One `AXObserver` per running regular app, registered on the app element, which receives the notifications of all the
+/// app's windows. Each window adds only its destruction (and whatever the app element refused): registering a window
+/// for what the app element already delivers made every move, resize and restore arrive twice. Observers exist
 /// only while a feature subscribes (Reserve Dock Space, Hide on Window Hover) *and* CoolDock is trusted for
 /// Accessibility; nothing is polled, so an idle desktop costs nothing. CoolDock never asks for the permission by itself:
 /// the hub starts when the user grants it (the system posts `com.apple.accessibility.api` when trust changes).
@@ -28,10 +30,13 @@ final class WindowEventHub {
     private final class AppObservation {
         let observer: AXObserver
         let app: AXUIElement
+        /// Registered on each window.
+        let windowNotifications: [String]
         var windows: [AXWindowKey] = []
-        init(observer: AXObserver, app: AXUIElement) {
+        init(observer: AXObserver, app: AXUIElement, windowNotifications: [String]) {
             self.observer = observer
             self.app = app
+            self.windowNotifications = windowNotifications
         }
     }
 
@@ -43,8 +48,8 @@ final class WindowEventHub {
 
     private static let appNotifications = [kAXWindowCreatedNotification, kAXWindowMovedNotification, kAXWindowResizedNotification,
                                            kAXWindowDeminiaturizedNotification]
-    private static let windowNotifications = [kAXWindowMovedNotification, kAXWindowResizedNotification, kAXWindowDeminiaturizedNotification,
-                                              kAXUIElementDestroyedNotification]
+    /// Per-window notifications an app element can also deliver; a window registers them only when its app refused.
+    private static let windowFallbacks = [kAXWindowMovedNotification, kAXWindowResizedNotification, kAXWindowDeminiaturizedNotification]
 
     func subscribe(_ id: String, _ handler: @escaping (Event) -> Void) {
         let wasRunning = isRunning
@@ -113,22 +118,29 @@ final class WindowEventHub {
         let pid = app.processIdentifier
         guard isRunning, apps[pid] == nil, pid != ProcessInfo.processInfo.processIdentifier,
               app.activationPolicy == .regular, !app.isTerminated else { return }
-        var created: AXObserver?
-        guard AXObserverCreate(pid, windowEventCallback, &created) == .success, let observer = created else { return }
-        let element = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(element, 0.5)
-        var registered = 0
-        for name in Self.appNotifications where AXObserverAddNotification(observer, element, name as CFString, nil) == .success {
-            registered += 1
-        }
-        guard registered > 0 else { return }
-        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .defaultMode)
-        let entry = AppObservation(observer: observer, app: element)
-        apps[pid] = entry
-        for window in AXWindowInfo.windows(of: element) { watch(window, in: entry) }
+        attach(pid)
     }
 
-    private func forget(_ pid: pid_t) {
+    /// Registers the observer for `pid`'s windows. `observe(_:)` decides which apps get one (only while the hub runs,
+    /// which needs Accessibility trust, and never CoolDock itself); the live tests attach the test process directly.
+    @discardableResult
+    func attach(_ pid: pid_t) -> Bool {
+        guard apps[pid] == nil else { return true }
+        var created: AXObserver?
+        guard AXObserverCreate(pid, windowEventCallback, &created) == .success, let observer = created else { return false }
+        let element = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(element, 0.5)
+        let refused = Self.appNotifications.filter { AXObserverAddNotification(observer, element, $0 as CFString, nil) != .success }
+        guard refused.count < Self.appNotifications.count else { return false }
+        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .defaultMode)
+        let entry = AppObservation(observer: observer, app: element,
+                                   windowNotifications: Self.windowFallbacks.filter(refused.contains) + [kAXUIElementDestroyedNotification])
+        apps[pid] = entry
+        for window in AXWindowInfo.windows(of: element) { watch(window, in: entry) }
+        return true
+    }
+
+    func forget(_ pid: pid_t) {
         guard let entry = apps.removeValue(forKey: pid) else { return }
         CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(entry.observer), .defaultMode)
     }
@@ -141,7 +153,7 @@ final class WindowEventHub {
     private func watch(_ window: AXUIElement, in entry: AppObservation) {
         let key = AXWindowKey(window)
         guard !entry.windows.contains(key) else { return }
-        for name in Self.windowNotifications { AXObserverAddNotification(entry.observer, window, name as CFString, nil) }
+        for name in entry.windowNotifications { AXObserverAddNotification(entry.observer, window, name as CFString, nil) }
         entry.windows.append(key)
     }
 

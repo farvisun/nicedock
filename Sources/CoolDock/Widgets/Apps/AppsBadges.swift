@@ -113,7 +113,12 @@ final class AppsDockBadges: DemandDriven {
     nonisolated static func read() -> [String: String]? {
         guard AXIsProcessTrusted(),
               let dock = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else { return nil }
-        let app = AppsAX.app(dock.processIdentifier, timeout: 0.5)
+        return labels(in: AppsAX.app(dock.processIdentifier, timeout: 0.5))
+    }
+
+    /// Badge labels of the item lists directly under `app` (the Dock's application element), by app path. No trust
+    /// check: `read()` makes it; an element that refuses Accessibility simply yields no labels.
+    nonisolated static func labels(in app: AXUIElement) -> [String: String] {
         let attrs = ["AXStatusLabel", kAXURLAttribute] as CFArray
         var out: [String: String] = [:]
         for list in AppsAX.elements(app, kAXChildrenAttribute) where AppsAX.string(list, kAXRoleAttribute) == kAXListRole {

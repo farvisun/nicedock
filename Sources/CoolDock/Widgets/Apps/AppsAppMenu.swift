@@ -222,10 +222,15 @@ enum AppsAX {
 
     /// Brings one window forward (un-minimizing it) and activates its app.
     @MainActor static func raise(_ w: Window, of app: NSRunningApplication) {
+        raise(w)
+        AppsLaunch.activate(app)
+    }
+
+    /// The Accessibility half of `raise(_:of:)`: un-minimize, make it the main window, raise it.
+    static func raise(_ w: Window) {
         if w.minimized { AXUIElementSetAttributeValue(w.element, kAXMinimizedAttribute as CFString, kCFBooleanFalse) }
         AXUIElementSetAttributeValue(w.element, kAXMainAttribute as CFString, kCFBooleanTrue)
         AXUIElementPerformAction(w.element, kAXRaiseAction as CFString)
-        AppsLaunch.activate(app)
     }
 
     // Menu bar
@@ -276,6 +281,13 @@ enum AppsAX {
     @discardableResult
     static func press(_ item: MenuItem) -> Bool { AXUIElementPerformAction(item.element, kAXPressAction as CFString) == .success }
 
+    /// Presses the app's own New Window command (File menu). No trust check: the caller makes it.
+    @discardableResult
+    static func pressNewWindow(_ pid: pid_t, bundleID: String?) -> Bool {
+        guard let items = fileMenu(pid), let item = newWindowItem(items, bundleID: bundleID) else { return false }
+        return press(item)
+    }
+
     /// "New Window" in the languages CoolDock ships (apps follow the system language): both words must appear.
     private static let windowWords: [(String, String)] = [
         ("new", "window"), ("neu", "fenster"), ("nouvelle", "fenêtre"), ("nueva", "ventana"), ("nuova", "finestra"),
@@ -300,6 +312,11 @@ enum AppsAX {
             hit = parent.children.first { $0.key == "N" && $0.modifiers == 0 } ?? parent.children.first { $0.enabled }
         }
         return hit
+    }
+
+    /// Safari's File ▸ New Private Window (⇧⌘N).
+    static func privateWindowItem(_ items: [MenuItem]) -> MenuItem? {
+        first(items) { $0.enabled && $0.key == "N" && $0.modifiers == 1 }
     }
 
     /// Safari profiles: with profiles, File ▸ New Window is a submenu of "New <Profile> Window" items.
@@ -395,8 +412,7 @@ enum AppsAppCommands {
     static func newWindow(path: String, app: NSRunningApplication?, bundleID: String?) {
         if let spec = AppsChromium.spec(bundleID) { chromium(spec, path: path, .newWindow); return }
         guard let app, !app.isTerminated else { AppsLaunch.open(path); return }
-        if AppsAX.trusted, let items = AppsAX.fileMenu(app.processIdentifier),
-           let item = AppsAX.newWindowItem(items, bundleID: bundleID), AppsAX.press(item) {
+        if AppsAX.trusted, AppsAX.pressNewWindow(app.processIdentifier, bundleID: bundleID) {
             activateSoon(app)
         } else if let id = bundleID, AppsKnownApps.safari.contains(id) {
             Task {
@@ -412,9 +428,7 @@ enum AppsAppCommands {
     /// Safari's File ▸ New Private Window (⇧⌘N), launching Safari first when needed.
     static func safariPrivateWindow(path: String, bundleID: String) {
         guard AppsAX.trusted else { AppsAX.requestTrust(); return }
-        pressWhenReady(path: path, bundleID: bundleID) { items in
-            AppsAX.first(items) { $0.enabled && $0.key == "N" && $0.modifiers == 1 }
-        }
+        pressWhenReady(path: path, bundleID: bundleID, find: AppsAX.privateWindowItem)
     }
 
     /// One of Safari's "New <Profile> Window" items, by title.
@@ -486,12 +500,17 @@ enum AppsAppMenu {
     }
 
     static func build(_ ctx: Context) -> NSMenu {
+        // Renders never read other apps (window titles are personal data).
+        build(ctx, trusted: !AppsEnv.rendering && AppsAX.trusted)
+    }
+
+    /// The menu with Accessibility reads (window list, File menu) on or off. `build(_:)` passes the real trust; the
+    /// live tests pass `true` for the test process itself, whose windows need no permission.
+    static func build(_ ctx: Context, trusted: Bool) -> NSMenu {
         let b = AppsMenuBuilder()
         let path = ctx.path.map(AppsLaunch.resolve) ?? ctx.app?.bundleURL?.path
         let app = ctx.app.flatMap { $0.isTerminated ? nil : $0 } ?? path.flatMap(AppsLaunch.running)
         let id = app?.bundleIdentifier ?? path.flatMap(AppsLaunch.bundleID)
-        // Renders never read other apps (window titles are personal data).
-        let trusted = !AppsEnv.rendering && AppsAX.trusted
         let finder = id == "com.apple.finder"
         func run(_ action: @escaping () -> Void) -> () -> Void {
             { if ctx.inPanel { Panels.shared.close() }; action() }
