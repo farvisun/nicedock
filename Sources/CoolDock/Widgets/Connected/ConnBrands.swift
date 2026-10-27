@@ -260,17 +260,14 @@ struct ConnBigMark: View {
 // MARK: - SVG path data
 
 /// Brand glyph from SVG path data (M L H V C S Q T A Z, absolute and relative), scaled from `viewBox`
-/// into the shape's rect. Glyph outlines come from Simple Icons (CC0).
+/// into the shape's rect (see `ConnBrandPaths`).
 struct ConnGlyph: Shape {
     var d: String
     var viewBox = CGRect(x: 0, y: 0, width: 24, height: 24)
-    /// Keeps only these subpaths (in drawing order) when set, e.g. one face of a multi-part logo.
-    var parts: [Int]?
 
     func path(in r: CGRect) -> Path {
-        let subpaths = ConnSVG.subpaths(d)
         var base = Path()
-        for (i, sub) in subpaths.enumerated() where parts?.contains(i) ?? true { base.addPath(sub) }
+        for sub in ConnSVG.subpaths(d) { base.addPath(sub) }
         let sx = r.width / viewBox.width, sy = r.height / viewBox.height
         return base.applying(CGAffineTransform(a: sx, b: 0, c: 0, d: sy, tx: r.minX - viewBox.minX * sx, ty: r.minY - viewBox.minY * sy))
     }
