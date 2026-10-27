@@ -14,6 +14,10 @@ struct NetworkLiveTests {
     @Test func weatherForANamedCity() async throws {
         let weather = WeatherService.shared
         await weather.ensure("Tehran", force: true)
+        // `ensure` returns at once when another caller (the tiles suite) is already fetching the same city.
+        for _ in 0..<150 where weather.snapshot("Tehran") == nil && weather.error("Tehran") == nil {
+            try await Task.sleep(for: .milliseconds(100))
+        }
         #expect(weather.error("Tehran") == nil, "weather error: \(weather.error("Tehran") ?? "")")
         let s = try #require(weather.snapshot("Tehran"))
         #expect(s.place.localizedCaseInsensitiveContains("Tehran"))
