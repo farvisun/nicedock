@@ -9,7 +9,9 @@
 #
 # Metrics (per widget, 2x pixels):
 #   size   render size must equal reference size exactly
-#   match  share of pixels whose colour differs by at most FUZZ (default 8%)
+#   match  100% minus ImageMagick's AE at FUZZ (default 8%). In ImageMagick 7.1.2 AE is weighted: every colour
+#          channel outside the fuzz adds its difference (0-1) / 3, so a pixel that is slightly off counts less
+#          than 1. scripts/pixel-residue.sh reports plain pixel counts and where the residue sits.
 #   strict same with STRICT fuzz (default 3%): catches hairlines and antialiasing shifts
 #   rmse   normalised root-mean-square error (0 = identical)
 set -euo pipefail

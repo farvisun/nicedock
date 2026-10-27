@@ -96,7 +96,7 @@ struct UtilAudioDevice: Identifiable, Equatable {
             if n.contains("speaker") || n.contains("boom") || n.contains("soundlink") { return "hifispeaker" }
             return "headphones"
         case kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort:
-            return "display"
+            return "tv"
         case kAudioDeviceTransportTypeAirPlay:
             return "airplayaudio"
         case kAudioDeviceTransportTypeVirtual, kAudioDeviceTransportTypeAggregate, kAudioDeviceTransportTypeAutoAggregate:
@@ -350,8 +350,9 @@ struct UtilAudioView: View {
                         .font(.system(size: m.u(9), weight: .medium))
                         .foregroundStyle(p.secondary)
                         .frame(width: m.u(13))
-                    Text(verbatim: device.shortName).dock(9.2, .bold)
+                    Text(verbatim: device.shortName).dock(9, .bold, design: .default)
                         .truncationMode(.tail)
+                        .offset(x: m.u(-0.5))
                     Spacer(minLength: 0)
                 }
                 .frame(height: m.u(14))
@@ -362,7 +363,7 @@ struct UtilAudioView: View {
             HStack(spacing: m.u(4)) {
                 Button { audio.toggleMute() } label: {
                     Image(systemName: speakerSymbol)
-                        .font(.system(size: m.u(9.7), weight: .semibold))
+                        .font(.system(size: m.u(10.25), weight: .medium))
                         .foregroundStyle(audio.muted ? p.secondary : p.primary)
                         .padding(.leading, m.u(-1.5))
                         .frame(width: m.u(13), height: m.u(12), alignment: .leading)
@@ -372,7 +373,7 @@ struct UtilAudioView: View {
                 .help(audio.muted ? L("Unmute") : L("Mute"))
                 UtilVolumeSlider(value: audio.muted ? 0 : audio.volume, enabled: audio.hasVolume) { audio.setVolume($0) }
                 Text(verbatim: Fmt.percent(audio.muted ? 0 : audio.volume))
-                    .dock(8.1, .semibold, p.secondary, mono: true)
+                    .dock(8, .semibold, p.secondary, mono: true)
                     .padding(.trailing, m.u(-1))
                     .frame(minWidth: m.u(20.5), alignment: .trailing)
             }
@@ -404,10 +405,14 @@ private struct UtilOutputButton: View {
         Button(action: action) {
             VStack(spacing: m.u(2.5)) {
                 Image(systemName: device.symbol)
-                    .font(.system(size: m.u(14), weight: .medium))
+                    .font(.system(size: m.u(14), weight: .semibold))
                     .foregroundStyle(p.secondary)
                     .frame(height: m.u(17))
-                Text(verbatim: device.shortName).dock(8.25, .semibold, p.secondary)
+                    .offset(y: m.u(-0.5))
+                    // An identity transform keeps the centred glyph at its fractional position (no pixel snapping),
+                    // as in the reference frame.
+                    .transformEffect(.identity)
+                Text(verbatim: device.shortName).dock(8, .semibold, p.secondary, design: .default)
                     .minimumScaleFactor(0.75)
                     .padding(.horizontal, m.u(2))
             }

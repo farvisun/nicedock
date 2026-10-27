@@ -37,16 +37,17 @@ struct CalProgressGridWidget: View {
             Tile(width: w.kind.spec.width) {
                 VStack(spacing: 0) {
                     CalDotGrid(total: g.total, filled: g.filled, columns: g.columns, pitch: m.u(g.pitch),
-                               rowPitch: g.rowPitch.map { m.u($0) }, dotRatio: g.dotRatio)
+                               rowPitch: g.rowPitch.map { m.u($0) }, dotRatio: g.dotRatio,
+                               snapColumns: g.snapColumns, nudge: CGSize(width: m.u(g.nudge.width), height: m.u(g.nudge.height)))
                         .frame(height: m.u(36))
                         .padding(.top, m.u(g.top))
                     Spacer(minLength: 0)
                     HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
-                        Text(verbatim: g.label).dock(8.1, .semibold, p.secondary).minimumScaleFactor(0.75)
+                        Text(verbatim: g.label).dock(8, .semibold, p.secondary).minimumScaleFactor(0.75)
                         Spacer(minLength: 0)
-                        Text(verbatim: g.period.percentText(now)).dock(9.1, .bold, mono: true)
+                        Text(verbatim: g.period.percentText(now)).dock(9, .bold, mono: true)
                     }
-                    .padding(EdgeInsets(top: 0, leading: m.u(5.75), bottom: m.u(6.1), trailing: m.u(5)))
+                    .padding(EdgeInsets(top: 0, leading: m.u(g.labelLeading), bottom: m.u(6.1), trailing: m.u(5.5)))
                 }
             }
         }
@@ -62,6 +63,10 @@ struct CalProgressGridWidget: View {
         var rowPitch: CGFloat? = nil
         var dotRatio: CGFloat = 0.82
         var top: CGFloat = 7
+        /// Month columns land on whole device pixels like the reference grid (see `CalDotGrid.snapColumns`).
+        var snapColumns = false
+        var nudge: CGSize = .zero
+        var labelLeading: CGFloat = 5.25
     }
 
     private func layout(_ now: Date) -> Layout {
@@ -69,17 +74,19 @@ struct CalProgressGridWidget: View {
         switch w.kind {
         case .dayProgress:
             let f = CalPeriod.day.fraction(now)
-            return Layout(period: .day, total: 24, filled: lit(f, 24), columns: 8, label: Fmt.date(now, "MMMMd"), pitch: 12)
+            return Layout(period: .day, total: 24, filled: lit(f, 24), columns: 8, label: Fmt.date(now, "MMMMd"), pitch: 12,
+                          dotRatio: 10 / 12)
         case .monthProgress:
             let days = cal.range(of: .day, in: .month, for: now)?.count ?? 30
             let columns = Int(ceil(Double(days) / 3))
             let f = CalPeriod.month.fraction(now)
             let pitch = min(10.15, 101.5 / CGFloat(columns))
             return Layout(period: .month, total: days, filled: lit(f, days), columns: columns, label: Fmt.date(now, "MMMMy"),
-                          pitch: pitch, rowPitch: pitch + 0.1, dotRatio: 0.788, top: 6.75)
+                          pitch: pitch, rowPitch: pitch + 0.1, dotRatio: 0.788, top: 6.75,
+                          snapColumns: true, nudge: CGSize(width: 0.25, height: -0.25), labelLeading: 5.75)
         default:
             let f = CalPeriod.year.fraction(now)
-            return Layout(period: .year, total: 52, filled: lit(f, 52), columns: 13, label: Fmt.year(now), pitch: 9)
+            return Layout(period: .year, total: 52, filled: lit(f, 52), columns: 13, label: Fmt.year(now), pitch: 9, dotRatio: 7 / 9)
         }
     }
 
@@ -98,6 +105,12 @@ struct CalDotGrid: View {
     /// Vertical centre distance when it differs from `pitch`.
     var rowPitch: CGFloat? = nil
     var dotRatio: CGFloat = 0.82
+    /// Snaps each column's edges to device pixels and centres the dot between them, so centres fall on the
+    /// half-pixel pattern of the reference month grid instead of drifting continuously.
+    var snapColumns = false
+    /// Offset of the whole grid (points).
+    var nudge: CGSize = .zero
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         Canvas { ctx, size in
@@ -110,10 +123,13 @@ struct CalDotGrid: View {
             let y0 = (size.height - rowStep * CGFloat(rows)) / 2
             let on = p.primary.opacity(0.935)
             let off = p.primary.opacity(0.158)
+            let px = 1 / max(displayScale, 1)
+            func snap(_ v: CGFloat) -> CGFloat { (v / px).rounded() * px }
             for i in 0..<total {
                 let r = i / columns, c = i % columns
-                let cx = x0 + (CGFloat(c) + 0.5) * step
-                let cy = y0 + (CGFloat(r) + 0.5) * rowStep
+                let left = x0 + nudge.width + CGFloat(c) * step
+                let cx = snapColumns ? (snap(left) + snap(left + step)) / 2 : left + 0.5 * step
+                let cy = y0 + nudge.height + (CGFloat(r) + 0.5) * rowStep
                 ctx.fill(Path(ellipseIn: CGRect(x: cx - d / 2, y: cy - d / 2, width: d, height: d)), with: .color(i < filled ? on : off))
             }
         }

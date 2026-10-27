@@ -33,9 +33,14 @@ width) to inspect widget panels without UI scripting.
 ## Verification
 
 - **Pixel diff** — `scripts/pixel-diff.sh` renders every frame in `docs/reference` with deterministic
-  reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
-  8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
-  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.55 %, every frame ≥ 98.5 %; `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
+  reference data (`--scene reference`) and compares it with ImageMagick: exact size, match at 8 % and 3 % colour fuzz
+  (ImageMagick's AE metric: 100 % minus the out-of-fuzz colour error, each differing pixel weighted by how far it is
+  off), RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
+  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.76 % (strict 3 %: 99.63 %), every
+  frame ≥ 99.1 %. `scripts/pixel-residue.sh` then sorts what is left: 93.7 % of the pixels that still differ (8 % fuzz)
+  lie within 1 px of an edge in the reference (anti-aliasing and sub-pixel placement); away from edges 99.90 % of
+  pixels match on average, and 99.69 % match when each pixel may be compared with any reference pixel up to 1 px away.
+  `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
 - **Data providers** — `swift test` runs 342 tests; the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
   fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,

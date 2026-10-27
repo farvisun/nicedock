@@ -49,8 +49,10 @@ extension EdgeInsets {
 
 extension Text {
     /// Dock text with active font rules and digit localization applied by the caller.
-    func dock(_ size: CGFloat, _ weight: Font.Weight = .semibold, _ color: Color? = nil, mono: Bool = false) -> some View {
-        modifier(DockTextStyle(size: size, weight: weight, color: color, mono: mono))
+    /// `design: .default` selects SF Pro instead of SF Pro Rounded (list titles in the reference frames).
+    func dock(_ size: CGFloat, _ weight: Font.Weight = .semibold, _ color: Color? = nil, mono: Bool = false,
+              design: Font.Design = .rounded) -> some View {
+        modifier(DockTextStyle(size: size, weight: weight, color: color, mono: mono, design: design))
     }
 }
 
@@ -61,9 +63,10 @@ struct DockTextStyle: ViewModifier {
     var weight: Font.Weight
     var color: Color?
     var mono: Bool
+    var design: Font.Design = .rounded
     func body(content: Content) -> some View {
         content
-            .font(.dock(m.u(size), weight, mono: mono))
+            .font(.dock(m.u(size), weight, design: design, mono: mono))
             .foregroundStyle(color ?? p.primary)
             .lineLimit(1)
     }
