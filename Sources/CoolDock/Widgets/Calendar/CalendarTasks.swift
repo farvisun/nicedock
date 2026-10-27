@@ -251,6 +251,9 @@ private struct CalPanelTaskRow: View {
         .frame(height: 28)
         .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(hover ? p.control : Color.clear))
         .onHover { hover = $0 }
+        // Delete only appears under the pointer; Accessibility gets it as a named action of the row.
+        .accessibilityElement(children: .contain)
+        .if(onDelete != nil) { $0.accessibilityAction(named: L("Delete")) { onDelete?() } }
     }
 }
 
@@ -337,6 +340,7 @@ struct CalTodoWidget: View {
             }
         }
         .onTapGesture { openPanel() }
+        .accessibilityPress(combine: items.isEmpty) { openPanel() }
     }
 
     private func openPanel() {

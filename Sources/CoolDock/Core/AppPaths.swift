@@ -7,6 +7,8 @@ import Foundation
 /// A test runner that sets neither still gets a private temporary folder (`testRoot`), for state and caches alike.
 enum AppPaths {
     nonisolated(unsafe) static var overrideDirectory: URL?
+    /// Replaces `~/Library/Caches/CoolDock` (`--ui-probe` keeps its caches in its temporary folder).
+    nonisolated(unsafe) static var overrideCacheDirectory: URL?
 
     static var supportDirectory: URL {
         if let overrideDirectory { return overrideDirectory }
@@ -20,6 +22,7 @@ enum AppPaths {
 
     /// `~/Library/Caches/CoolDock` (`DiskCache`, favicons, thumbnails).
     static var cacheDirectory: URL {
+        if let overrideCacheDirectory { return overrideCacheDirectory }
         if let testRoot { return testRoot.appendingPathComponent("Caches", isDirectory: true) }
         return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("CoolDock", isDirectory: true)
     }

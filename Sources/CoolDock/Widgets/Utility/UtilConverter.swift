@@ -123,7 +123,7 @@ struct UtilConverterView: View {
                         } else {
                             // SF Pro Rounded 13 semibold with tabular digits, as the reference frame's amount.
                             UtilInlineField(text: $amountText, editing: $editing, placeholder: Fmt.digits("0"), size: 13, weight: .semibold,
-                                            mono: true, color: p.secondary, onSubmit: { editing = false }, onEnd: save)
+                                            mono: true, color: p.secondary, onSubmit: { editing = false; save() }, onEnd: save)
                         }
                     }
                     .frame(height: m.u(17))

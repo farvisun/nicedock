@@ -97,8 +97,11 @@ enum UtilTint {
 }
 
 enum UtilPasteboard {
+    /// The general pasteboard; `--ui-probe` swaps in a private one so its copy buttons never touch the user's clipboard.
+    nonisolated(unsafe) static var board = NSPasteboard.general
+
     static func copy(_ s: String) {
-        let pb = NSPasteboard.general
+        let pb = board
         pb.clearContents()
         pb.setString(s, forType: .string)
     }
@@ -180,6 +183,9 @@ struct UtilInlineField: View {
             } else {
                 Text(verbatim: text.isEmpty ? placeholder : text)
                     .dock(size, weight, text.isEmpty ? (placeholderColor ?? p.tertiary) : (color ?? p.primary), mono: mono, design: design)
+                    // The click below is a gesture, which Accessibility can't see: expose it as the text's press action.
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { editing = true }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -417,6 +423,7 @@ struct UtilColorPickerView: View {
         }
         .buttonStyle(PressableStyle())
         .help(hex + " — " + L("Click to copy, ⌥-click for details"))
+        .accessibilityLabel(hex)
     }
 }
 

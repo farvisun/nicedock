@@ -10,6 +10,7 @@ MainActor.assumeIsolated {
     app.setActivationPolicy(.accessory)
     #if DEBUG
     if MenuProbe.runIfRequested() { app.run() }
+    UIProbe.prepareIfRequested()
     #endif
     if RenderHarness.runIfRequested() {
         app.run()

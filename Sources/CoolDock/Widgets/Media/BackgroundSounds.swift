@@ -293,6 +293,10 @@ struct MediaSoundsTile: View {
         .gesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in Self.openPanel(w) }
             .exclusively(before: TapGesture().onEnded { Self.toggle(w) }))
         .help(playing ? MediaSoundEngine.shared.sound.title : w.kind.spec.localizedTitle)
+        .accessibilityPress { Self.toggle(w) }
+        .accessibilityLabel(w.kind.spec.localizedTitle)
+        .accessibilityValue(playing ? MediaSoundEngine.shared.sound.title : L("Off"))
+        .accessibilityAction(named: L("Background Sounds")) { Self.openPanel(w) }
     }
 
     static func sound(_ w: WidgetInstance) -> MediaNoise { MediaNoise(rawValue: w.string("sound")) ?? .rain }

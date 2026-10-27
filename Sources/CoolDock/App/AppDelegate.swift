@@ -93,6 +93,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UtilAppVolumeService.shared.shutdown()
         AppStore.shared.saveNow()
         SystemDock.shared.restore()
+        #if DEBUG
+        UIProbe.didTerminate()
+        #endif
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

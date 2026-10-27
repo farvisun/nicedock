@@ -1,0 +1,1449 @@
+{
+  "accessibilityTrusted" : false,
+  "alerts" : [
+
+  ],
+  "date" : "2026-10-27T12:03:43Z",
+  "openedURLs" : [
+    "https:\/\/www.youtube.com\/watch?v=4GB3XQaYejk"
+  ],
+  "panes" : [
+    {
+      "elements" : [
+        "sidebar row Unknown \"General\"",
+        "\"Show menu bar icon\" CheckBox",
+        "Button \"Choose Folder…\" — present, not pressed",
+        "Button \"Export…\" — present, not pressed",
+        "Button \"Reset…\" — present, not pressed",
+        "\"Launch CoolDock at login\" CheckBox — present, not pressed"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "general",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"General\"",
+          "after" : {
+            "header" : "General",
+            "windowTitle" : "General"
+          },
+          "before" : {
+            "header" : "CoolDock",
+            "windowTitle" : "About"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Show menu bar icon\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Choose Folder…\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Export…\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Reset…\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Appearance\"",
+        "\"Theme\" segments Auto=1, Light=0, Dark=0",
+        "\"Dock Size\" Slider value 1.0",
+        "\"Dock shadow\" CheckBox"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "appearance",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Appearance\"",
+          "after" : {
+            "header" : "Appearance",
+            "windowTitle" : "Appearance"
+          },
+          "before" : {
+            "header" : "General",
+            "windowTitle" : "General"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press segment \"Dark\" of \"Theme\"",
+          "after" : {
+            "model" : "dark",
+            "selected" : "Dark"
+          },
+          "before" : {
+            "model" : "auto",
+            "selected" : "Auto"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press segment \"Auto\" (restore)",
+          "after" : {
+            "model" : "auto"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "AXIncrement slider \"Dock Size\"",
+          "after" : {
+            "AXValue" : 1.05,
+            "model" : 1.05
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : 1
+          },
+          "ok" : true
+        },
+        {
+          "action" : "AXDecrement (restore)",
+          "after" : {
+            "model" : 1
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Dock shadow\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Layout\"",
+        "\"Distance from Bottom Edge\" Slider value 8.0",
+        "Button \"Bottom Left\"",
+        "Button \"Turn On Dock Auto-Hide\" — present, not pressed",
+        "Button \"Replace the macOS Dock, Hide the macOS Dock while CoolDock runs and keep CoolDock fixed at the bottom.\" — present, not pressed",
+        "Button \"Replace & Auto-Hide, Hide the macOS Dock and reveal CoolDock only at the bottom edge.\" — present, not pressed"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "layout",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Layout\"",
+          "after" : {
+            "header" : "Layout",
+            "windowTitle" : "Layout"
+          },
+          "before" : {
+            "header" : "Appearance",
+            "windowTitle" : "Appearance"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "AXIncrement slider \"Distance from Bottom Edge\"",
+          "after" : {
+            "AXValue" : 9,
+            "model" : 9
+          },
+          "before" : {
+            "AXValue" : 8,
+            "model" : 8
+          },
+          "ok" : true
+        },
+        {
+          "action" : "AXDecrement (restore)",
+          "after" : {
+            "model" : 8
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Screen Position \"Bottom Left\"",
+          "after" : "bottomLeft",
+          "before" : "bottomCenter",
+          "ok" : true
+        },
+        {
+          "action" : "press \"Bottom Center\" (restore)",
+          "after" : "bottomCenter",
+          "ok" : true
+        },
+        {
+          "action" : "check \"Turn On Dock Auto-Hide\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Replace the macOS Dock,\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Replace & Auto-Hide,\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Screens\"",
+        "\"Show CoolDock on\" segments One Display=1, Attached Displays=0, All Displays=0"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "screens",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Screens\"",
+          "after" : {
+            "header" : "Screens",
+            "windowTitle" : "Screens"
+          },
+          "before" : {
+            "header" : "Layout",
+            "windowTitle" : "Layout"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press segment \"All Displays\" of \"Show CoolDock on\"",
+          "after" : {
+            "model" : "all",
+            "selected" : "All Displays"
+          },
+          "before" : {
+            "model" : "one",
+            "selected" : "One Display"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press segment \"One Display\" (restore)",
+          "after" : {
+            "model" : "one"
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Dock\"",
+        "\"Show running indicators\" CheckBox",
+        "\"Open Folders in Finder\" CheckBox"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "dock",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Dock\"",
+          "after" : {
+            "header" : "Dock",
+            "windowTitle" : "Dock"
+          },
+          "before" : {
+            "header" : "Screens",
+            "windowTitle" : "Screens"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Show running indicators\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Open Folders in Finder\"",
+          "after" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "before" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : false
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Profiles\"",
+        "\"Show profile switcher on hover\" CheckBox",
+        "Button \"New Profile\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "profiles",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Profiles\"",
+          "after" : {
+            "header" : "Profiles",
+            "windowTitle" : "Profiles"
+          },
+          "before" : {
+            "header" : "Dock",
+            "windowTitle" : "Dock"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Show profile switcher on hover\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press \"New Profile\"",
+          "after" : {
+            "newRowInPane" : true,
+            "profiles" : 2
+          },
+          "before" : {
+            "profiles" : 1
+          },
+          "ok" : true
+        },
+        {
+          "action" : "remove it again (setup)",
+          "after" : {
+            "profiles" : 1
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Widgets\"",
+        "\"Remember volume per app\" CheckBox"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "widgets",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Widgets\"",
+          "after" : {
+            "header" : "Widgets",
+            "windowTitle" : "Widgets"
+          },
+          "before" : {
+            "header" : "Profiles",
+            "windowTitle" : "Profiles"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Remember volume per app\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "widget list shows the active profile",
+          "after" : {
+            "rows" : 15,
+            "widgets" : 15
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Shortcuts\"",
+        "\"Hide and Show Dock\" CheckBox",
+        "\"Switch Profile\" CheckBox"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "shortcuts",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Shortcuts\"",
+          "after" : {
+            "header" : "Shortcuts",
+            "windowTitle" : "Shortcuts"
+          },
+          "before" : {
+            "header" : "Widgets",
+            "windowTitle" : "Widgets"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Hide and Show Dock\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Switch Profile\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Language & Region\"",
+        "\"Time format\" segments Automatic=1, 24-hour=0, 12-hour=0",
+        "Button \"فارسی, Persian\"",
+        "\"استفاده از Estedad برای فارسی و عربی\" CheckBox"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "language",
+      "notes" : [
+        "header font after the Estedad switch round trip: Estedad-Bold"
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Language & Region\"",
+          "after" : {
+            "header" : "Language & Region",
+            "windowTitle" : "Language & Region"
+          },
+          "before" : {
+            "header" : "Shortcuts",
+            "windowTitle" : "Shortcuts"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press segment \"24-hour\" of \"Time format\"",
+          "after" : {
+            "model" : "h24",
+            "selected" : "24-hour"
+          },
+          "before" : {
+            "model" : "automatic",
+            "selected" : "Automatic"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press segment \"Automatic\" (restore)",
+          "after" : {
+            "model" : "automatic"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press \"فارسی\" (Persian)",
+          "after" : {
+            "estedadActive" : true,
+            "header" : "زبان و منطقه",
+            "headerFont" : "Estedad-Bold",
+            "language" : "fa",
+            "sidebarOnRight" : true,
+            "windowTitle" : "زبان و منطقه"
+          },
+          "before" : {
+            "language" : "en",
+            "sidebarOnRight" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"استفاده از Estedad برای فارسی و عربی\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press \"English\" (restore)",
+          "after" : {
+            "language" : "en",
+            "sidebarOnRight" : false,
+            "windowTitle" : "Language & Region"
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Privacy & Permissions\"",
+        "\"Allow Changes\" switch enabled: false"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "privacy",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Privacy & Permissions\"",
+          "after" : {
+            "header" : "Privacy & Permissions",
+            "windowTitle" : "Privacy & Permissions"
+          },
+          "before" : {
+            "header" : "Language & Region",
+            "windowTitle" : "Language & Region"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Enable AI Assistant\"",
+          "after" : {
+            "accessShowsReadOnly" : true,
+            "allowChangesEnabled" : true,
+            "model" : true
+          },
+          "before" : {
+            "allowChangesEnabled" : false,
+            "model" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "read the permission rows (not pressed)",
+          "after" : {
+            "Accessibility" : "button \"Allow…\"",
+            "Automation" : "button \"Review\"",
+            "Calendars" : "Allowed",
+            "Contacts" : "button \"Allow…\"",
+            "Location" : "button \"Allow…\"",
+            "Microphone" : "Allowed",
+            "Photos" : "Allowed",
+            "Reminders" : "Allowed"
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"Performance\"",
+        "\"System stats interval\" Slider value 2.0",
+        "\"Pause widgets while CoolDock is hidden\" CheckBox",
+        "Button \"Clear Cache\" — present, not pressed"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "performance",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"Performance\"",
+          "after" : {
+            "header" : "Performance",
+            "windowTitle" : "Performance"
+          },
+          "before" : {
+            "header" : "Privacy & Permissions",
+            "windowTitle" : "Privacy & Permissions"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "AXIncrement slider \"System stats interval\"",
+          "after" : {
+            "AXValue" : 3,
+            "model" : 3
+          },
+          "before" : {
+            "AXValue" : 2,
+            "model" : 2
+          },
+          "ok" : true
+        },
+        {
+          "action" : "AXDecrement (restore)",
+          "after" : {
+            "model" : 2
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press switch \"Pause widgets while CoolDock is hidden\"",
+          "after" : {
+            "AXValue" : 0,
+            "model" : false
+          },
+          "before" : {
+            "AXValue" : 1,
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : {
+            "model" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Clear Cache\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "sidebar row Unknown \"About\"",
+        "Button \"Show Onboarding\" — present, not pressed",
+        "Button \"Export Diagnostics…\" — present, not pressed",
+        "Button \"Widgets…\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "about",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press sidebar row \"About\"",
+          "after" : {
+            "header" : "CoolDock",
+            "windowTitle" : "About"
+          },
+          "before" : {
+            "header" : "Performance",
+            "windowTitle" : "Performance"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "version line",
+          "after" : "Version 1.0.0 (1)",
+          "ok" : true
+        },
+        {
+          "action" : "check \"Show Onboarding\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "check \"Export Diagnostics…\" exists and is enabled (not pressed)",
+          "after" : {
+            "enabled" : true
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press \"Widgets…\"",
+          "after" : {
+            "axWindow" : "Widgets",
+            "browserOpen" : true
+          },
+          "before" : {
+            "browserOpen" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press the browser's close button",
+          "after" : {
+            "browserOpen" : false
+          },
+          "ok" : true
+        }
+      ]
+    }
+  ],
+  "passed" : true,
+  "probe" : "CoolDock --ui-probe",
+  "seconds" : 16.5,
+  "summary" : {
+    "panes" : "12\/12",
+    "widgets" : "15\/15"
+  },
+  "systemDock" : {
+    "after" : {
+      "autohide" : "0",
+      "autohide-delay" : "absent"
+    },
+    "before" : {
+      "autohide" : "0",
+      "autohide-delay" : "absent"
+    },
+    "interceptedChanges" : [
+
+    ],
+    "unchanged" : true
+  },
+  "widgets" : [
+    {
+      "elements" : [
+        "Button \"5:00\"",
+        "Button \"Play\" [play.fill]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "timer",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press Play",
+          "after" : "4:59",
+          "before" : "5:00",
+          "ok" : true
+        },
+        {
+          "action" : "press Pause",
+          "after" : {
+            "read1" : "4:59",
+            "read2 (1.2 s later)" : "4:59"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Cancel (reset)",
+          "after" : "5:00",
+          "before" : "4:59",
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"0:00.0\"",
+        "Button \"Counterclockwise Curved Arrow\" [arrow.counterclockwise] (disabled)",
+        "Button \"Play\" [play.fill]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "stopwatch",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press Play, wait 1.3 s",
+          "after" : {
+            "time" : "0:01.3"
+          },
+          "before" : {
+            "resetDisabled" : true,
+            "time" : "0:00.0"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Pause",
+          "after" : {
+            "read1" : "0:01.3",
+            "read2 (1.2 s later)" : "0:01.3"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Reset",
+          "after" : "0:00.0",
+          "before" : "0:01.3",
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "StaticText \"Focus\"",
+        "StaticText \"1\/4\"",
+        "StaticText \"25:00\"",
+        "Button \"Forward\" [forward.fill]",
+        "Button \"Play\" [play.fill]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "pomodoro",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press Play",
+          "after" : {
+            "time" : "24:59"
+          },
+          "before" : {
+            "phase" : "Focus",
+            "time" : "25:00"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Pause",
+          "after" : {
+            "read1" : "24:59",
+            "read2 (1.2 s later)" : "24:59"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Skip Phase",
+          "after" : {
+            "phase" : "Break",
+            "time" : "5:00"
+          },
+          "before" : {
+            "phase" : "Focus",
+            "time" : "24:59"
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"29:47, Every 30 min\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "drinkWater",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press the tile (I drank water)",
+          "after" : {
+            "count" : 1,
+            "countdown" : "30:00, Every 30 min"
+          },
+          "before" : {
+            "count" : 0,
+            "countdown" : "29:47, Every 30 min"
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"44:47, Every 45 min\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "posture",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press the tile (I sat up straight)",
+          "after" : {
+            "count" : 1,
+            "countdown" : "45:01, Every 45 min"
+          },
+          "before" : {
+            "count" : 0,
+            "countdown" : "44:47, Every 45 min"
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"12 × (3 + 4)\"",
+        "StaticText \"0\"",
+        "expression Button \"12 × (3 + 4)\" actions [\"AXShowMenu\", \"AXPress\"]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "calculator",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press the field, set AXValue \"12*(3+4)\"",
+          "after" : "84",
+          "before" : "0",
+          "ok" : true
+        },
+        {
+          "action" : "AXConfirm (Return copies the result)",
+          "after" : {
+            "pasteboard" : "84"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "clear the field (restore)",
+          "after" : "0",
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"500\"",
+        "Button \"USD\"",
+        "StaticText \"446.90\"",
+        "Button \"Sort\" [arrow.up.arrow.down]",
+        "Button \"EUR\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "converter",
+      "notes" : [
+        "result shown: \"223.45\" (the rate needs the network; not part of the check)"
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press Swap Currencies",
+          "after" : [
+            "EUR",
+            "USD"
+          ],
+          "before" : [
+            "USD",
+            "EUR"
+          ],
+          "ok" : true
+        },
+        {
+          "action" : "press it again (restore)",
+          "after" : [
+            "USD",
+            "EUR"
+          ],
+          "ok" : true
+        },
+        {
+          "action" : "press the amount, set AXValue \"250\", AXConfirm (Return)",
+          "after" : {
+            "saved" : "250",
+            "shown" : "250"
+          },
+          "before" : {
+            "saved" : "500"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "set it back to 500 (restore)",
+          "after" : "500",
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"😂\"",
+        "Button \"✨\"",
+        "Button \"✅\"",
+        "Button \"🔥\"",
+        "Button \"🥹\"",
+        "Button \"🙏\"",
+        "Button \"💡\"",
+        "Button \"🚀\"",
+        "Button \"❤️\"",
+        "Button \"Add\" [plus]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "emoji",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press 😂",
+          "after" : {
+            "button shows" : "Selected",
+            "pasteboard" : "😂"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "the confirmation goes away",
+          "after" : "😂",
+          "ok" : true
+        },
+        {
+          "action" : "\"Add\" (Character Viewer) exists and is enabled (not pressed)",
+          "after" : true,
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"#EE5450\"",
+        "Button \"#3499DC\"",
+        "Button \"#FAC716\"",
+        "Button \"Pick Color Empty\" [eyedropper]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "colorPicker",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press swatch #EE5450",
+          "after" : {
+            "pasteboard" : "#EE5450"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "eyedropper (screen sampler) exists and is enabled (not pressed)",
+          "after" : true,
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"Nothing to do, Click to add a task\"",
+        "panel TextField"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "todo",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press the tile",
+          "after" : {
+            "panel" : true
+          },
+          "before" : {
+            "panel" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "type \"UI probe task\" in the panel's field, AXConfirm",
+          "after" : {
+            "items" : 1,
+            "tileShowsIt" : true
+          },
+          "before" : 0,
+          "ok" : true
+        },
+        {
+          "action" : "perform the row's Delete action",
+          "after" : {
+            "items" : 0,
+            "tileEmptyAgain" : true
+          },
+          "before" : 1,
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"Add a habit, Build a daily streak\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "habitTracker",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press \"Add a habit\"",
+          "after" : {
+            "panel" : true
+          },
+          "before" : {
+            "panel" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "type \"Probe habit\" in the panel's field, AXConfirm",
+          "after" : {
+            "habits" : [
+              "Probe habit"
+            ],
+            "ringOnTile" : true
+          },
+          "before" : 0,
+          "ok" : true
+        },
+        {
+          "action" : "press the habit ring on the tile",
+          "after" : {
+            "doneToday" : true
+          },
+          "before" : {
+            "doneToday" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again",
+          "after" : {
+            "doneToday" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press Delete, then confirm",
+          "after" : {
+            "habits" : 0,
+            "tileEmptyAgain" : true
+          },
+          "before" : 1,
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"Microphone\" [mic.fill]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "voiceMemo",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "record control: button, enabled, press action (not pressed)",
+          "after" : {
+            "actions" : [
+              "AXShowMenu",
+              "AXPress",
+              "Name:Recordings…\nTarget:0x0\nSelector:(null)"
+            ],
+            "enabled" : true,
+            "label" : "Microphone",
+            "microphone" : "authorized",
+            "role" : "AXButton"
+          },
+          "ok" : true
+        },
+        {
+          "action" : "Recordings… is reachable as a named action",
+          "after" : [
+            "Name:Recordings…\nTarget:0x0\nSelector:(null)"
+          ],
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"Background Sounds\""
+      ],
+      "failures" : [
+
+      ],
+      "name" : "backgroundSounds",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press the tile (plays at volume 0)",
+          "after" : {
+            "AXValue" : "Rain",
+            "playing" : true,
+            "volume" : 0
+          },
+          "before" : {
+            "AXValue" : "Off",
+            "playing" : false
+          },
+          "ok" : true
+        },
+        {
+          "action" : "press it again (stop)",
+          "after" : {
+            "AXValue" : "Off",
+            "playing" : false
+          },
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"Open Video\" [play.fill]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "youtubeVideo",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "press the video (URL captured, not opened)",
+          "after" : "https:\/\/www.youtube.com\/watch?v=4GB3XQaYejk",
+          "ok" : true
+        }
+      ]
+    },
+    {
+      "elements" : [
+        "Button \"Wi-Fi\" [wifi]",
+        "Button \"Bluetooth\"",
+        "Button \"Dark Mode\" [sun.max.fill]",
+        "Button \"Keep Awake\" [moon.zzz.fill]",
+        "Button \"Keyboard Cleaning Lock\" [keyboard]"
+      ],
+      "failures" : [
+
+      ],
+      "name" : "quickToggles",
+      "notes" : [
+
+      ],
+      "passed" : true,
+      "steps" : [
+        {
+          "action" : "read every toggle's name and state (not pressed)",
+          "after" : [
+            "Wi-Fi=On",
+            "Bluetooth=On",
+            "Dark Mode=Off",
+            "Keep Awake=Off",
+            "Keyboard Cleaning Lock=Off"
+          ],
+          "ok" : true
+        }
+      ]
+    }
+  ]
+}

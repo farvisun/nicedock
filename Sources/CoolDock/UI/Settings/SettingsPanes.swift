@@ -370,6 +370,7 @@ struct PositionGrid: View {
                         }
                         .buttonStyle(.plain)
                         .help(pos.title)
+                        .accessibilityLabel(pos.title)
                     }
                 }
             }

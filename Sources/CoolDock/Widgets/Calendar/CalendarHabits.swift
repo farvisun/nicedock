@@ -146,6 +146,7 @@ struct CalHabitWidget: View {
                 Tile(width: Self.emptyWidth) { CalHabitEmptyTile() }
                     .onTapGesture { open(editing: true) }
                     .help(L("Add a habit"))
+                    .accessibilityPress { open(editing: true) }
             } else {
                 Tile(width: Self.width(cells: visible.count + (overflow > 0 ? 1 : 0))) {
                     HStack(spacing: m.u(8)) {
@@ -154,6 +155,7 @@ struct CalHabitWidget: View {
                     }
                 }
                 .onTapGesture { open(editing: false) }
+                .accessibilityPress(combine: false) { open(editing: false) }
             }
         }
     }
