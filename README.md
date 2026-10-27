@@ -5,7 +5,7 @@ tools shown on [cooldock.app](https://cooldock.app): music, todos, events, weath
 stats, quick actions and 111 widgets in one beautiful dock beside the macOS Dock.
 
 * Native Swift 6 toolchain, SwiftUI + AppKit, macOS 14 Sonoma or later
-* ~9 MB app bundle, ~34 MB memory (+4 MB for the Now Playing helper while a music widget is shown), ~0 % CPU when idle
+* ~9 MB app bundle, ~32 MB memory (+4 MB for the Now Playing helper while a music widget is shown, +1.7 MB while an app is below 100 % volume), ~0 % CPU when idle
 * 10 languages, full right-to-left support, Persian with the **Estedad** typeface,
   Solar Hijri calendar and Persian digits
 * Local-first: credentials live in the macOS Keychain, no account, no telemetry
@@ -43,7 +43,7 @@ app tile's right-click menu against the real app.
   lie within 1 px of an edge in the reference (anti-aliasing and sub-pixel placement); away from edges 99.95 % of
   pixels match on average, and 99.82 % match when each pixel may be compared with any reference pixel up to 1 px away.
   `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
-- **Data providers** — `swift test` runs 350 tests (they pass in any time zone, UTC−11 to UTC+14); the provider suites feed real captured responses (Open-Meteo, Yahoo
+- **Data providers** — `swift test` runs 383 tests (they pass in any time zone, UTC−11 to UTC+14; live Now Playing, App Volume and Accessibility suites are opt-in); the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
   fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,
   Anthropic, OpenAI, Cursor, GitHub Copilot, Gemini API, Perplexity, xAI, Z.ai) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
