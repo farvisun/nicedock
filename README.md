@@ -9,6 +9,9 @@ stats, quick actions and 100 widgets in one beautiful dock beside the macOS Dock
 * 11 languages, full right-to-left support, Persian with the **Estedad** typeface,
   Solar Hijri calendar and Persian digits
 * Local-first: credentials live in the macOS Keychain, no account, no telemetry
+* **AI Assistant**: Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock
+  (`CoolDock --mcp`) and paint wallpapers by mood, season or weather — off by default, read-only until you allow
+  changes in Settings → Privacy & Permissions. Setup and tools: [docs/ai-assistant.md](docs/ai-assistant.md)
 
 ## Build & run
 
@@ -21,7 +24,8 @@ swift build                            # compile only
 The script compiles with SwiftPM, assembles the `.app` bundle (Info.plist, fonts, translations,
 generated icon) and ad-hoc signs it. Drag `build/CoolDock.app` to `/Applications` to keep it.
 
-Developer launch flags: `--lang <code>`, `--settings <pane>`, `--widgets`, `--onboarding`, and the offscreen widget
+Developer launch flags: `--lang <code>`, `--settings <pane>`, `--widgets`, `--onboarding`, `--mcp` (stdio MCP server,
+no UI; `COOLDOCK_SUPPORT_DIR` points it at another state folder), and the offscreen widget
 renderer `--render <dir> <kinds|all|category:name> [--wait s] [--lang fa] [--style darkGlass]`.
 Debug builds also accept `--profile <index>` and `--tap <0…1>` (clicks the dock at that fraction of its
 width) to inspect widget panels without UI scripting.
@@ -44,6 +48,9 @@ width) to inspect widget panels without UI scripting.
   meetings); every occurrence in an eight-week window matches an independent python-dateutil expansion
   (`Tests/Scripts/ics_oracle.py`). Widget renders from real feeds, English and Persian:
   `docs/verification/calendar-feed/`.
+- **AI Assistant** — `swift test` covers the MCP server (JSON-RPC framing, tool schemas, disabled/read-only gating,
+  validation, the state.json path, the app socket bridge, wallpaper determinism) and spawns `CoolDock --mcp` end to end
+  with a temporary home; transcript in [docs/verification/ai-assistant.md](docs/verification/ai-assistant.md).
 - **Translations** — `python3 scripts/l10n.py check` (every language must report 0 missing).
 
 ## Using it
@@ -83,7 +90,7 @@ radius, monochrome, reduce transparency) · Layout (seven scenarios: Swap at the
 Fixed ×6 positions, Reveal on Top, Replace the macOS Dock, Replace & Auto-Hide, Floating) ·
 Screens (one / attached / all displays, rename, identify) · Dock · Profiles (up to 8) · Widgets ·
 Shortcuts (recorders) · Language & Region (language, calendar, digits, 12/24 h, Estedad) ·
-Privacy & Permissions (incl. Calendar Feeds) · Performance (live memory/CPU of CoolDock) · About.
+Privacy & Permissions (incl. Calendar Feeds and the AI Assistant) · Performance (live memory/CPU of CoolDock) · About.
 
 ## Architecture
 

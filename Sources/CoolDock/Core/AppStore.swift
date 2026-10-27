@@ -36,9 +36,8 @@ final class AppStore {
     @ObservationIgnored private let fileURL: URL
 
     private init() {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("CoolDock", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        fileURL = dir.appendingPathComponent("state.json")
+        AppPaths.ensureSupportDirectory()
+        fileURL = AppPaths.stateFile
 
         if let data = try? Data(contentsOf: fileURL), let saved = try? JSONDecoder().decode(Persisted.self, from: data), !saved.profiles.isEmpty {
             settings = saved.settings
@@ -55,11 +54,8 @@ final class AppStore {
         Fmt.configure(language: settings.language, calendar: settings.calendarSystem, digits: settings.digitStyle, clock: settings.clockStyle)
     }
 
-    struct Persisted: Codable {
-        var settings: Settings
-        var profiles: [DockProfile]
-        var activeProfileID: UUID
-    }
+    /// state.json layout, shared with the AI Assistant's offline path (`DockStateFile`).
+    typealias Persisted = DockState
 
     // MARK: Derived
 
@@ -203,9 +199,33 @@ final class AppStore {
         activeProfileID = defaults[0].id
     }
 
+    // MARK: AI Assistant
+
+    /// What the assistant tools read and edit (see `DockTools`).
+    var dockState: DockState { DockState(settings: settings, profiles: profiles, activeProfileID: activeProfileID) }
+
+    /// Applies a state produced by an assistant tool exactly like a change made in Settings: animated,
+    /// propagated through the usual didSet hooks and saved by the regular debounce.
+    func applyAssistantState(_ state: DockState, effects: [DockEffect]) {
+        withAnimation(settings.animations ? .spring(response: 0.35, dampingFraction: 0.86) : nil) {
+            if profiles != state.profiles { profiles = state.profiles }
+            if activeProfileID != state.activeProfileID, state.profiles.contains(where: { $0.id == state.activeProfileID }) {
+                activeProfileID = state.activeProfileID
+            }
+            if settings != state.settings { settings = state.settings }
+        }
+        for effect in effects {
+            switch effect {
+            case .removeSecrets(let id): Secrets.removeAll(for: id)
+            case .copySecrets(let from, let to): Secrets.copyAll(from: from, to: to)
+            case .refresh(let id): NotificationCenter.default.post(name: .coolDockRefresh, object: id)
+            }
+        }
+    }
+
     // MARK: Defaults
 
-    static func defaultProfiles() -> [DockProfile] {
+    nonisolated static func defaultProfiles() -> [DockProfile] {
         func w(_ k: WidgetKind, _ c: [String: String] = [:]) -> WidgetInstance { WidgetInstance(kind: k, config: c) }
         let home = DockProfile(name: L("Home"), symbol: "house", widgets: [
             w(.timeHero), w(.weatherHero),

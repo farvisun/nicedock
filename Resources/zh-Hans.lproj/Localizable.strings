@@ -1092,3 +1092,24 @@
 "Choose one contact." = "选取一位联系人。";
 "Choose a contact" = "选取联系人";
 "FaceTime Audio" = "FaceTime 语音";
+
+/* AI Assistant (MCP) */
+"AI Assistant" = "AI 助手";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "Claude、Codex、Cursor、VS Code 和其他 MCP 客户端可以读取和配置 CoolDock，从程序坞样式到小组件设置，还能按心情、季节或天气绘制墙纸。API 令牌和其他机密信息永远不会被共享。";
+"Enable AI Assistant" = "启用 AI 助手";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "允许这台 Mac 上的助手通过 CoolDock 的 MCP 服务器读取你的程序坞设置。";
+"Allow Changes" = "允许更改";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "关：助手只能读取。开：助手可以更改程序坞、小组件、配置文件和墙纸。";
+"Turn on Enable AI Assistant first." = "请先打开“启用 AI 助手”。";
+"Access" = "访问权限";
+"Connect an Assistant" = "连接助手";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "将设置粘贴到你的助手中，然后开始新的会话。助手会自行启动 CoolDock 的 MCP 服务器；不会打开任何网络端口。";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "请先将 CoolDock 移到“应用程序”文件夹：macOS 目前正从临时位置运行它。";
+"Run in Terminal:" = "在“终端”中运行：";
+"Add to %@:" = "添加到 %@：";
+"Add to %@ in your workspace:" = "添加到工作区中的 %@：";
+"Other MCP clients" = "其他 MCP 客户端";
+"Command and argument:" = "命令和参数：";
+"Can make changes" = "可以更改";
+"Read-only" = "只读";
+"Copied" = "已拷贝";

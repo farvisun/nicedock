@@ -10,7 +10,8 @@ Everything here is produced locally from the source tree; re-run the commands to
 | Settings window | `open build/CoolDock.app --args --lang en|fa --settings <pane>` → `settings/{en,fa}-<pane>.png` | all 12 panes in English and Persian (right-to-left, Estedad) |
 | Data providers | `swift test` | 144 tests: real captured responses (Open-Meteo, Yahoo Finance, Binance, GitHub contributions, Simple Analytics, local Claude Code / Codex logs), real live answers of every keyed endpoint without/with a fake key (`providers.md`), documentation-schema fixtures for keyed happy paths |
 | Calendar from real feeds | ICS parser + feeds (`swift test --filter ICS`) → `calendar-feed/` | real Google / iCloud holiday feeds, LLVM and WordPress meeting calendars; every occurrence in an 8-week window matches an independent python-dateutil expansion; renders in English and Persian |
-| Translations | `python3 scripts/l10n.py check` | 10 languages × 1092 strings, 0 missing |
+| AI Assistant (MCP) | `swift test` (`MCPEndToEndTests` spawns `CoolDock --mcp`) → [ai-assistant.md](ai-assistant.md) | 57 assistant tests of 201; JSON transcripts of a read-only session and of offline changes; Settings section in English and Persian; wallpaper sample sheet |
+| Translations | `python3 scripts/l10n.py check` | 10 languages × 1111 strings, 0 missing |
 
 Widgets whose data needs the user's own account (Stripe, Shopify, Polar, Dodo, Dub, DataFast, Plausible,
 Resend, Supabase, X, TikTok, YouTube, Linear, Anthropic/OpenAI admin usage) show their connect state until

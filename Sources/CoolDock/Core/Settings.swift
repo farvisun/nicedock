@@ -222,6 +222,22 @@ struct Settings: Codable, Equatable {
     /// Optional on purpose: synthesized `Decodable` treats a missing optional key as nil, so state files written
     /// before this setting existed still load. New settings must follow the same rule.
     var calendarFeeds: [CalendarFeed]? = nil
+
+    // AI Assistant (MCP). Optional for the same reason as `calendarFeeds`; nil means off.
+    /// MCP clients may read CoolDock (`CoolDock --mcp`). Off by default: every tool answers "disabled".
+    var aiAssistantEnabled: Bool? = nil
+    /// MCP clients may also change CoolDock. Off by default: the assistant is read-only.
+    var aiAllowChanges: Bool? = nil
+
+    var assistantEnabled: Bool {
+        get { aiAssistantEnabled ?? false }
+        set { aiAssistantEnabled = newValue }
+    }
+
+    var assistantAllowsChanges: Bool {
+        get { aiAllowChanges ?? false }
+        set { aiAllowChanges = newValue }
+    }
 }
 
 struct CGPointCodable: Codable, Equatable {

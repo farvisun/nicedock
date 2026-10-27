@@ -1092,3 +1092,24 @@
 "Choose one contact." = "連絡先を1件選択。";
 "Choose a contact" = "連絡先を選択";
 "FaceTime Audio" = "FaceTimeオーディオ";
+
+/* AI Assistant (MCP) */
+"AI Assistant" = "AIアシスタント";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "Claude、Codex、Cursor、VS Code などの MCP クライアントは、Dockのスタイルからウィジェットの設定まで CoolDock を読み取って設定でき、気分・季節・天気に合わせて壁紙を描くこともできます。APIトークンなどの秘密情報が共有されることはありません。";
+"Enable AI Assistant" = "AIアシスタントを有効にする";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "この Mac 上のアシスタントが、CoolDock の MCP サーバ経由で Dock の構成を読み取れるようにします。";
+"Allow Changes" = "変更を許可";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "オフ：アシスタントは読み取りのみ可能です。オン：Dock、ウィジェット、プロファイル、壁紙を変更できます。";
+"Turn on Enable AI Assistant first." = "先に「AIアシスタントを有効にする」をオンにしてください。";
+"Access" = "アクセス";
+"Connect an Assistant" = "アシスタントを接続";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "設定をアシスタントに貼り付けてから、新しいセッションを開始してください。アシスタントが CoolDock の MCP サーバを自動的に起動します。ネットワークポートは開きません。";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "先に CoolDock を「アプリケーション」フォルダに移動してください。現在 macOS は一時的な場所から実行しています。";
+"Run in Terminal:" = "ターミナルで実行：";
+"Add to %@:" = "%@ に追加：";
+"Add to %@ in your workspace:" = "ワークスペースの %@ に追加：";
+"Other MCP clients" = "その他の MCP クライアント";
+"Command and argument:" = "コマンドと引数：";
+"Can make changes" = "変更可能";
+"Read-only" = "読み取り専用";
+"Copied" = "コピーしました";

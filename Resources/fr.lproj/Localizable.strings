@@ -1092,3 +1092,24 @@
 "Choose one contact." = "Choisissez un seul contact.";
 "Choose a contact" = "Choisir un contact";
 "FaceTime Audio" = "FaceTime audio";
+
+/* AI Assistant (MCP) */
+"AI Assistant" = "Assistant IA";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "Claude, Codex, Cursor, VS Code et d’autres clients MCP peuvent lire et configurer CoolDock, du style du Dock aux réglages des widgets, et peindre un fond d’écran selon l’humeur, la saison ou la météo. Les jetons d’API et autres secrets ne sont jamais partagés.";
+"Enable AI Assistant" = "Activer l’assistant IA";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "Permet aux assistants de ce Mac de lire la configuration de votre Dock via le serveur MCP de CoolDock.";
+"Allow Changes" = "Autoriser les modifications";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "Désactivé : les assistants peuvent seulement lire. Activé : ils peuvent modifier le Dock, les widgets, les profils et le fond d’écran.";
+"Turn on Enable AI Assistant first." = "Activez d’abord « Activer l’assistant IA ».";
+"Access" = "Accès";
+"Connect an Assistant" = "Connecter un assistant";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "Collez la configuration dans votre assistant, puis ouvrez une nouvelle session. L’assistant lance lui-même le serveur MCP de CoolDock ; aucun port réseau n’est ouvert.";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "Placez d’abord CoolDock dans le dossier Applications : macOS l’exécute actuellement depuis un emplacement temporaire.";
+"Run in Terminal:" = "À exécuter dans le Terminal :";
+"Add to %@:" = "À ajouter dans %@ :";
+"Add to %@ in your workspace:" = "À ajouter dans %@ de votre espace de travail :";
+"Other MCP clients" = "Autres clients MCP";
+"Command and argument:" = "Commande et argument :";
+"Can make changes" = "Peut modifier";
+"Read-only" = "Lecture seule";
+"Copied" = "Copié";

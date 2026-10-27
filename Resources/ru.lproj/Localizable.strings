@@ -1092,3 +1092,24 @@
 "Choose one contact." = "Выберите один контакт.";
 "Choose a contact" = "Выберите контакт";
 "FaceTime Audio" = "Аудиовызов FaceTime";
+
+/* AI Assistant (MCP) */
+"AI Assistant" = "ИИ-ассистент";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "Claude, Codex, Cursor, VS Code и другие MCP-клиенты могут читать и настраивать CoolDock — от стиля Dock до настроек виджетов — и рисовать обои по настроению, времени года или погоде. API-токены и другие секреты никогда не передаются.";
+"Enable AI Assistant" = "Включить ИИ-ассистента";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "Разрешает ассистентам на этом Mac читать настройки вашего Dock через MCP-сервер CoolDock.";
+"Allow Changes" = "Разрешить изменения";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "Выкл.: ассистенты могут только читать. Вкл.: они могут менять Dock, виджеты, профили и обои.";
+"Turn on Enable AI Assistant first." = "Сначала включите «Включить ИИ-ассистента».";
+"Access" = "Доступ";
+"Connect an Assistant" = "Подключить ассистента";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "Вставьте настройку в ассистента и начните новый сеанс. Ассистент сам запускает MCP-сервер CoolDock; сетевой порт не открывается.";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "Сначала переместите CoolDock в папку «Программы»: сейчас macOS запускает его из временного расположения.";
+"Run in Terminal:" = "Выполните в Терминале:";
+"Add to %@:" = "Добавьте в %@:";
+"Add to %@ in your workspace:" = "Добавьте в %@ в рабочей области:";
+"Other MCP clients" = "Другие MCP-клиенты";
+"Command and argument:" = "Команда и аргумент:";
+"Can make changes" = "Может вносить изменения";
+"Read-only" = "Только чтение";
+"Copied" = "Скопировано";

@@ -1092,3 +1092,24 @@
 "Choose one contact." = "اختر جهة اتصال واحدة.";
 "Choose a contact" = "اختر جهة اتصال";
 "FaceTime Audio" = "FaceTime الصوتي";
+
+/* AI Assistant (MCP) */
+"AI Assistant" = "مساعد الذكاء الاصطناعي";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "يمكن لـ ⁦Claude⁩ و⁦Codex⁩ و⁦Cursor⁩ و⁦VS Code⁩ وغيرها من عملاء ⁦MCP⁩ قراءة ⁦CoolDock⁩ وضبطه، من نمط Dock إلى إعدادات الأدوات المصغّرة، ورسم خلفية شاشة حسب المزاج أو الفصل أو الطقس. لا تتم مشاركة رموز ⁦API⁩ وغيرها من البيانات السرية أبدًا.";
+"Enable AI Assistant" = "تفعيل مساعد الذكاء الاصطناعي";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "يتيح للمساعدين على جهاز Mac هذا قراءة إعداد Dock الخاص بك عبر خادم ⁦MCP⁩ في ⁦CoolDock⁩.";
+"Allow Changes" = "السماح بالتغييرات";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "إيقاف: يمكن للمساعدين القراءة فقط. تشغيل: يمكنهم تغيير Dock والأدوات المصغّرة وملفات التعريف وخلفية الشاشة.";
+"Turn on Enable AI Assistant first." = "فعّل «تفعيل مساعد الذكاء الاصطناعي» أولاً.";
+"Access" = "الوصول";
+"Connect an Assistant" = "ربط مساعد";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "الصق الإعداد في مساعدك، ثم ابدأ جلسة جديدة. يشغّل المساعد خادم ⁦MCP⁩ الخاص بـ ⁦CoolDock⁩ بنفسه؛ ولا يُفتح أي منفذ شبكة.";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "انقل ⁦CoolDock⁩ إلى مجلد التطبيقات أولاً: يشغّله ⁦macOS⁩ حاليًا من موقع مؤقت.";
+"Run in Terminal:" = "شغّل في تطبيق ⁦Terminal⁩:";
+"Add to %@:" = "أضِف إلى ⁦%@⁩:";
+"Add to %@ in your workspace:" = "أضِف إلى ⁦%@⁩ في مساحة العمل:";
+"Other MCP clients" = "عملاء ⁦MCP⁩ الآخرون";
+"Command and argument:" = "الأمر والوسيط:";
+"Can make changes" = "يمكنه إجراء تغييرات";
+"Read-only" = "للقراءة فقط";
+"Copied" = "تم النسخ";
