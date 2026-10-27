@@ -31,7 +31,7 @@ width) to inspect widget panels without UI scripting.
 - **Pixel diff** — `scripts/pixel-diff.sh` renders every frame in `docs/reference` with deterministic
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
   8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
-  `report.md`, `metrics.tsv`. Current result: 73/73 frames exact size, mean match 99.5 %, every frame ≥ 98.5 %.
+  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.55 %, every frame ≥ 98.5 %; `scripts/chrome-check.sh` holds the 27 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
 - **Data providers** — `swift test` runs 105 tests that feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics) and documentation-schema fixtures (Stripe,
   Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear, Anthropic,
