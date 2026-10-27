@@ -107,6 +107,9 @@ struct WidgetsPane: View {
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
         }
+        if UtilAppVolumeService.supported {
+            UtilAppVolumeSettingsGroup().padding(.top, 20)
+        }
     }
 }
 
@@ -182,6 +185,10 @@ struct PrivacyPane: View {
                 let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
                 axTrusted = AXIsProcessTrustedWithOptions(opts)
             }
+            if UtilAppVolumeService.supported {
+                PermissionRow(title: L("System Audio Recording"), detail: L("App Volume"), symbol: "waveform", tint: .cdPurple,
+                              status: Self.audioCaptureStatus()) { Open.url(UtilAudioCapturePermission.settingsURL) }
+            }
             PermissionRow(title: L("Automation"), detail: L("Music, Spotify, Mail, Notes and System Events — asked per app on first use"), symbol: "gearshape.2", tint: .cdIndigo,
                           status: .info) { Open.url("x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") }
         }
@@ -219,6 +226,14 @@ struct PrivacyPane: View {
         case .authorized, .limited: return .granted
         case .denied, .restricted: return .denied
         default: return .notDetermined
+        }
+    }
+    /// Granted / denied as TCC reports it; macOS asks by itself the first time an app's volume is changed.
+    static func audioCaptureStatus() -> PermStatus {
+        switch UtilAudioCapturePermission.status() {
+        case .granted: return .granted
+        case .denied: return .denied
+        case .unknown: return .info
         }
     }
     static func micStatus() -> PermStatus {

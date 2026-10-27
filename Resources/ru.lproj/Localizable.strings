@@ -1302,3 +1302,26 @@
 "Queries" = "Поисковые запросы";
 "List price" = "Цена по прайсу";
 "Resets" = "Сброс";
+
+/* App Volume */
+"App Volume" = "Громкость приложений";
+"Volume and mute for each app playing sound." = "Громкость и выключение звука для каждого приложения, которое воспроизводит звук.";
+"System Audio Recording" = "Запись системного аудио";
+"Remember volume per app" = "Запоминать громкость приложений";
+"Needs macOS 14.2 or later" = "Требуется macOS 14.2 или новее";
+"No apps playing" = "Нет приложений со звуком";
+"CoolDock couldn't change this app's volume." = "CoolDock не удалось изменить громкость этого приложения.";
+"Allow System Audio Recording" = "Разрешить запись системного аудио";
+"Turn on System Audio Recording for CoolDock in Privacy & Security to change app volumes." = "Включите «Запись системного аудио» для CoolDock в разделе «Конфиденциальность и безопасность», чтобы менять громкость приложений.";
+"No apps are playing sound." = "Сейчас ни одно приложение не воспроизводит звук.";
+"Reset All" = "Сбросить все";
+"Set every app back to 100% and unmuted" = "Вернуть все приложения к 100 % и включить звук";
+"1 app playing" = "1 приложение со звуком";
+"%@ apps playing" = "Приложений со звуком: %@";
+"An app plays through CoolDock only while its volume is below 100% or muted. macOS asks once for System Audio Recording." = "Звук приложения проходит через CoolDock, только пока его громкость ниже 100 % или звук выключен. macOS один раз запросит разрешение на запись системного аудио.";
+"Restores an app's volume and mute the next time it plays." = "Восстанавливает громкость и выключение звука приложения, когда оно снова воспроизводит звук.";
+"Reset all app volumes" = "Сбросить громкость всех приложений";
+"Every app plays at full volume." = "Все приложения звучат на полной громкости.";
+"1 app changed" = "Изменено 1 приложение";
+"%@ apps changed" = "Изменено приложений: %@";
+"All Playing Apps…" = "Все приложения со звуком…";

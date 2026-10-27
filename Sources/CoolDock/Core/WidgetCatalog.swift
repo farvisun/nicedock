@@ -19,7 +19,7 @@ enum WidgetKind: String, Codable, CaseIterable, Identifiable {
     // System
     case batteryRing, cpuRing, memoryRing, storageRing, temperatureRing, cpuGraph, networkGraph, devicesBattery
     // Controls & tools
-    case audioControls, quickToggles, windowManager, clipboard, screenshots, recentScreenshots, voiceMemo, emoji
+    case audioControls, appVolume, quickToggles, windowManager, clipboard, screenshots, recentScreenshots, voiceMemo, emoji
     case colorPicker, converter, calculator, separator, space
     // Media & photos
     case nowPlaying, nowPlayingHero, backgroundSounds, youtubeVideo, recentPhoto, wallpaper
@@ -266,6 +266,10 @@ enum WidgetCatalog {
         // MARK: Controls & tools
         case .audioControls:
             return WidgetSpec(category: .controls, title: "Audio", summary: "Volume and output device switching.", symbol: "speaker.wave.2", width: 224)
+        case .appVolume:
+            // Hidden before macOS 14.2 (no process taps there).
+            return WidgetSpec(category: .controls, title: "App Volume", summary: "Volume and mute for each app playing sound.", symbol: "slider.horizontal.3", width: 224,
+                              browsable: UtilAppVolumeService.supported)
         case .quickToggles:
             return WidgetSpec(category: .controls, title: "Quick Toggles", summary: "Wi-Fi, Bluetooth, appearance and more.", symbol: "switch.2", width: 265,
                               fields: [ConfigField(key: "items", title: "Toggles", type: .multiline(placeholder: "wifi\nbluetooth\ndarkMode\nkeepAwake\nhideDesktop")),],

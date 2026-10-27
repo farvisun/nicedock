@@ -1302,3 +1302,26 @@
 "Queries" = "查询";
 "List price" = "标价";
 "Resets" = "重置时间";
+
+/* App Volume */
+"App Volume" = "App 音量";
+"Volume and mute for each app playing sound." = "为每个正在播放声音的 App 单独调节音量和静音。";
+"System Audio Recording" = "系统录音";
+"Remember volume per app" = "记住每个 App 的音量";
+"Needs macOS 14.2 or later" = "需要 macOS 14.2 或更高版本";
+"No apps playing" = "没有 App 在播放声音";
+"CoolDock couldn't change this app's volume." = "CoolDock 无法更改此 App 的音量。";
+"Allow System Audio Recording" = "允许系统录音";
+"Turn on System Audio Recording for CoolDock in Privacy & Security to change app volumes." = "请在“隐私与安全性”中为 CoolDock 打开“系统录音”，以更改 App 音量。";
+"No apps are playing sound." = "当前没有 App 在播放声音。";
+"Reset All" = "全部重置";
+"Set every app back to 100% and unmuted" = "将所有 App 恢复为 100% 并取消静音";
+"1 app playing" = "1 个 App 正在播放";
+"%@ apps playing" = "%@ 个 App 正在播放";
+"An app plays through CoolDock only while its volume is below 100% or muted. macOS asks once for System Audio Recording." = "仅当 App 的音量低于 100% 或被静音时，其声音才会经过 CoolDock。macOS 只会询问一次系统录音权限。";
+"Restores an app's volume and mute the next time it plays." = "下次播放时恢复 App 的音量和静音状态。";
+"Reset all app volumes" = "重置所有 App 音量";
+"Every app plays at full volume." = "所有 App 均以完整音量播放。";
+"1 app changed" = "已更改 1 个 App";
+"%@ apps changed" = "已更改 %@ 个 App";
+"All Playing Apps…" = "所有正在播放的 App…";

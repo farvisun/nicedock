@@ -1302,3 +1302,26 @@
 "Queries" = "Sorgular";
 "List price" = "Liste fiyatı";
 "Resets" = "Sıfırlanma";
+
+/* App Volume */
+"App Volume" = "Uygulama Ses Düzeyi";
+"Volume and mute for each app playing sound." = "Ses çalan her uygulama için ses düzeyi ve sessiz.";
+"System Audio Recording" = "Sistem Sesi Kaydı";
+"Remember volume per app" = "Her uygulamanın ses düzeyini hatırla";
+"Needs macOS 14.2 or later" = "macOS 14.2 veya sonrası gerekir";
+"No apps playing" = "Ses çalan uygulama yok";
+"CoolDock couldn't change this app's volume." = "CoolDock bu uygulamanın ses düzeyini değiştiremedi.";
+"Allow System Audio Recording" = "Sistem Sesi Kaydına İzin Ver";
+"Turn on System Audio Recording for CoolDock in Privacy & Security to change app volumes." = "Uygulamaların ses düzeyini değiştirmek için Gizlilik ve Güvenlik’te CoolDock için Sistem Sesi Kaydı’nı açın.";
+"No apps are playing sound." = "Şu anda ses çalan uygulama yok.";
+"Reset All" = "Tümünü Sıfırla";
+"Set every app back to 100% and unmuted" = "Tüm uygulamaları %100’e döndür ve sesi aç";
+"1 app playing" = "1 uygulama ses çalıyor";
+"%@ apps playing" = "%@ uygulama ses çalıyor";
+"An app plays through CoolDock only while its volume is below 100% or muted. macOS asks once for System Audio Recording." = "Bir uygulamanın sesi yalnızca ses düzeyi %100’ün altındayken veya sessizdeyken CoolDock üzerinden geçer. macOS, Sistem Sesi Kaydı iznini bir kez sorar.";
+"Restores an app's volume and mute the next time it plays." = "Uygulamanın ses düzeyini ve sessiz durumunu bir sonraki çalışında geri yükler.";
+"Reset all app volumes" = "Tüm uygulama ses düzeylerini sıfırla";
+"Every app plays at full volume." = "Tüm uygulamalar tam ses düzeyinde çalıyor.";
+"1 app changed" = "1 uygulama değiştirildi";
+"%@ apps changed" = "%@ uygulama değiştirildi";
+"All Playing Apps…" = "Ses Çalan Tüm Uygulamalar…";

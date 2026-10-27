@@ -23,6 +23,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DockController.shared.start()
         HotKeys.shared.install()
         AssistantBridge.start()
+        // Remembered per-app volumes apply as soon as those apps play.
+        UtilAppVolumeService.shared.bootstrap()
 
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated {
@@ -74,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         AssistantBridge.stop()
+        UtilAppVolumeService.shared.shutdown()
         AppStore.shared.saveNow()
         SystemDock.shared.restore()
     }
