@@ -222,6 +222,22 @@ struct Settings: Codable, Equatable {
     /// Optional on purpose: synthesized `Decodable` treats a missing optional key as nil, so state files written
     /// before this setting existed still load. New settings must follow the same rule.
     var calendarFeeds: [CalendarFeed]? = nil
+
+    // Windows (Layout → Dock Space). Optional for the same reason; read and bind through the non-optional accessors.
+    /// Other apps' windows end at the Dock's edge when they open, zoom, tile or restore (needs Accessibility).
+    var reserveDockSpace: Bool? = nil
+    /// Reserve Dock Space also moves windows the user dragged or resized over the Dock.
+    var reserveAfterDragging: Bool? = nil
+
+    var reservesDockSpace: Bool {
+        get { reserveDockSpace ?? false }
+        set { reserveDockSpace = newValue }
+    }
+
+    var reservesAfterDragging: Bool {
+        get { reserveAfterDragging ?? false }
+        set { reserveAfterDragging = newValue }
+    }
 }
 
 struct CGPointCodable: Codable, Equatable {

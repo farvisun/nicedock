@@ -140,6 +140,8 @@ enum Diagnostics {
             "Language: \(store.resolvedLanguage.rawValue)  Calendar: \(Fmt.calendar.identifier)",
             "Scenario: \(store.settings.scenario.rawValue)  Screens: \(store.settings.screensMode.rawValue)",
             "Displays: \(NSScreen.screens.map { "\($0.localizedName) \(Int($0.frame.width))x\(Int($0.frame.height))" }.joined(separator: ", "))",
+            "Windows: hideOnWindowHover=\(store.settings.hideOnWindowHover) reserveDockSpace=\(store.settings.reservesDockSpace) afterDragging=\(store.settings.reservesAfterDragging) accessibility=\(AXIsProcessTrusted())",
+            "Credential storage: \(Secrets.backend.rawValue)",
             "Profiles: \(store.profiles.count)"
         ]
         for p in store.profiles {
