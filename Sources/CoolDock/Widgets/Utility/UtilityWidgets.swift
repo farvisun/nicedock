@@ -8,6 +8,7 @@ enum UtilityWidgets {
         switch w.kind {
         case .audioControls: UtilAudioView(w: w)
         case .quickToggles: UtilTogglesView(w: w)
+        case .windowManager: UtilWindowsView(w: w)
         case .clipboard: UtilClipboardTile(w: w)
         case .screenshots: UtilScreenshotsView(w: w)
         case .recentScreenshots: UtilRecentScreenshotsTile(w: w)
@@ -30,6 +31,14 @@ enum UtilityWidgets {
         case .audioControls:
             Button(L("Output Devices…")) { UtilAudioPanel.toggle(w) }
             Button(L("Sound Settings…")) { Open.url("x-apple.systempreferences:com.apple.Sound-Settings.extension") }
+            Divider()
+        case .windowManager:
+            Button(L("Show Windows…")) { UtilWindowPanel.show(w) }
+            if UtilWindowService.shared.trusted {
+                Button(L("Arrange All Windows")) { UtilWindowService.shared.arrangeAll() }
+            } else {
+                Button(L("Allow Accessibility…")) { UtilWindowService.shared.requestAccess() }
+            }
             Divider()
         case .clipboard:
             Button(L("Show History")) { UtilClipboardPanel.toggle(w) }

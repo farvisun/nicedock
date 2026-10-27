@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Calendar, progress, reminders, todo and Linear widgets.
+/// Calendar, progress, habit tracker, reminders, todo and Linear widgets.
 enum CalendarWidgets {
     @MainActor @ViewBuilder
     static func view(_ w: WidgetInstance) -> some View {
@@ -12,6 +12,7 @@ enum CalendarWidgets {
         case .zoomMeeting: CalZoomWidget(w: w)
         case .dayProgress, .monthProgress, .yearProgress: CalProgressGridWidget(w: w)
         case .progressRing: CalProgressRingWidget(w: w)
+        case .habitTracker: CalHabitWidget(w: w)
         case .reminders: CalRemindersWidget(w: w)
         case .todo: CalTodoWidget(w: w)
         case .linear: CalLinearWidget(w: w)
@@ -32,6 +33,10 @@ enum CalendarWidgets {
             Divider()
         case .zoomMeeting:
             Button(L("Open Zoom")) { Open.bundle("us.zoom.xos") }
+            Divider()
+        case .habitTracker:
+            Button(L("Show Habits…")) { CalHabitPanel.show(w, editing: false) }
+            Button(L("Edit Habits…")) { CalHabitPanel.show(w, editing: true) }
             Divider()
         case .reminders:
             Button(L("Show All Reminders…")) { Panels.shared.show(w.id) { CalRemindersPanel() } }

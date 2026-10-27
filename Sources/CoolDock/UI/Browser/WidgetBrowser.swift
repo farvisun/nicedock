@@ -186,6 +186,8 @@ enum WidgetBrowserSamples {
         var config: [String: String] = [:]
         switch kind {
         case .app: config["path"] = "/System/Applications/Calendar.app"
+        // A few habits with history instead of the empty "Add a habit" state (the preview is not interactive).
+        case .habitTracker: config["habits"] = CalHabitStore.encode(CalHabitSamples.list(today: CalHabitClock.today()))
         default: break
         }
         let i = WidgetInstance(kind: kind, config: config)

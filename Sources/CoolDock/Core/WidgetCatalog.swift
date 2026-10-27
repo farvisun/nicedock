@@ -11,7 +11,7 @@ enum WidgetKind: String, Codable, CaseIterable, Identifiable {
     case analogDark, analogLight, worldClock, pixelClock
     case timer, stopwatch, pomodoro, drinkWater, posture
     // Calendar
-    case calendarToday, agenda, weekStrip, nextMeeting, zoomMeeting, dayProgress, monthProgress, yearProgress, progressRing
+    case calendarToday, agenda, weekStrip, nextMeeting, zoomMeeting, dayProgress, monthProgress, yearProgress, progressRing, habitTracker
     // Reminders & tasks
     case reminders, todo, linear
     // Weather
@@ -19,7 +19,7 @@ enum WidgetKind: String, Codable, CaseIterable, Identifiable {
     // System
     case batteryRing, cpuRing, memoryRing, storageRing, temperatureRing, cpuGraph, networkGraph, devicesBattery
     // Controls & tools
-    case audioControls, quickToggles, clipboard, screenshots, recentScreenshots, voiceMemo, emoji
+    case audioControls, quickToggles, windowManager, clipboard, screenshots, recentScreenshots, voiceMemo, emoji
     case colorPicker, converter, calculator, separator, space
     // Media & photos
     case nowPlaying, nowPlayingHero, backgroundSounds, youtubeVideo, recentPhoto, wallpaper
@@ -212,6 +212,9 @@ enum WidgetCatalog {
                                   ConfigOption(value: "month", title: "Month"), ConfigOption(value: "year", title: "Year")])),
                                        accentField],
                               defaults: ["period": "day", "color": "#30D158"])
+        case .habitTracker:
+            // Width follows the habits (36 pt circles); 148 is three habits. Habits live in config["habits"].
+            return WidgetSpec(category: .calendar, title: "Habit Tracker", summary: "Check off daily habits and keep your streaks going.", symbol: "flame", width: 148)
 
         // MARK: Reminders & tasks
         case .reminders:
@@ -267,6 +270,12 @@ enum WidgetCatalog {
             return WidgetSpec(category: .controls, title: "Quick Toggles", summary: "Wi-Fi, Bluetooth, appearance and more.", symbol: "switch.2", width: 265,
                               fields: [ConfigField(key: "items", title: "Toggles", type: .multiline(placeholder: "wifi\nbluetooth\ndarkMode\nkeepAwake\nhideDesktop")),],
                               defaults: ["items": "wifi\nbluetooth\ndarkMode\nkeepAwake\nkeyboardLock"])
+        case .windowManager:
+            // Width follows the buttons (40 pt circles); 306 is the five default layouts plus the panel button.
+            return WidgetSpec(category: .controls, title: "Window Manager", summary: "Snap, center and move windows between displays.", symbol: "rectangle.split.2x1", width: 306,
+                              fields: [ConfigField(key: "items", title: "Buttons", type: .multiline(placeholder: "leftHalf\nrightHalf\nmaximize\ncenter\nnextDisplay"),
+                                                   help: "One per line: leftHalf, rightHalf, topHalf, bottomHalf, maximize, center, leftThird, centerThird, rightThird, leftTwoThirds, rightTwoThirds, topLeft, topRight, bottomLeft, bottomRight, nextDisplay.")],
+                              defaults: ["items": "leftHalf\nrightHalf\nmaximize\ncenter\nnextDisplay"])
         case .clipboard:
             return WidgetSpec(category: .controls, title: "Clipboard", summary: "Clipboard history.", symbol: "doc.on.clipboard", width: 62)
         case .screenshots:
