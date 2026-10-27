@@ -190,13 +190,16 @@ struct AppsPanelButton: View {
     }
 }
 
-/// Grid metrics shared by the gallery panels (cell = 7 + icon + 5 + 28 + 3).
+/// Grid metrics shared by the gallery panels (cell = 7 + icon + 5 + label + 3).
 enum AppsGrid {
     static let spacing: CGFloat = 4
 
+    /// Two lines of the 11 pt name: SF Pro Rounded lines are 13 pt, Estedad's (Persian, Arabic) 17 pt.
+    static var labelHeight: CGFloat { Localizer.language.usesEstedad ? 34 : 28 }
+
     static func height(count: Int, columns: Int, icon: CGFloat) -> CGFloat {
         let rows = (count + max(columns, 1) - 1) / max(columns, 1)
-        return CGFloat(rows) * (icon + 43) + CGFloat(max(rows - 1, 0)) * spacing
+        return CGFloat(rows) * (icon + 15 + labelHeight) + CGFloat(max(rows - 1, 0)) * spacing
     }
 }
 
@@ -221,7 +224,7 @@ struct AppsGridCell<Icon: View>: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .truncationMode(truncation)
-                .frame(width: width - 8, height: 28, alignment: .top)
+                .frame(width: width - 8, height: AppsGrid.labelHeight, alignment: .top)
         }
         .padding(.top, 7)
         .padding(.bottom, 3)
@@ -316,13 +319,19 @@ struct AppsSearchField: View {
                 if text.isEmpty {
                     Text(placeholder).font(.dock(13, .medium)).foregroundStyle(p.tertiary).lineLimit(1).allowsHitTesting(false)
                 }
-                TextField("", text: $text)
-                    .textFieldStyle(.plain)
-                    .font(.dock(13, .medium))
-                    .foregroundStyle(p.primary)
-                    .focused($focused)
-                    .onSubmit(onSubmit)
+                if AppsEnv.rendering {
+                    // The render harness can't draw AppKit text fields.
+                    Text(verbatim: text).font(.dock(13, .medium)).foregroundStyle(p.primary).lineLimit(1)
+                } else {
+                    TextField("", text: $text)
+                        .textFieldStyle(.plain)
+                        .font(.dock(13, .medium))
+                        .foregroundStyle(p.primary)
+                        .focused($focused)
+                        .onSubmit(onSubmit)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             if !text.isEmpty {
                 Button { text = "" } label: {
                     Image(systemName: "xmark.circle.fill").font(.system(size: 12)).foregroundStyle(p.tertiary)
@@ -344,7 +353,101 @@ struct AppsScroll<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        ScrollView(.vertical, showsIndicators: height > max) { content() }
-            .frame(height: min(height, max))
+        if AppsEnv.rendering {
+            // The render harness can't draw AppKit scroll views: show the first screenful.
+            content().frame(height: min(height, max), alignment: .top).clipped()
+        } else {
+            ScrollView(.vertical, showsIndicators: height > max) { content() }
+                .frame(height: min(height, max))
+        }
+    }
+}
+
+/// Capsule chip that opens a pop-up menu (sort, kind filter in the folder window).
+struct AppsChip: View {
+    @Environment(\.palette) private var p
+    var symbol: String
+    var title: String
+    var accessory: String = "chevron.down"
+    var active = false
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: symbol).font(.system(size: 10, weight: .semibold))
+                Text(title).font(.dock(11.5, .semibold)).lineLimit(1).fixedSize()
+                Image(systemName: accessory).font(.system(size: 8, weight: .bold)).opacity(0.7)
+            }
+            .foregroundStyle(active ? p.accent(.cdBlue) : p.primary)
+            .padding(.horizontal, 10)
+            .frame(height: 24)
+            .background(Capsule().fill(active ? p.accentSoft(.cdBlue) : p.control))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressableStyle())
+    }
+}
+
+// MARK: - Folder colours
+
+struct AppsFolderColor: Hashable {
+    let title: String
+    /// Empty for the system folder colour.
+    let hex: String
+}
+
+enum AppsFolderColors {
+    static let palette: [AppsFolderColor] = [
+        AppsFolderColor(title: "Default", hex: ""), AppsFolderColor(title: "Blue", hex: "#0A84FF"),
+        AppsFolderColor(title: "Purple", hex: "#BF5AF2"), AppsFolderColor(title: "Pink", hex: "#FF375F"),
+        AppsFolderColor(title: "Red", hex: "#FF453A"), AppsFolderColor(title: "Orange", hex: "#FF9F0A"),
+        AppsFolderColor(title: "Yellow", hex: "#FFD60A"), AppsFolderColor(title: "Green", hex: "#30D158"),
+        AppsFolderColor(title: "Teal", hex: "#40C8E0"), AppsFolderColor(title: "Graphite", hex: "#8E8E93")
+    ]
+
+    nonisolated(unsafe) private static var swatches: [String: NSImage] = [:]
+
+    /// 12 pt colour dot for menu items (outlined for Default).
+    static func swatch(_ hex: String) -> NSImage {
+        if let hit = swatches[hex] { return hit }
+        let img = NSImage(size: NSSize(width: 12, height: 12), flipped: false) { rect in
+            let dot = NSBezierPath(ovalIn: rect.insetBy(dx: 0.75, dy: 0.75))
+            if hex.isEmpty {
+                NSColor.secondaryLabelColor.setStroke()
+                dot.lineWidth = 1.2
+                dot.stroke()
+            } else {
+                NSColor(Color(hex: hex)).setFill()
+                dot.fill()
+            }
+            return true
+        }
+        img.isTemplate = false
+        swatches[hex] = img
+        return img
+    }
+}
+
+/// Right-click ▸ Folder Color for Folder and App Folder tiles; persisted in the widget's `color`.
+struct AppsFolderColorMenu: View {
+    let w: WidgetInstance
+
+    var body: some View {
+        let current = w.string("color").uppercased()
+        Menu(L("Folder Color")) {
+            ForEach(AppsFolderColors.palette, id: \.self) { c in
+                Toggle(isOn: Binding(get: { current == c.hex.uppercased() }, set: { _ in set(c.hex) })) {
+                    Label { Text(L(c.title)) } icon: { Image(nsImage: AppsFolderColors.swatch(c.hex)) }
+                        .labelStyle(.titleAndIcon)
+                }
+            }
+            Divider()
+            Button(L("Custom…")) { WidgetSetup.customize(w) }
+        }
+    }
+
+    private func set(_ hex: String) {
+        AppStore.shared.updateWidget(w.id) { $0.config["color"] = hex.isEmpty ? nil : hex }
     }
 }

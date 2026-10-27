@@ -24,7 +24,7 @@
     <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
     <key>NSPrincipalClass</key><string>NSApplication</string>
     <key>NSHumanReadableCopyright</key><string>© 2026 CoolDock</string>
-    <key>NSAppleEventsUsageDescription</key><string>CoolDock controls Music, Spotify, Mail and Notes to show what is playing, unread mail and your latest note.</string>
+    <key>NSAppleEventsUsageDescription</key><string>CoolDock controls Music, Spotify, Mail and Notes to show what is playing, unread mail and your latest note. When you choose them in an app’s menu, it also asks System Events to add login items and Safari or document apps to open a new window or document.</string>
     <key>NSCalendarsFullAccessUsageDescription</key><string>CoolDock shows your upcoming events and meetings in the Dock.</string>
     <key>NSCalendarsUsageDescription</key><string>CoolDock shows your upcoming events and meetings in the Dock.</string>
     <key>NSRemindersFullAccessUsageDescription</key><string>CoolDock shows and completes your reminders in the Dock.</string>

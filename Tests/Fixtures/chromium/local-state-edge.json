@@ -1,0 +1,31 @@
+{
+  "profile": {
+    "info_cache": {
+      "Profile 10": {
+        "name": "Testing",
+        "is_ephemeral": false
+      },
+      "Default": {
+        "name": "Profile 1",
+        "is_ephemeral": false
+      },
+      "Profile 9": {
+        "name": "  ",
+        "shortcut_name": "School",
+        "is_ephemeral": false
+      },
+      "Profile 4": {
+        "name": "Throwaway",
+        "is_ephemeral": true
+      },
+      "Profile 5": {
+        "is_ephemeral": false
+      },
+      "Profile 6": {
+        "name": "Hidden",
+        "is_omitted_from_profile_list": true
+      }
+    },
+    "last_used": "Profile 10"
+  }
+}

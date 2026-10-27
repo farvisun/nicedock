@@ -27,13 +27,12 @@ enum AppsWidgets {
     static func menu(_ w: WidgetInstance) -> some View {
         switch w.kind {
         case .app:
-            let path = AppsLaunch.resolve(w.string("path"))
-            if !path.isEmpty, AppsFS.exists(path) {
-                AppsAppActions(path: path, app: AppsLaunch.running(path))
-                Divider()
-            }
+            // The app's own items (windows, New Window, Options ▸, Quit…) come from the native menu of the tile
+            // (`appsAppMenu`), which shows these standard widget items below them.
+            EmptyView()
         case .appFolder:
             Button(L("Open All")) { w.list("apps").map(AppsLaunch.resolve).forEach(AppsLaunch.open) }
+            AppsFolderColorMenu(w: w)
             Divider()
         case .applications:
             Button(L("Open Applications Folder")) { Open.path("/Applications") }
@@ -45,6 +44,7 @@ enum AppsWidgets {
         case .folder:
             let path = AppsFS.expand(w.string("path", "~/Documents"))
             Button(L("Open in Finder")) { Open.path(path) }.disabled(!AppsFS.exists(path, directory: true))
+            AppsFolderColorMenu(w: w)
             Divider()
         case .dropbox:
             if let path = AppsDropboxTile.resolve(w.string("path", "~/Library/CloudStorage/Dropbox")) {

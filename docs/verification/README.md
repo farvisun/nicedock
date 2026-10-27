@@ -13,7 +13,8 @@ Everything here is produced locally from the source tree; re-run the commands to
 | Calendar from real feeds | ICS parser + feeds (`swift test --filter ICS`) → `calendar-feed/` | real Google / iCloud holiday feeds, LLVM and WordPress meeting calendars; every occurrence in an 8-week window matches an independent python-dateutil expansion; renders in English and Persian |
 | AI Assistant (MCP) | `swift test` (`MCPEndToEndTests` spawns `CoolDock --mcp`) → [ai-assistant.md](ai-assistant.md) | 57 assistant tests of 201; JSON transcripts of a read-only session and of offline changes; Settings section in English and Persian; wallpaper sample sheet |
 | Habit Tracker & Window Manager | `CoolDock --render <dir> habitTracker,windowManager[-variant] [--scene reference] --lang en\|fa` → `new-widgets/` | tiles and panels in English and Persian (scene data and the real first-run state); see `new-widgets/README.md` |
-| Translations | `python3 scripts/l10n.py check` | 10 languages × 1219 strings, 0 missing |
+| App menus, folder window & badges | `swift test --filter Apps` + `CoolDock --render <dir> appFolder,folder-panel*,app-menu --lang en\|fa` → `apps/` | native right-click menus (window list, Options, Open Recent, New Window / private window / profiles for Chromium and Safari), folder colours, folder window search/sort/filter/breadcrumbs, Dock-style badges; see `apps/README.md` |
+| Translations | `python3 scripts/l10n.py check` | 10 languages × 1257 strings, 0 missing |
 
 Widgets whose data needs the user's own account (Stripe, Shopify, Polar, Dodo, Dub, DataFast, Plausible,
 Resend, Supabase, X, TikTok, YouTube, Linear, Anthropic/OpenAI admin usage) show their connect state until
