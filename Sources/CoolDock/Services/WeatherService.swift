@@ -44,7 +44,7 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
 
     override init() {
         super.init()
-        if let cached = DiskCache.load([String: WeatherSnapshot].self, "weather") { snapshots = cached }
+        if !ReferenceScene.isActive, let cached = DiskCache.load([String: WeatherSnapshot].self, "weather") { snapshots = cached }
     }
 
     var unit: TemperatureUnit { AppStore.shared.settings.temperatureUnit.resolved }
@@ -56,6 +56,7 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
 
     /// Fetches if missing or stale. Call from `.task`.
     func ensure(_ city: String, force: Bool = false) async {
+        guard !ReferenceScene.isActive else { return }
         let k = key(city)
         if !force, let s = snapshots[k], Date().timeIntervalSince(s.fetched) < refreshInterval { return }
         guard !inFlight.contains(k) else { return }
@@ -81,6 +82,13 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
             await ensure(city)
             try? await Task.sleep(for: .seconds(refreshInterval / 2))
         }
+    }
+
+    /// Deterministic conditions for `--scene reference` renders; nothing is fetched or cached there.
+    func setSceneSnapshot(_ snapshot: WeatherSnapshot, city: String = "") {
+        guard ReferenceScene.isActive else { return }
+        snapshots[key(city)] = snapshot
+        errors[key(city)] = nil
     }
 
     // MARK: Location

@@ -222,23 +222,26 @@ private struct ClockDateTimeWeatherView: View {
 
     var body: some View {
         let city = w.string("city")
-        Tile(width: w.kind.spec.width, padding: .hv(6, 0)) {
-            ClockTicker { date in
-                VStack(spacing: m.u(2)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 7, bottom: 0, trailing: 5)) {
+            ClockTicker { tick in
+                let date = ReferenceScene.date(tick)
+                VStack(spacing: m.u(3)) {
                     Text(ClockFormat.date(date, en: "MMM d, EEEE", template: "MMMdEEEE"))
-                        .dock(13.5, .semibold, p.clockInk)
+                        .dock(12.1, .semibold, p.clockInk)
                         .minimumScaleFactor(0.75)
-                    HStack(spacing: m.u(4.5)) {
-                        ClockDigits(text: Fmt.clock(date), size: 13.5)
+                        .offset(x: m.u(0.5))
+                    HStack(spacing: m.u(4)) {
+                        ClockDigits(text: Fmt.clock(date), size: 12)
+                            .padding(.trailing, m.u(-0.5))
                         if let snap = weather.snapshot(city) {
                             Image(systemName: WeatherCode.symbol(snap.code, isDay: snap.isDay))
-                                .font(.system(size: m.u(12), weight: .semibold))
-                                .foregroundStyle(p.primary.opacity(0.45))
-                            Text(Fmt.temp(snap.temp)).dock(13.5, .semibold, p.clockInk)
+                                .font(.system(size: m.u(11.85), weight: .semibold))
+                                .foregroundStyle(p.primary.opacity(0.47))
+                            Text(Fmt.temp(snap.temp)).dock(12, .semibold, p.clockInk, mono: true)
                         }
                     }
                 }
-                .offset(y: m.u(1))
+                .offset(y: m.u(0.5))
             }
         }
         .task(id: city) {

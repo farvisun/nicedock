@@ -8,7 +8,7 @@ import SwiftUI
 struct CalAppIcon: View {
     @Environment(\.metrics) private var m
     var size: CGFloat = 36
-    var date = Date()
+    var date = ReferenceScene.date()
 
     var body: some View {
         let slot = Self.todaySlot(date)
@@ -48,7 +48,9 @@ struct CalAppIcon: View {
 
     /// Today's weekday column and week row, folded into the stylised 4-row grid.
     static func todaySlot(_ date: Date) -> (row: Int, col: Int) {
-        let cal = Fmt.calendar
+        var cal = Fmt.calendar
+        // The reference frames come from a Sunday-first locale; keep scene renders independent of this Mac's region.
+        if ReferenceScene.isActive { cal.firstWeekday = 1 }
         let col = (cal.component(.weekday, from: date) - cal.firstWeekday + 7) % 7
         var row = min(3, max(0, cal.component(.weekOfMonth, from: date) - 1))
         if row == 0 && col < 2 { row = 1 }
@@ -91,21 +93,22 @@ enum CalText {
     }
 
     /// Start time for today's events, otherwise the day.
-    static func when(_ e: DockEvent) -> String {
-        if e.allDay { return Fmt.calendar.isDateInToday(e.start) || e.isNow ? L("All day") : Fmt.relativeDay(e.start) }
-        return Fmt.calendar.isDateInToday(e.start) || e.isNow ? Fmt.clock(e.start) : Fmt.relativeDay(e.start)
+    static func when(_ e: DockEvent, now: Date = ReferenceScene.date()) -> String {
+        let today = Fmt.calendar.isDate(e.start, inSameDayAs: now) || e.isNow
+        if e.allDay { return today ? L("All day") : Fmt.relativeDay(e.start) }
+        return today ? Fmt.clock(e.start) : Fmt.relativeDay(e.start)
     }
 
     /// Due label for reminders and issues. Date-only due dates are midnight and only overdue from the next day.
-    static func due(_ date: Date?, dateOnly: Bool? = nil, now: Date = Date()) -> (text: String, overdue: Bool)? {
+    static func due(_ date: Date?, dateOnly: Bool? = nil, now: Date = ReferenceScene.date()) -> (text: String, overdue: Bool)? {
         guard let date else { return nil }
         let cal = Fmt.calendar
         let parts = cal.dateComponents([.hour, .minute], from: date)
         let onlyDate = dateOnly ?? (parts.hour == 0 && parts.minute == 0)
         let overdue = onlyDate ? date < cal.startOfDay(for: now) : date < now
         if overdue { return (L("Overdue"), true) }
-        if cal.isDateInToday(date) { return (onlyDate ? L("Today") : Fmt.clock(date), false) }
-        if cal.isDateInTomorrow(date) { return (L("Tomorrow"), false) }
+        if cal.isDate(date, inSameDayAs: now) { return (onlyDate ? L("Today") : Fmt.clock(date), false) }
+        if let tomorrow = cal.date(byAdding: .day, value: 1, to: now), cal.isDate(date, inSameDayAs: tomorrow) { return (L("Tomorrow"), false) }
         if date.timeIntervalSince(now) < 6 * 86_400 { return (Fmt.weekdayShort(date), false) }
         return (Fmt.date(date, "MMMd"), false)
     }
@@ -355,4 +358,8 @@ private struct CalPanelEventRow: View {
 
 enum CalBrand {
     static let zoomBlue = Color(hex: "#0B6FE6")
+    /// Today's cell in the week strip (Calendar.app blue).
+    static let todayBlue = Color(hex: "#007AFF")
+    /// Reminders' due/priority orange.
+    static let alertOrange = Color(hex: "#FF9230")
 }

@@ -35,7 +35,7 @@ struct WeatherCompactWidget: View {
     var body: some View {
         WeatherTile(w: w) { s in
             HStack(spacing: m.u(5.5)) {
-                WeatherGlyph(code: s.code, isDay: s.isDay, size: 17)
+                WeatherGlyph(code: s.code, isDay: s.isDay, size: 17).offset(y: m.u(0.5))
                 Text(verbatim: Fmt.temp(s.temp)).dock(23.5, .semibold)
             }
         }
@@ -46,14 +46,16 @@ struct WeatherCompactWidget: View {
 
 struct WeatherConditionWidget: View {
     @Environment(\.metrics) private var m
+    @Environment(\.palette) private var p
     let w: WidgetInstance
 
     var body: some View {
         WeatherTile(w: w, padding: .hv(6, 0)) { s in
             VStack(spacing: m.u(4)) {
-                WeatherGlyph(code: s.code, isDay: s.isDay, size: 28).frame(height: m.u(33))
-                Text(verbatim: WeatherCode.title(s.code) + L(", ") + Fmt.temp(s.temp)).dock(10, .bold).minimumScaleFactor(0.75)
+                WeatherGlyph(code: s.code, isDay: s.isDay, size: 30, color: p.primary.opacity(0.54)).frame(height: m.u(33))
                     .offset(y: m.u(1))
+                Text(verbatim: WeatherCode.title(s.code) + L(", ") + Fmt.temp(s.temp)).dock(9.75, .bold).minimumScaleFactor(0.75)
+                    .offset(y: m.u(2))
             }
             .offset(y: m.u(0.5))
         }
@@ -68,29 +70,39 @@ struct WeatherLocationWidget: View {
     let w: WidgetInstance
 
     var body: some View {
-        WeatherTile(w: w, padding: EdgeInsets(top: 0, leading: 6.5, bottom: 0, trailing: 6)) { s in
+        WeatherTile(w: w, padding: EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 5)) { s in
             HStack(spacing: m.u(6)) {
                 VStack(alignment: .leading, spacing: m.u(5)) {
-                    Text(s.weatherPlace).dock(12, .bold).truncationMode(.tail).minimumScaleFactor(0.85)
-                    HStack(spacing: m.u(9)) {
-                        detail("wind", Fmt.speed(s.windSpeed))
-                        detail("drop.fill", WeatherFmt.precip(s.today?.precip ?? s.precipitation))
+                    Text(s.weatherPlace).dock(12, .semibold).truncationMode(.tail).minimumScaleFactor(0.85)
+                        .offset(y: m.u(0.5))
+                    // Long units (Persian «کیلومتر/ساعت») tighten the gap, then shrink, instead of pushing the temperature out.
+                    ViewThatFits(in: .horizontal) {
+                        details(s, spacing: 12).fixedSize()
+                        details(s, spacing: 6).fixedSize()
+                        details(s, spacing: 5).minimumScaleFactor(0.75)
                     }
-                    .fixedSize()
+                    .offset(y: m.u(-0.5))
                 }
                 .layoutPriority(1)
                 Spacer(minLength: m.u(4))
                 WeatherGlyph(code: s.code, isDay: s.isDay, size: 16)
-                    .padding(.trailing, m.u(0.5))
-                Text(verbatim: Fmt.temp(s.temp)).dock(30, .semibold, mono: true).fixedSize()
+                    .padding(.trailing, m.u(-1.5))
+                Text(verbatim: Fmt.temp(s.temp)).dock(28, .semibold, mono: true).fixedSize()
             }
+        }
+    }
+
+    private func details(_ s: WeatherSnapshot, spacing: CGFloat) -> some View {
+        HStack(spacing: m.u(spacing)) {
+            detail("wind", Fmt.speed(s.windSpeed))
+            detail("drop.fill", WeatherFmt.precip(s.today?.precip ?? s.precipitation))
         }
     }
 
     private func detail(_ symbol: String, _ value: String) -> some View {
         HStack(spacing: m.u(3.5)) {
-            Image(systemName: symbol).font(.system(size: m.u(8.5), weight: .semibold)).foregroundStyle(p.weatherGlyph)
-            Text(verbatim: value).dock(10.5, .bold, p.secondary)
+            Image(systemName: symbol).font(.system(size: m.u(7.5), weight: .semibold)).foregroundStyle(p.weatherGlyph)
+            Text(verbatim: value).dock(9.75, .semibold, p.secondary)
         }
     }
 }
@@ -106,15 +118,10 @@ struct WeatherDaysWidget: View {
         WeatherTile(w: w, padding: .hv(6, 6)) { s in
             HStack(spacing: 0) {
                 ForEach(Array(s.days.prefix(4).enumerated()), id: \.offset) { i, d in
-                    if i > 0 { Rectangle().fill(p.tileStroke).frame(width: m.u(0.5)).padding(.vertical, m.u(1)) }
-                    VStack(spacing: m.u(2)) {
-                        Text(verbatim: WeatherFmt.dayLabel(i, d.date, s.timeZone)).dock(9, .bold, p.tertiary).minimumScaleFactor(0.75)
-                            .offset(y: m.u(1))
-                        WeatherGlyph(code: d.code, size: 13).frame(height: m.u(17))
-                        Text(verbatim: Fmt.temp(d.high)).dock(10.5, .bold)
-                    }
-                    .offset(y: m.u(-0.5))
-                    .frame(maxWidth: .infinity)
+                    if i > 0 { Rectangle().fill(p.primary.opacity(0.07)).frame(width: m.u(0.5), height: m.u(38)) }
+                    WeatherColumn(label: WeatherFmt.dayLabel(i, d.date, s.timeZone), labelFont: (8.25, .semibold), labelColor: p.weatherFaint,
+                                  code: d.code, glyph: 13.3, temp: Fmt.temp(d.high), tempFont: (10, .bold), gaps: (2, 2))
+                        .frame(maxWidth: .infinity)
                 }
             }
         }
@@ -129,22 +136,19 @@ struct WeatherTodayWidget: View {
     let w: WidgetInstance
 
     var body: some View {
-        WeatherTile(w: w, padding: EdgeInsets(top: 0, leading: 7, bottom: 0, trailing: 8)) { s in
+        WeatherTile(w: w, padding: EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 7.5)) { s in
             HStack(alignment: .center, spacing: m.u(6)) {
                 VStack(alignment: .leading, spacing: m.u(1)) {
                     Text(verbatim: Fmt.temp(s.temp)).dock(31, .semibold, mono: true)
-                    Text(L("Today")).dock(9, .bold, p.secondary).offset(y: m.u(-1))
+                    Text(L("Today")).dock(9, .semibold, p.secondary).offset(y: m.u(-1))
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: m.u(9)) {
                     ForEach(Array(s.days.dropFirst().prefix(3).enumerated()), id: \.offset) { _, d in
-                        VStack(spacing: m.u(2.5)) {
-                            Text(verbatim: WeatherFmt.weekday(d.date, s.timeZone)).dock(8.5, .bold, p.secondary).minimumScaleFactor(0.7)
-                                .offset(y: m.u(2.5))
-                            WeatherGlyph(code: d.code, size: 12).frame(height: m.u(15))
-                            Text(verbatim: Fmt.temp(d.high)).dock(10.5, .bold)
-                        }
-                        .frame(width: m.u(25))
+                        WeatherColumn(label: WeatherFmt.weekday(d.date, s.timeZone), labelFont: (8.5, .semibold), labelColor: p.secondary,
+                                      code: d.code, glyph: 12.3, temp: Fmt.temp(d.high), tempFont: (10.5, .bold), gaps: (1.5, 2.5))
+                            .offset(y: m.u(0.5))
+                            .frame(width: m.u(25))
                     }
                 }
             }
@@ -202,15 +206,10 @@ struct WeatherHourlyWidget: View {
     }
 
     private func column(_ label: String, code: Int, isDay: Bool, temp: Double, now: Bool) -> some View {
-        VStack(spacing: m.u(2.5)) {
-            Text(verbatim: label).dock(now ? 9 : 8.5, now ? .bold : .semibold, now ? p.primary : p.secondary).minimumScaleFactor(0.7)
-                .frame(height: m.u(11))
-                .offset(y: m.u(now ? 0.5 : 2.5))
-            WeatherGlyph(code: code, isDay: isDay, size: 11).frame(height: m.u(14))
-            Text(verbatim: Fmt.temp(temp)).dock(10.5, .bold)
-        }
-        .offset(y: m.u(-0.5))
-        .frame(maxWidth: .infinity)
+        WeatherColumn(label: label, labelFont: now ? (8.25, .bold) : (8, .semibold), labelColor: now ? p.primary : p.secondary,
+                      code: code, isDay: isDay, glyph: 11.25, temp: Fmt.temp(temp), tempFont: (10.25, .semibold), gaps: (1.5, 2.5))
+            .offset(y: m.u(0.4))
+            .frame(maxWidth: .infinity)
     }
 }
 
@@ -226,16 +225,20 @@ struct WeatherSunWidget: View {
             TimelineView(.everyMinute) { ctx in
                 let rise = s.today?.sunrise, set = s.today?.sunset
                 ZStack(alignment: .bottom) {
-                    WeatherSunArc(progress: Self.progress(now: ctx.date, rise: rise, set: set))
+                    WeatherSunArc(progress: Self.progress(now: ReferenceScene.date(ctx.date), rise: rise, set: set))
                         .padding(EdgeInsets(top: 0, leading: m.u(-6), bottom: m.u(-4), trailing: m.u(-4)))
-                    HStack(spacing: m.u(4.5)) {
-                        Image(systemName: "sunrise.fill").font(.system(size: m.u(10), weight: .semibold)).foregroundStyle(p.accent(.cdOrange))
-                        Text(verbatim: rise.map { WeatherFmt.time($0, s.timeZone) } ?? "—").dock(12, .bold)
+                    HStack(spacing: m.u(3.5)) {
+                        Image(systemName: "sunrise.fill").font(.system(size: m.u(8.85), weight: .semibold)).foregroundStyle(p.accent(WeatherSunArc.orange))
+                            .offset(y: m.u(0.6))
+                        Text(verbatim: rise.map { WeatherFmt.time($0, s.timeZone) } ?? "—").dock(11.75, .semibold)
                         Spacer(minLength: 0)
-                        Text(verbatim: set.map { WeatherFmt.time($0, s.timeZone) } ?? "—").dock(12, .bold)
-                        Image(systemName: "sunset.fill").font(.system(size: m.u(10), weight: .semibold)).foregroundStyle(p.accent(.cdOrange))
+                        Text(verbatim: set.map { WeatherFmt.time($0, s.timeZone) } ?? "—").dock(11.75, .semibold)
+                        Image(systemName: "sunset.fill").font(.system(size: m.u(8.85), weight: .semibold)).foregroundStyle(p.accent(WeatherSunArc.orange))
+                            .offset(y: m.u(0.6))
                     }
                     .frame(height: m.u(15))
+                    .padding(.trailing, m.u(-1.5))
+                    .offset(y: m.u(-0.75))
                 }
             }
             .environment(\.layoutDirection, .leftToRight)
@@ -254,6 +257,8 @@ private struct WeatherSunArc: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
     var progress: Double?
+    /// Sunrise/sunset glyph orange from the reference frame.
+    static let orange = Color(hex: "#FF9230")
 
     var body: some View {
         Canvas { ctx, size in
@@ -290,14 +295,17 @@ struct WeatherWindWidget: View {
 
     var body: some View {
         WeatherTile(w: w, padding: EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 8)) { s in
-            HStack(spacing: m.u(12)) {
-                WeatherCompass(direction: s.windDirection, size: 49.5)
+            HStack(spacing: m.u(10)) {
+                WeatherCompass(direction: s.windDirection, size: 50)
                 VStack(alignment: .leading, spacing: m.u(2.5)) {
                     speed(Fmt.speed(s.windSpeed))
-                    Text(L("%@ wind", WeatherCode.compass(s.windDirection))).dock(9, .bold, p.secondary).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(L("Gusts %@", Fmt.speed(s.windGusts))).dock(9, .bold, p.tertiary).lineLimit(1).minimumScaleFactor(0.7)
+                        .padding(.leading, m.u(1.5))
+                        .offset(y: m.u(-1.25))
+                    Text(L("%@ wind", WeatherCode.compass(s.windDirection))).dock(8.75, .bold, p.secondary).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(L("Gusts %@", Fmt.speed(s.windGusts))).dock(8.65, .bold, p.weatherFaint).lineLimit(1).minimumScaleFactor(0.7)
+                        .offset(y: m.u(1.5))
                 }
-                .offset(y: m.u(0.5))
+                .offset(y: m.u(-0.5))
                 Spacer(minLength: 0)
             }
         }
@@ -335,13 +343,13 @@ struct WeatherCompass: View {
             Canvas { ctx, sz in
                 let c = CGPoint(x: sz.width / 2, y: sz.height / 2)
                 let r = sz.width / 2
-                for k in 0..<8 {
-                    let a = (22.5 + Double(k) * 45) * .pi / 180
+                for k in 0..<16 {
+                    let a = Double(k) * 22.5 * .pi / 180
                     let r0 = r * 0.77, r1 = r * 0.88
                     var tick = Path()
                     tick.move(to: CGPoint(x: c.x + CGFloat(sin(a)) * r0, y: c.y - CGFloat(cos(a)) * r0))
                     tick.addLine(to: CGPoint(x: c.x + CGFloat(sin(a)) * r1, y: c.y - CGFloat(cos(a)) * r1))
-                    ctx.stroke(tick, with: .color(p.primary.opacity(0.2)), style: StrokeStyle(lineWidth: max(m.u(0.6), 0.5), lineCap: .round))
+                    ctx.stroke(tick, with: .color(p.primary.opacity(0.28)), style: StrokeStyle(lineWidth: max(m.u(0.6), 0.5), lineCap: .round))
                 }
             }
             // Intercardinal labels only fit as abbreviations (NE); long localized names leave just the tick.
@@ -349,14 +357,16 @@ struct WeatherCompass: View {
                 let a = angle * .pi / 180
                 let rr = s * 0.39
                 Text(L(label))
-                    .font(.dock(m.u(major ? 7.5 : 5), major ? .heavy : .bold))
-                    .foregroundStyle(major ? p.primary.opacity(0.85) : p.tertiary)
+                    .font(.dock(m.u(major ? 7.5 : 5), major ? .bold : .semibold))
+                    .foregroundStyle(major ? p.primary.opacity(0.83) : p.secondary)
                     .fixedSize()
                     .offset(x: CGFloat(sin(a)) * rr, y: -CGFloat(cos(a)) * rr)
             }
             Image(systemName: "location.fill")
-                .font(.system(size: m.u(11), weight: .bold))
+                .font(.system(size: m.u(10.5), weight: .bold))
                 .foregroundStyle(p.primary.opacity(0.8))
+                // Centre the arrow's visual mass on the rose (the glyph sits high-right in its frame).
+                .offset(x: m.u(-0.7), y: m.u(1.2))
                 .rotationEffect(.degrees(direction + 180 - 45))
                 .animation(.easeOut(duration: 0.4), value: direction)
         }

@@ -19,26 +19,27 @@ struct CalTaskRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: m.u(2.5)) {
-            circle.alignmentGuide(.firstTextBaseline) { d in d.height - m.u(5.4) }
+            circle.alignmentGuide(.firstTextBaseline) { d in d.height - m.u(4.5) }
             HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
                 if let prefix { Text(verbatim: prefix).dock(8.5, .semibold, p.tertiary, mono: true).layoutPriority(1) }
                 Text(title).dock(10, .semibold, done ? p.tertiary : p.primary).truncationMode(.tail)
-                if let priority { Text(verbatim: priority).dock(10, .heavy, p.accent(.cdOrange)).padding(.leading, m.u(2)).layoutPriority(1) }
+                if let priority { Text(verbatim: priority).dock(10, .semibold, p.accent(CalBrand.alertOrange)).padding(.leading, m.u(0.25)).layoutPriority(1) }
             }
             .contentShape(Rectangle())
             .onTapGesture { onOpen?() }
             Spacer(minLength: m.u(6))
             if let trailing {
-                Text(verbatim: trailing).dock(9, .bold, trailingAlert ? p.accent(.cdOrange) : p.secondary, mono: true).layoutPriority(1)
+                Text(verbatim: trailing).dock(9, .semibold, trailingAlert ? p.accent(CalBrand.alertOrange) : p.secondary, mono: true).layoutPriority(1)
             }
         }
         .frame(height: m.u(16))
+        .offset(y: m.u(-0.75))
     }
 
     @ViewBuilder private var circle: some View {
         let accent = p.accent(color)
         let glyph = ZStack {
-            Circle().strokeBorder(accent, lineWidth: m.u(1.3))
+            Circle().strokeBorder(accent.opacity(done ? 1 : 0.85), lineWidth: m.u(1))
             if done {
                 Circle().fill(accent)
                 Image(systemName: "checkmark").font(.system(size: m.u(6), weight: .heavy)).foregroundStyle(p.calOnAccent)
@@ -116,7 +117,7 @@ struct CalRemindersWidget: View {
                 } else {
                     VStack(spacing: 0) {
                         ForEach(CalData.reminders.prefix(3)) { r in
-                            let due = CalText.due(r.due, now: ctx.date)
+                            let due = CalText.due(r.due, now: ReferenceScene.date(ctx.date))
                             CalTaskRow(title: r.title, color: r.color, priority: calReminderPriority(r.priority),
                                        trailing: due?.text, trailingAlert: due?.overdue ?? false, done: checking.contains(r.id),
                                        onToggle: { complete(r) }, onOpen: { Open.bundle(calRemindersBundle) })

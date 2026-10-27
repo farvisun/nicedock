@@ -55,7 +55,7 @@ extension WeatherSnapshot {
 
     /// Hours strictly after now (the current hour is represented by the "Now" reading).
     var weatherUpcomingHours: [Hour] {
-        let now = Date()
+        let now = ReferenceScene.date()
         return hours.filter { $0.time > now }
     }
 
@@ -86,7 +86,33 @@ struct WeatherGlyph: View {
 
 extension DockPalette {
     /// Muted grey used for condition glyphs.
-    var weatherGlyph: Color { primary.opacity(0.45) }
+    var weatherGlyph: Color { primary.opacity(0.47) }
+    /// Faintest label grey (forecast day names, gusts).
+    var weatherFaint: Color { tertiary.opacity(0.75) }
+}
+
+/// Forecast column: label, glyph and temperature at their natural heights, centred as a group, so a glyph that
+/// hangs lower (rain) lifts its label like the reference frames do.
+struct WeatherColumn: View {
+    @Environment(\.metrics) private var m
+    var label: String
+    var labelFont: (CGFloat, Font.Weight)
+    var labelColor: Color
+    var code: Int
+    var isDay = true
+    var glyph: CGFloat
+    var temp: String
+    var tempFont: (CGFloat, Font.Weight)
+    /// Label → glyph and glyph → temperature gaps.
+    var gaps: (CGFloat, CGFloat) = (2, 2)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(verbatim: label).dock(labelFont.0, labelFont.1, labelColor).lineLimit(1).minimumScaleFactor(0.7)
+            WeatherGlyph(code: code, isDay: isDay, size: glyph).padding(.top, m.u(gaps.0)).padding(.bottom, m.u(gaps.1))
+            Text(verbatim: temp).dock(tempFont.0, tempFont.1, mono: true).lineLimit(1)
+        }
+    }
 }
 
 // MARK: - Formatting in the location's time zone
