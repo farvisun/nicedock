@@ -74,9 +74,19 @@ enum Net {
     }()
 
     struct HTTPError: LocalizedError {
+        /// What the response body/headers say beyond the status code (see `HTTPError(response:data:)`).
+        enum Hint { case none, badCredential, rateLimited }
+
         let status: Int
         let body: String
+        var hint = Hint.none
+
         var errorDescription: String? {
+            switch hint {
+            case .rateLimited: return L("Rate limited")
+            case .badCredential: return L("Check your token")
+            case .none: break
+            }
             switch status {
             case 401, 403: return L("Check your token")
             case 404: return L("Not found")
@@ -86,14 +96,24 @@ enum Net {
         }
     }
 
+    typealias Transport = @Sendable (URLRequest) async throws -> (Data, URLResponse)
+
+    /// Replaces the network for the current task tree (tests replay recorded responses); nil = `session`.
+    @TaskLocal static var transport: Transport?
+
+    static func load(_ req: URLRequest) async throws -> (Data, URLResponse) {
+        if let transport { return try await transport(req) }
+        return try await session.data(for: req)
+    }
+
     static func data(_ url: URL, headers: [String: String] = [:], method: String = "GET", body: Data? = nil) async throws -> Data {
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.httpBody = body
         headers.forEach { req.setValue($1, forHTTPHeaderField: $0) }
-        let (data, response) = try await session.data(for: req)
+        let (data, response) = try await load(req)
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-            throw HTTPError(status: http.statusCode, body: String(data: data.prefix(300), encoding: .utf8) ?? "")
+            throw HTTPError(response: http, data: data)
         }
         return data
     }

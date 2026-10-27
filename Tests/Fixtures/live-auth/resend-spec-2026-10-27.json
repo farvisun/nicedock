@@ -1,0 +1,31 @@
+{
+ "source": "https://raw.githubusercontent.com/resend/resend-openapi/main/resend.yaml",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://api.resend.com"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/emails",
+   "security": "bearerAuth",
+   "parameters": [
+    {
+     "name": "limit",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "after",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "before",
+     "in": "query",
+     "required": false
+    }
+   ]
+  }
+ ]
+}

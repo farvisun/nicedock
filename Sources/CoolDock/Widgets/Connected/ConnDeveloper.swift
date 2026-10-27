@@ -117,12 +117,17 @@ enum ConnGitHub {
         var payload: [String: Any] = ["query": query]
         if !user.isEmpty { payload["variables"] = ["login": user] }
         let body = try JSONSerialization.data(withJSONObject: payload)
-        let obj = try await ConnHTTP.object(URL(string: "https://api.github.com/graphql")!, headers: ConnHTTP.bearer(token), method: "POST", body: body)
-        return try parseGraphQL(obj, viewer: user.isEmpty, now: Date())
+        let (data, response) = try await ConnHTTP.send(URL(string: "https://api.github.com/graphql")!, headers: ConnHTTP.bearer(token), method: "POST", body: body)
+        return try parseGraphQL(try ConnJSON.object(data), viewer: user.isEmpty, now: Date(),
+                                rateRemaining: response.value(forHTTPHeaderField: "X-RateLimit-Remaining"))
     }
 
-    static func parseGraphQL(_ obj: [String: Any], viewer: Bool, now: Date) throws -> ConnSnapshot {
-        if let message = J.str(J.array(obj["errors"]).first?["message"]) { throw ConnError(message) }
+    /// An exhausted GraphQL limit is HTTP 200 + `errors` with `x-ratelimit-remaining: 0`
+    /// (https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api).
+    static func parseGraphQL(_ obj: [String: Any], viewer: Bool, now: Date, rateRemaining: String? = nil) throws -> ConnSnapshot {
+        let errors = J.array(obj["errors"])
+        if !errors.isEmpty, rateRemaining?.trimmingCharacters(in: .whitespaces) == "0" { throw ConnError(L("Rate limited")) }
+        if let message = J.str(errors.first?["message"]) { throw ConnError(message) }
         let root = J.dict(J.path(obj, viewer ? "data.viewer" : "data.user"))
         guard let calendar = J.dict(J.path(root, "contributionsCollection.contributionCalendar")) else {
             throw ConnError(L("User not found"))

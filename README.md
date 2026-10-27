@@ -32,10 +32,12 @@ width) to inspect widget panels without UI scripting.
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
   8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
   `report.md`, `metrics.tsv`. Current result: 73/73 frames exact size, mean match 99.5 %, every frame ≥ 98.5 %.
-- **Data providers** — `swift test` runs 85 tests that feed real captured responses (Open-Meteo, Yahoo
+- **Data providers** — `swift test` runs 105 tests that feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics) and documentation-schema fixtures (Stripe,
   Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear, Anthropic,
-  OpenAI) through the same parsers the widgets use. `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
+  OpenAI) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
+  no-key / fake-key answers through the widget's own request and error handling — see
+  [docs/verification/providers.md](docs/verification/providers.md). `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
   LocalLogsTests` also checks AI-usage totals against this Mac's Claude Code / Codex logs.
 - **Translations** — `python3 scripts/l10n.py check` (every language must report 0 missing).
 

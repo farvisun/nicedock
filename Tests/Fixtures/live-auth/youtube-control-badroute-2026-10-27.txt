@@ -1,0 +1,14 @@
+# Live capture Tue, 27 Oct 2026 01:39:05 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> GET https://www.googleapis.com/youtube/v3/channelz?part=statistics,snippet&forHandle=@GoogleDevelopers&key=invalid
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+>
+< HTTP/2 404
+< content-type: text/html; charset=UTF-8
+< date: Tue, 27 Oct 2026 01:39:05 GMT
+<
+(HTML, 1103 bytes) title: Sorry... | text: G o o g l e Sorry... We're sorry... ... but your computer or network may be sending automated queries. To protect our users, we can't process your request right now. See Google Help for more information. Google Home

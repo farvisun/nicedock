@@ -1,0 +1,22 @@
+# Live capture Tue, 27 Oct 2026 01:38:11 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> POST https://api.github.com/graphql
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+> Content-Type: application/json
+>
+> {"query":"query($login: String!) { user(login: $login) { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { contributionCount date } } } } } }","variables":{"login":"torvalds"}}
+< HTTP/2 403
+< date: Tue, 27 Oct 2026 01:38:11 GMT
+< server: Varnish
+< content-type: application/json; charset=utf-8
+< x-github-media-type: github.v3; format=json
+< x-ratelimit-limit: 0
+< x-ratelimit-remaining: 0
+< x-ratelimit-used: 0
+< x-ratelimit-resource: graphql
+< x-ratelimit-reset: 1793068691
+<

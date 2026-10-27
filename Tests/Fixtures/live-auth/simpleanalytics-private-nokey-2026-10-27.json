@@ -1,0 +1,11 @@
+{
+
+  "__ok": "INFO: With this boolean you can quickly check if you can expect a response",
+  "ok": false,
+
+  "__error": "INFO: Something is going wrong!",
+  "error": "View not found",
+
+  "__generated_in_ms": "INFO: Time needed to generate this response on the server in milliseconds",
+  "generated_in_ms": 5
+}

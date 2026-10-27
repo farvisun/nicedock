@@ -1,0 +1,82 @@
+{
+ "source": "https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://youtube.googleapis.com/",
+  "https://youtube.googleapis.com/"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/youtube/v3/channels",
+   "security": null,
+   "parameters": [
+    {
+     "name": "categoryId",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "forHandle",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "forUsername",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "hl",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "id",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "managedByMe",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "maxResults",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "mine",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "mySubscribers",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "onBehalfOfContentOwner",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "pageToken",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "part",
+     "in": "query",
+     "required": true
+    },
+    {
+     "name": "key",
+     "in": "query",
+     "required": false
+    }
+   ]
+  }
+ ]
+}
