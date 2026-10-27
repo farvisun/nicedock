@@ -321,7 +321,8 @@ messages reuse existing strings ("Check your token", "Rate limited"), so transla
 | --- | --- |
 | Endpoint | `GET https://api.z.ai/api/monitor/usage/model-usage?startTime=yyyy-MM-dd HH:mm:ss&endTime=…` (local wall-clock times; **China** region: `open.bigmodel.cn`), `Authorization: <key>` (no `Bearer`) |
 | Why this path | Z.ai's API reference and OpenAPI document no usage or billing endpoint. This is the endpoint Z.ai's own Coding Plan plugin calls (`zai-org/zai-coding-plugins`, `glm-plan-usage/…/query-usage.mjs`), with the same headers. It returns tokens per model per hour |
-| Verified live | Errors come back as **HTTP 200** envelopes: no key → `{"code":1001,"msg":"Authentication parameter not received in Header…","success":false}`. Fake key (raw, with `Bearer`, and on the China host) → `{"code":401,"msg":"token expired or incorrect","success":false}`. `ConnAIUsageAPI.zaiCheck` maps the documented codes (`docs.z.ai/api-reference/api-code`). → Check your token. **No live route evidence:** a misspelled path gets the same 401 (auth before routing), so the path rests on the official plugin source |
+| Official source (checked 27 Oct 2026) | npm `@z_ai/coding-helper@0.1.1` (maintainers `bigmodel`, `yf.h`, `tomsun28`, `carbon-agent`; integrity `sha512-oMYZBiyqns0SKLz8IhZFNg6GF+fgoohHl…`) ships `zai-coding-plugins/plugins/glm-plan-usage/skills/usage-query-skill/scripts/query-usage.mjs`, which requests `${baseDomain}/api/monitor/usage/model-usage` (plus `…/tool-usage` and `…/quota/limit`) for `api.z.ai` and `open.bigmodel.cn` with `method: 'GET'`, `Authorization: <token>` (no `Bearer`) and `?startTime=…&endTime=…` formatted `yyyy-MM-dd HH:mm:ss` in local time, the window ending at the current hour's `HH:59:59`. CoolDock's request matches on every point |
+| Verified live | Errors come back as **HTTP 200** envelopes: no key → `{"code":1001,"msg":"Authentication parameter not received in Header…","success":false}`. Fake key (raw, with `Bearer`, and on the China host) → `{"code":401,"msg":"token expired or incorrect","success":false}`. `ConnAIUsageAPI.zaiCheck` maps the documented codes (`docs.z.ai/api-reference/api-code`). → Check your token. **Route evidence:** a misspelled leaf under `/api/monitor/usage/` gets the same 401 (auth before routing), while an unknown prefix such as `/api/zz-nothing/here` answers `{"code":500,"msg":"404 NOT_FOUND"}`, so the `/api/monitor/usage/` service exists at the gateway; the exact leaf rests on the official package above |
 | Not documented | The success schema. The fixture is a shape fixture that follows a third-party client's test data (dates moved), so only the envelope and series structure are asserted. This is the least certain API source |
 | Fixtures | `live-auth/zai-{usage-nokey,usage-invalid,usage-invalid-bearer,bigmodel-invalid,control-badroute,control-badroute-nokey}`; shape: `zai/model-usage-shape` |
 | Tests | `LiveAuthAITests.zai`; `ZaiUsageTests` |
@@ -347,8 +348,8 @@ messages reuse existing strings ("Check your token", "Rate limited"), so transla
 - Which Shopify version serves a request, and permission-level errors (missing scopes, non-admin keys).
 - AI usage success responses for the keyed sources added on 2026-10-27. Each needs a paid team or organization
   account: Cursor Enterprise, a Perplexity Enterprise org, an xAI team, GitHub's enhanced billing platform, a Google
-  Cloud project, or a Z.ai Coding Plan. Also the Z.ai sub-path and response schema (no live route evidence, no
-  published schema) and the Antigravity CLI output (not installed here).
+  Cloud project, or a Z.ai Coding Plan. Also the Z.ai response schema (the official script prints `data` without
+  naming its fields) and the Antigravity CLI output (not installed here; it needs a Google account sign-in).
 
 ## Reproducing
 
