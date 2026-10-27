@@ -434,7 +434,8 @@ enum ClockAlerts {
     }
 
     static func prepare() {
-        guard canNotify, !authRequested else { return }
+        // With a sink (tests, `--ui-probe`) alerts never reach Notification Center, so don't ask for the permission.
+        guard canNotify, !authRequested, sink == nil else { return }
         authRequested = true
         let center = UNUserNotificationCenter.current()
         if center.delegate == nil { center.delegate = ClockNotificationPresenter.shared }

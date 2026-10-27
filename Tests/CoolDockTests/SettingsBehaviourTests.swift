@@ -457,6 +457,7 @@ struct ProfilesAndWidgetsPaneBehaviourTests {
     }
 
     @Test func everyWidgetKindHasACatalogEntry() {
+        defer { cleanUp() } // the suite creates its folder for every test
         for kind in WidgetKind.allCases {
             let spec = kind.spec
             #expect(spec.width > 0 && !spec.localizedTitle.isEmpty, "\(kind)")
@@ -465,6 +466,7 @@ struct ProfilesAndWidgetsPaneBehaviourTests {
     }
 
     @Test func appVolumeRememberAndResetAllUseTheSettings() {
+        defer { cleanUp() } // the suite creates its folder for every test
         Behaviour.restoringSettings { store in
             store.settings.appVolumes = nil
             store.settings.appVolumeRemember = nil

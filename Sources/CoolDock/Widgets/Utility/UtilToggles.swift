@@ -375,6 +375,8 @@ private struct UtilToggleButton: View {
         }
         .buttonStyle(PressableStyle())
         .help(helpText(on))
+        .accessibilityLabel(kind.title)
+        .accessibilityValue(on ? L("On") : L("Off"))
         .animation(.easeOut(duration: 0.18), value: on)
     }
 

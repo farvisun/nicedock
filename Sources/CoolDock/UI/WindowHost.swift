@@ -22,8 +22,10 @@ final class WindowHost: NSObject, NSWindowDelegate {
             .font(.ui())
 
         if let window {
-            window.contentView = NSHostingView(rootView: AnyView(root))
+            // Title first: a `navigationTitle` in the new content (Settings: the pane's name) then wins, as it does
+            // when the window is created. Set afterwards, it replaced the pane's name until the next pane change.
             window.title = title
+            window.contentView = NSHostingView(rootView: AnyView(root))
             window.level = level
             bringToFront(window)
             return

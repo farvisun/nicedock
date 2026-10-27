@@ -381,6 +381,15 @@ enum AppIconFinish {
 }
 
 extension View {
+    /// Hands a tile's click (an `onTapGesture` or gesture) to Accessibility as its press action. A gesture alone is
+    /// invisible there: VoiceOver, Voice Control, Switch Control and UI scripting find no button and no AXPress.
+    /// `combine` reads the tile's text as one button; `contain` keeps controls inside the tile (rows, rings) reachable.
+    func accessibilityPress(combine: Bool = true, _ action: @escaping () -> Void) -> some View {
+        accessibilityElement(children: combine ? .combine : .contain)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction(.default, action)
+    }
+
     /// Resampling softness of the site's app icon bitmaps (a quarter point at 36 pt).
     func appIconSoftness(_ side: CGFloat) -> some View {
         blur(radius: side * 0.25 / 36)

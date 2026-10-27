@@ -113,6 +113,9 @@ struct SettingsRoot: View {
                                     SettingsIcon(symbol: pane.symbol, tint: pane.tint)
                                 }
                             }
+                            // The link's own press does nothing here (the list's selection drives the detail), so
+                            // VoiceOver's VO-Space and Voice Control's "Click Appearance" left the pane unchanged.
+                            .accessibilityAction { nav.pane = pane }
                         }
                     }
                 }

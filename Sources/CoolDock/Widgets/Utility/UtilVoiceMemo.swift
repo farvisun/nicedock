@@ -276,6 +276,9 @@ struct UtilVoiceMemoView: View {
             if NSEvent.modifierFlags.contains(.option) { UtilVoiceMemoPanel.toggle(w) } else { rec.start() }
         }
         .help(rec.permissionDenied ? L("Microphone access is off — click to open Privacy settings") : L("Click to record · ⌥-click for recordings"))
+        // The click and the hover-only Recordings button are invisible to Accessibility without these.
+        .accessibilityPress { rec.start() }
+        .accessibilityAction(named: L("Recordings…")) { UtilVoiceMemoPanel.toggle(w) }
     }
 
     private var recordingTile: some View {

@@ -71,6 +71,8 @@ struct MediaYouTubeTile: View {
                 .clipShape(shape)
                 .contentShape(shape)
                 .onTapGesture { Open.url(url) }
+                .accessibilityPress { Open.url(url) }
+                .accessibilityLabel(L("Open Video"))
                 .task(id: id) {
                     image = MediaYouTube.cached(id)
                     // Retry every 5 min while visible if the thumbnail could not be fetched (offline).
@@ -83,6 +85,7 @@ struct MediaYouTubeTile: View {
                 MediaCompactMessage(symbol: "play.rectangle", text: L("Add a video URL"), tint: .cdRed)
                     .contentShape(Rectangle())
                     .onTapGesture { WidgetSetup.customize(w) }
+                    .accessibilityPress { WidgetSetup.customize(w) }
             }
         }
     }

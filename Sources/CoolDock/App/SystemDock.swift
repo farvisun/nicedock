@@ -6,6 +6,9 @@ final class SystemDock {
     static let shared = SystemDock()
     private let domain = "com.apple.dock" as CFString
     private let backupKey = "CoolDockDockBackup"
+    /// Receives every change CoolDock would make to the macOS Dock instead of making it (`--ui-probe`: the system Dock's
+    /// preferences must never change while the probe clicks through Settings).
+    var interceptor: ((String) -> Void)?
 
     var autohides: Bool {
         CFPreferencesAppSynchronize(domain)
@@ -16,6 +19,7 @@ final class SystemDock {
     func reservedBottom(on screen: NSScreen) -> CGFloat { screen.visibleFrame.minY - screen.frame.minY }
 
     func setAutohide(_ on: Bool) {
+        if let interceptor { interceptor("setAutohide(\(on))"); return }
         CFPreferencesSetAppValue("autohide" as CFString, on as CFBoolean, domain)
         CFPreferencesAppSynchronize(domain)
         restartDock()
@@ -37,6 +41,7 @@ final class SystemDock {
     }
 
     private func hideSystemDock() {
+        if let interceptor { interceptor("hide"); return }
         let defaults = UserDefaults.standard
         if defaults.dictionary(forKey: backupKey) == nil {
             CFPreferencesAppSynchronize(domain)
@@ -54,6 +59,7 @@ final class SystemDock {
     func restore() {
         let defaults = UserDefaults.standard
         guard let backup = defaults.dictionary(forKey: backupKey) else { return }
+        if let interceptor { interceptor("restore"); return }
         CFPreferencesSetAppValue("autohide" as CFString, (backup["autohide"] as? Bool ?? false) as CFBoolean, domain)
         if let delay = backup["autohide-delay"] as? Double {
             CFPreferencesSetAppValue("autohide-delay" as CFString, delay as CFNumber, domain)
