@@ -29,7 +29,7 @@ final class UtilVoiceRecorder {
     @ObservationIgnored private let playerDelegate = UtilVoicePlayerDelegate()
     @ObservationIgnored private var accumulated: TimeInterval = 0
     @ObservationIgnored private var resumedAt: Date?
-    @ObservationIgnored private(set) var levels = [Float](repeating: 0, count: 22)
+    @ObservationIgnored private(set) var levels = [Float](repeating: 0, count: 16)
     @ObservationIgnored private var lastLevelAt = Date.distantPast
 
     static let directory: URL = FileManager.default.homeDirectoryForCurrentUser
@@ -44,6 +44,17 @@ final class UtilVoiceRecorder {
 
     var elapsed: TimeInterval { accumulated + (resumedAt.map { Date().timeIntervalSince($0) } ?? 0) }
     var isActive: Bool { state != .idle }
+
+    /// Frozen recorder state for `--scene reference` renders (no microphone). No effect outside the scene.
+    func seedReference(recording: Bool, elapsed: TimeInterval, levels: [Float]) {
+        guard ReferenceScene.isActive else { return }
+        state = recording ? .recording : .idle
+        accumulated = recording ? elapsed : 0
+        resumedAt = nil
+        self.levels = levels
+        permissionDenied = false
+        failed = false
+    }
 
     // MARK: Recording
 
@@ -210,9 +221,10 @@ struct UtilVoiceMemoView: View {
     }
 
     private var idleTile: some View {
-        SysRingTile(value: 0.5, color: rec.permissionDenied || rec.failed ? .cdRed : .cdGreen, label: nil) {
+        // Decorative arc, as long as in the reference frame.
+        SysRingTile(value: 0.477, color: rec.permissionDenied || rec.failed ? .cdRed : .cdGreen, label: nil) {
             Image(systemName: rec.permissionDenied ? "mic.slash.fill" : "mic.fill")
-                .font(.system(size: m.u(15), weight: .semibold))
+                .font(.system(size: m.u(12.75), weight: .semibold))
         }
         .overlay(alignment: .topTrailing) {
             if hover {
@@ -237,39 +249,57 @@ struct UtilVoiceMemoView: View {
     }
 
     private var recordingTile: some View {
-        Tile(width: 170, padding: EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 6)) {
-            HStack(spacing: m.u(4)) {
+        let red = p.accent(UtilTint.red)
+        let redLight = p.monochrome ? red : UtilTint.redLight
+        return Tile(width: 170, padding: EdgeInsets(top: 0, leading: 5.5, bottom: 0, trailing: 6.5)) {
+            HStack(spacing: 0) {
                 TimelineView(.animation(minimumInterval: 0.08, paused: rec.state != .recording)) { ctx in
-                    HStack(spacing: m.u(5)) {
+                    HStack(spacing: 0) {
+                        // Shrinks rather than overflowing once recordings pass ten minutes.
                         Text(verbatim: Fmt.duration(rec.elapsed))
-                            .dock(25, .semibold, mono: true)
-                            .fixedSize()
-                        UtilWaveform(levels: rec.sampleLevels(at: ctx.date), color: p.accent(.cdRed))
-                            .frame(height: m.u(24))
+                            .dock(21, .bold, mono: true)
+                            .minimumScaleFactor(0.6)
+                        Spacer(minLength: m.u(2.5))
+                        let levels = rec.sampleLevels(at: ctx.date)
+                        UtilWaveform(levels: levels, color: red, topColor: redLight)
+                            .frame(width: m.u(CGFloat(levels.count) * 3), height: m.u(17))
                             .opacity(rec.state == .paused ? 0.45 : 1)
                     }
                 }
+                Spacer(minLength: m.u(2.5)).frame(maxWidth: m.u(2.5))
                 Button { rec.togglePause() } label: {
-                    Image(systemName: rec.state == .paused ? "play.fill" : "pause.fill")
-                        .font(.system(size: m.u(9), weight: .black))
-                        .foregroundStyle(p.primary)
-                        .frame(width: m.u(22), height: m.u(22))
-                        .background(Circle().fill(p.controlStrong))
-                        .contentShape(Circle())
+                    Group {
+                        if rec.state == .paused {
+                            Image(systemName: "play.fill").font(.system(size: m.u(8.5), weight: .black))
+                        } else {
+                            HStack(spacing: m.u(1)) {
+                                RoundedRectangle(cornerRadius: m.u(0.6)).frame(width: m.u(2), height: m.u(7))
+                                RoundedRectangle(cornerRadius: m.u(0.6)).frame(width: m.u(2), height: m.u(7))
+                            }
+                        }
+                    }
+                    .foregroundStyle(p.primary.opacity(0.81))
+                    .frame(width: m.u(22), height: m.u(22))
+                    .background(Circle().fill(p.primary.opacity(0.19)))
+                    .contentShape(Circle())
                 }
                 .buttonStyle(PressableStyle())
                 .help(rec.state == .paused ? L("Resume") : L("Pause"))
+                .padding(.trailing, m.u(3))
                 Button { rec.stop() } label: {
-                    RoundedRectangle(cornerRadius: m.u(2.5), style: .continuous)
+                    RoundedRectangle(cornerRadius: m.u(2), style: .continuous)
                         .fill(Color.white)
-                        .frame(width: m.u(11), height: m.u(11))
+                        .frame(width: m.u(10), height: m.u(10))
+                        .offset(y: m.u(0.5))
                         .frame(width: m.u(32), height: m.u(32))
-                        .background(Circle().fill(p.accent(.cdRed)))
+                        .background(Circle().fill(LinearGradient(stops: [.init(color: redLight, location: 0), .init(color: red, location: 0.66)],
+                                                                 startPoint: .top, endPoint: .bottom)))
                         .contentShape(Circle())
                 }
                 .buttonStyle(PressableStyle())
                 .help(L("Stop and save"))
             }
+            .offset(y: m.u(0.5))
         }
     }
 }
@@ -278,18 +308,26 @@ struct UtilVoiceMemoView: View {
 struct UtilWaveform: View {
     var levels: [Float]
     var color: Color
+    /// Optional lighter colour at the top (the reference bars brighten upwards).
+    var topColor: Color? = nil
 
     var body: some View {
         Canvas { ctx, size in
             let n = levels.count
             guard n > 0 else { return }
             let step = size.width / CGFloat(n)
-            let bar = max(1, step * 0.55)
+            let bar = max(1, step * 0.667)
+            let shading: GraphicsContext.Shading = topColor.map {
+                .linearGradient(Gradient(stops: [.init(color: $0, location: 0), .init(color: color, location: 0.7)]),
+                                startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height))
+            } ?? .color(color)
+            var bars = Path()
             for (i, v) in levels.enumerated() {
                 let h = max(bar, size.height * CGFloat(0.12 + 0.88 * Double(v)))
                 let rect = CGRect(x: CGFloat(i) * step + (step - bar) / 2, y: (size.height - h) / 2, width: bar, height: h)
-                ctx.fill(Path(roundedRect: rect, cornerRadius: bar / 2), with: .color(color))
+                bars.addPath(Path(roundedRect: rect, cornerRadius: bar / 2))
             }
+            ctx.fill(bars, with: shading)
         }
         .environment(\.layoutDirection, .leftToRight)
     }

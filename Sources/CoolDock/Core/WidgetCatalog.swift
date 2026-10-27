@@ -272,7 +272,7 @@ enum WidgetCatalog {
         case .screenshots:
             return WidgetSpec(category: .controls, title: "Screenshots", summary: "Capture window, area or screen.", symbol: "camera.viewfinder", width: 148)
         case .recentScreenshots:
-            return WidgetSpec(category: .controls, title: "Recent Screenshots", summary: "Your latest screenshots.", symbol: "clock.arrow.circlepath", width: 62)
+            return WidgetSpec(category: .controls, title: "Recent Screenshots", summary: "Your latest screenshots.", symbol: "clock.arrow.circlepath", width: 64)
         case .voiceMemo:
             return WidgetSpec(category: .controls, title: "Voice Memo", summary: "Record audio notes in one click.", symbol: "mic", width: 70)
         case .emoji:

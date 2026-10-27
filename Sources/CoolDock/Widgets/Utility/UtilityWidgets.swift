@@ -66,6 +66,21 @@ enum UtilEnv {
     static let rendering = CommandLine.arguments.contains("--render")
 }
 
+/// Tints measured from the reference frames (the macOS 26 dark system colours, deeper than the shared accents).
+enum UtilTint {
+    static let red = Color(red: 1, green: 59 / 255, blue: 48 / 255)
+    static let redLight = Color(red: 1, green: 100 / 255, blue: 91 / 255)
+    static let blue = Color(red: 0, green: 145 / 255, blue: 1)
+    static let orange = Color(red: 1, green: 146 / 255, blue: 48 / 255)
+    static let toggleBlue = Color(red: 51 / 255, green: 140 / 255, blue: 1)
+    static let toggleOrange = Color(red: 250 / 255, green: 158 / 255, blue: 48 / 255)
+
+    static func lighten(_ c: Color, _ amount: CGFloat) -> Color {
+        let ns = NSColor(c).usingColorSpace(.sRGB) ?? .white
+        return Color(nsColor: ns.blended(withFraction: amount, of: .white) ?? ns)
+    }
+}
+
 enum UtilPasteboard {
     static func copy(_ s: String) {
         let pb = NSPasteboard.general
@@ -117,6 +132,7 @@ struct UtilInlineField: View {
     var size: CGFloat
     var weight: Font.Weight = .medium
     var color: Color?
+    var placeholderColor: Color? = nil
     var onSubmit: () -> Void = {}
     var onEnd: () -> Void = {}
     @FocusState private var focused: Bool
@@ -125,7 +141,7 @@ struct UtilInlineField: View {
         ZStack(alignment: .leading) {
             if editing {
                 if text.isEmpty {
-                    Text(verbatim: placeholder).dock(size, weight, p.tertiary).allowsHitTesting(false)
+                    Text(verbatim: placeholder).dock(size, weight, placeholderColor ?? p.tertiary).allowsHitTesting(false)
                 }
                 TextField("", text: $text)
                     .textFieldStyle(.plain)
@@ -145,7 +161,7 @@ struct UtilInlineField: View {
                     .onChange(of: focused) { _, isFocused in if !isFocused { finish() } }
             } else {
                 Text(verbatim: text.isEmpty ? placeholder : text)
-                    .dock(size, weight, text.isEmpty ? p.tertiary : (color ?? p.primary))
+                    .dock(size, weight, text.isEmpty ? (placeholderColor ?? p.tertiary) : (color ?? p.primary))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -254,6 +270,7 @@ struct UtilEmojiView: View {
                     }
                 }
             }
+            .offset(x: m.u(0.5), y: m.u(0.5))
             .environment(\.layoutDirection, .leftToRight)
         }
     }
@@ -263,7 +280,7 @@ struct UtilEmojiView: View {
             if i == min(items.count, 9) {
                 Button { NSApp.orderFrontCharacterPalette(nil) } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: m.u(15), weight: .medium))
+                        .font(.system(size: m.u(12), weight: .medium))
                         .foregroundStyle(p.secondary)
                         .frame(width: m.u(28), height: m.u(28))
                         .contentShape(Rectangle())
@@ -279,7 +296,7 @@ struct UtilEmojiView: View {
                                 .foregroundStyle(p.accent(.cdGreen))
                                 .transition(.scale.combined(with: .opacity))
                         } else {
-                            Text(verbatim: items[i]).font(.system(size: m.u(16)))
+                            Text(verbatim: items[i]).font(.system(size: m.u(15.2)))
                         }
                     }
                     .frame(width: m.u(28), height: m.u(28))
@@ -321,20 +338,21 @@ struct UtilColorPickerView: View {
 
     var body: some View {
         let colors = Self.colors(w)
-        Tile(width: w.kind.spec.width) {
-            VStack(spacing: m.u(3.5)) {
-                HStack(spacing: m.u(3.5)) {
+        // The reference tile is lighter than the standard tile (control fill).
+        Tile(width: w.kind.spec.width, fill: AnyShapeStyle(p.control)) {
+            VStack(spacing: m.u(3)) {
+                HStack(spacing: m.u(3)) {
                     swatch(0, colors)
                     swatch(1, colors)
                 }
-                HStack(spacing: m.u(3.5)) {
+                HStack(spacing: m.u(3)) {
                     swatch(2, colors)
                     Button { UtilColorPicking.pick(w) } label: {
                         Image(systemName: "eyedropper")
-                            .font(.system(size: m.u(10.5), weight: .semibold))
+                            .font(.system(size: m.u(8.7), weight: .semibold))
                             .foregroundStyle(p.secondary)
-                            .frame(width: m.u(22), height: m.u(22))
-                            .background(RoundedRectangle(cornerRadius: m.u(5), style: .continuous).fill(p.control))
+                            .frame(width: m.u(22.5), height: m.u(22.5))
+                            .background(RoundedRectangle(cornerRadius: m.u(5), style: .continuous).fill(p.primary.opacity(0.045)))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(PressableStyle())
@@ -361,7 +379,7 @@ struct UtilColorPickerView: View {
         } label: {
             RoundedRectangle(cornerRadius: m.u(5), style: .continuous)
                 .fill(Color(hex: hex))
-                .frame(width: m.u(22), height: m.u(22))
+                .frame(width: m.u(22.5), height: m.u(22.5))
                 .overlay {
                     if copied == i {
                         Image(systemName: "checkmark")
@@ -537,16 +555,17 @@ struct UtilSearchWebView: View {
         Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)) {
             HStack(spacing: m.u(8)) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: m.u(13.5), weight: .semibold))
+                    .font(.system(size: m.u(12), weight: .semibold))
                     .foregroundStyle(p.secondary)
-                UtilInlineField(text: $query, editing: $editing, placeholder: L("Search web…"), size: 14.5, weight: .bold,
+                UtilInlineField(text: $query, editing: $editing, placeholder: L("Search web…"), size: 13.25, weight: .semibold,
+                                placeholderColor: p.primary.opacity(0.27),
                                 onSubmit: submit, onEnd: { if query.trimmingCharacters(in: .whitespaces).isEmpty { query = "" } })
                 Button(action: submit) {
                     Image(systemName: "arrow.right")
                         .font(.system(size: m.u(9.5), weight: .heavy))
                         .foregroundStyle(p.primary)
                         .flipsForRTL()
-                        .frame(width: m.u(18), height: m.u(18))
+                        .frame(width: m.u(18.5), height: m.u(18.5))
                         .background(Circle().fill(p.primary.opacity(0.28)))
                         .contentShape(Circle())
                 }

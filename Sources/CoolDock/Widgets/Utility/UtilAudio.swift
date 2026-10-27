@@ -167,8 +167,20 @@ final class UtilAudioService: DemandDriven {
     private static let systemSelectors = [kAudioHardwarePropertyDefaultOutputDevice, kAudioHardwarePropertyDevices]
 
     func subscribe(_ id: String) {
+        // Reference renders show seeded devices (`seedReference`), never the machine's own.
+        guard !ReferenceScene.isActive else { return }
         subscribers.insert(id)
         if subscribers.count == 1 { start() }
+    }
+
+    /// Deterministic outputs for `--scene reference` renders. No effect outside the scene.
+    func seedReference(_ devices: [UtilAudioDevice], current: AudioDeviceID, volume: Double) {
+        guard ReferenceScene.isActive else { return }
+        outputs = devices
+        self.current = current
+        self.volume = volume
+        muted = false
+        hasVolume = true
     }
 
     func unsubscribe(_ id: String) {
@@ -314,7 +326,7 @@ struct UtilAudioView: View {
 
     var body: some View {
         let others = Array(audio.outputs.filter { $0.id != audio.current && $0.rank < 5 }.prefix(2))
-        Tile(width: w.kind.spec.width, padding: .hv(6, 6)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 5.5, leading: 6, bottom: 6.5, trailing: 6)) {
             if let device = audio.currentDevice {
                 HStack(spacing: m.u(6)) {
                     mainPanel(device)
@@ -331,14 +343,14 @@ struct UtilAudioView: View {
 
     private func mainPanel(_ device: UtilAudioDevice) -> some View {
         let shape = RoundedRectangle(cornerRadius: m.u(8), style: .continuous)
-        return VStack(alignment: .leading, spacing: m.u(5)) {
+        return VStack(alignment: .leading, spacing: m.u(3.5)) {
             Button { UtilAudioPanel.toggle(w) } label: {
                 HStack(spacing: m.u(7)) {
                     Image(systemName: device.symbol)
-                        .font(.system(size: m.u(11.5), weight: .medium))
+                        .font(.system(size: m.u(9), weight: .medium))
                         .foregroundStyle(p.secondary)
                         .frame(width: m.u(13))
-                    Text(verbatim: device.shortName).dock(10, .bold)
+                    Text(verbatim: device.shortName).dock(9.2, .bold)
                         .truncationMode(.tail)
                     Spacer(minLength: 0)
                 }
@@ -347,11 +359,12 @@ struct UtilAudioView: View {
             }
             .buttonStyle(.plain)
             .help(device.name)
-            HStack(spacing: m.u(5)) {
+            HStack(spacing: m.u(4)) {
                 Button { audio.toggleMute() } label: {
                     Image(systemName: speakerSymbol)
-                        .font(.system(size: m.u(10.5), weight: .semibold))
+                        .font(.system(size: m.u(9.7), weight: .semibold))
                         .foregroundStyle(audio.muted ? p.secondary : p.primary)
+                        .padding(.leading, m.u(-1.5))
                         .frame(width: m.u(13), height: m.u(12), alignment: .leading)
                         .contentShape(Rectangle())
                 }
@@ -359,15 +372,17 @@ struct UtilAudioView: View {
                 .help(audio.muted ? L("Unmute") : L("Mute"))
                 UtilVolumeSlider(value: audio.muted ? 0 : audio.volume, enabled: audio.hasVolume) { audio.setVolume($0) }
                 Text(verbatim: Fmt.percent(audio.muted ? 0 : audio.volume))
-                    .dock(9, .semibold, p.secondary, mono: true)
-                    .frame(minWidth: m.u(22), alignment: .trailing)
+                    .dock(8.1, .semibold, p.secondary, mono: true)
+                    .padding(.trailing, m.u(-1))
+                    .frame(minWidth: m.u(20.5), alignment: .trailing)
             }
             .frame(height: m.u(12))
         }
+        .offset(y: m.u(-1.75))
         .padding(.horizontal, m.u(6))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(shape.fill(p.control))
-        .overlay(shape.strokeBorder(p.tileStroke, lineWidth: 0.5))
+        .background(shape.fill(p.primary.opacity(0.045)))
+        .overlay(shape.strokeBorder(p.primary.opacity(0.075), lineWidth: 0.5))
     }
 
     private var speakerSymbol: String {
@@ -387,19 +402,19 @@ private struct UtilOutputButton: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: m.u(8), style: .continuous)
         Button(action: action) {
-            VStack(spacing: m.u(4)) {
+            VStack(spacing: m.u(2.5)) {
                 Image(systemName: device.symbol)
-                    .font(.system(size: m.u(15), weight: .medium))
+                    .font(.system(size: m.u(14), weight: .medium))
                     .foregroundStyle(p.secondary)
                     .frame(height: m.u(17))
-                Text(verbatim: device.shortName).dock(9.5, .semibold, p.secondary)
+                Text(verbatim: device.shortName).dock(8.25, .semibold, p.secondary)
                     .minimumScaleFactor(0.75)
                     .padding(.horizontal, m.u(2))
             }
             .frame(width: m.u(46))
             .frame(maxHeight: .infinity)
-            .background(shape.fill(p.control))
-            .overlay(shape.strokeBorder(p.tileStroke, lineWidth: 0.5))
+            .background(shape.fill(p.primary.opacity(0.045)))
+            .overlay(shape.strokeBorder(p.primary.opacity(0.075), lineWidth: 0.5))
             .contentShape(shape)
         }
         .buttonStyle(PressableStyle())
@@ -419,13 +434,13 @@ struct UtilVolumeSlider: View {
     var body: some View {
         GeometryReader { g in
             let width = g.size.width, height = g.size.height
-            let knob = height * 1.05
+            let knob = height
             let x = knob / 2 + (width - knob) * max(0, min(1, value))
             ZStack(alignment: .leading) {
-                Capsule().fill(p.controlStrong)
-                Capsule().fill(p.primary.opacity(0.78)).frame(width: max(knob, x))
+                Capsule().fill(p.primary.opacity(0.09))
+                Capsule().fill(p.primary.opacity(0.84)).frame(width: max(knob, x))
                 Circle()
-                    .fill(p.primary)
+                    .fill(p.isLight ? p.primary : Color.white.opacity(0.96))
                     .frame(width: knob, height: knob)
                     .shadow(color: .black.opacity(0.25), radius: 1.5, y: 0.5)
                     .offset(x: x - knob / 2)
@@ -437,7 +452,7 @@ struct UtilVolumeSlider: View {
                 onChange(Double((v.location.x - knob / 2) / (width - knob)))
             })
         }
-        .frame(height: m.u(10))
+        .frame(height: m.u(11))
         .opacity(enabled ? 1 : 0.4)
         .environment(\.layoutDirection, .leftToRight)
         .flipsForRTL()

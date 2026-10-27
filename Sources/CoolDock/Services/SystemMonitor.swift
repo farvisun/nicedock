@@ -36,8 +36,34 @@ final class SystemMonitor {
     @ObservationIgnored private var tickCount = 0
 
     func subscribe(_ id: String) {
+        // Reference renders show seeded values (`seedReference`); live samples would overwrite them.
+        guard !ReferenceScene.isActive else { return }
         subscribers.insert(id)
         if timer == nil { startTimer() }
+    }
+
+    /// Deterministic values for `--scene reference` renders. No effect outside the scene.
+    func seedReference(cpu: Double, cpuHistory: [Double], memory: Double, memoryUsedGB: Double,
+                       down: Double, up: Double, downHistory: [Double], upHistory: [Double],
+                       diskFreeGB: Double, diskTotalGB: Double, battery: Double, charging: Bool) {
+        guard ReferenceScene.isActive else { return }
+        self.cpu = cpu
+        self.cpuHistory = cpuHistory
+        self.memory = memory
+        self.memoryUsedGB = memoryUsedGB
+        downRate = down
+        upRate = up
+        self.downHistory = downHistory
+        self.upHistory = upHistory
+        self.diskFreeGB = diskFreeGB
+        self.diskTotalGB = diskTotalGB
+        self.battery = battery
+        self.charging = charging
+        hasBattery = true
+        onAC = charging
+        batteryTimeRemaining = nil
+        thermal = .nominal
+        temperature = nil
     }
 
     func unsubscribe(_ id: String) {

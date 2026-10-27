@@ -132,8 +132,12 @@ struct AppsIconQuad: View {
                 HStack(spacing: 0) {
                     ForEach(0..<2, id: \.self) { col in
                         let i = row * 2 + col
-                        if i < paths.count {
-                            AppIcon(path: paths[i], size: icon)
+                        if i < paths.count, ReferenceScene.isActive, let art = AppsScene.icon(paths[i]) {
+                            Image(nsImage: art.image).resizable().interpolation(.high)
+                                .frame(width: m.u(icon * art.scale), height: m.u(icon * art.scale))
+                                .frame(width: m.u(icon), height: m.u(icon))
+                        } else if i < paths.count {
+                            AppIcon(path: paths[i], size: icon).appsIconStyle()
                         } else {
                             Color.clear.frame(width: m.u(icon), height: m.u(icon))
                         }
@@ -141,7 +145,6 @@ struct AppsIconQuad: View {
                 }
             }
         }
-        .appsIconStyle()
     }
 }
 
