@@ -125,8 +125,10 @@ struct WeatherDaysWidget: View {
             HStack(spacing: 0) {
                 ForEach(Array(s.days.prefix(4).enumerated()), id: \.offset) { i, d in
                     if i > 0 { Rectangle().fill(p.primary.opacity(0.07)).frame(width: m.u(0.5), height: m.u(38)) }
+                    // Temperatures are SF Pro 10 semibold with proportional digits in the reference frame.
                     WeatherColumn(label: WeatherFmt.dayLabel(i, d.date, s.timeZone), labelFont: (8.25, .semibold), labelColor: p.weatherFaint,
-                                  code: d.code, glyph: 13.3, temp: Fmt.temp(d.high), tempFont: (10, .bold), gaps: (2, 2))
+                                  code: d.code, glyph: 13.3, temp: Fmt.temp(d.high), tempFont: (10, .semibold), gaps: (2, 2),
+                                  tempDesign: .default, tempMono: false)
                         .frame(maxWidth: .infinity)
                 }
             }

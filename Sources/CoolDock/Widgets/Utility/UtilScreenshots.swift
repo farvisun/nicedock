@@ -151,15 +151,22 @@ private struct UtilShotButton: View {
     var help: String
     var action: (_ toClipboard: Bool) -> Void
 
+    /// Point size, weight and sub-pixel vertical nudge per symbol, matched to the reference frame
+    /// (the crop glyph is drawn larger and lighter there).
+    private var glyph: (size: CGFloat, weight: Font.Weight, nudge: CGFloat) {
+        symbol == "selection.pin.in.out" ? (14.5, .medium, 0.25) : (14, .semibold, 0)
+    }
+
     var body: some View {
         let accent = p.accent(tint)
         Button { action(NSEvent.modifierFlags.contains(.option)) } label: {
             Image(systemName: symbol)
-                .font(.system(size: m.u(14.5), weight: .semibold))
+                .font(.system(size: m.u(glyph.size), weight: glyph.weight))
                 .foregroundStyle(accent)
+                .transformEffect(CGAffineTransform(translationX: 0, y: m.u(glyph.nudge)))
                 .frame(width: m.u(40), height: m.u(40))
                 .background(Circle().fill(accent.opacity(0.11)))
-                .overlay(Circle().strokeBorder(accent.opacity(0.18), lineWidth: m.u(0.75)))
+                .overlay(Circle().strokeBorder(accent.opacity(0.14), lineWidth: m.u(0.75)))
                 .contentShape(Circle())
         }
         .buttonStyle(PressableStyle())
@@ -177,8 +184,10 @@ struct UtilRecentScreenshotsTile: View {
     var body: some View {
         Tile(width: w.kind.spec.width) {
             Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: m.u(21), weight: .medium))
+                .font(.system(size: m.u(20), weight: .semibold))
                 .foregroundStyle(p.secondary)
+                // The reference glyph sits off the pixel grid (half a device pixel low).
+                .transformEffect(CGAffineTransform(translationX: m.u(-0.5), y: m.u(0.25)))
         }
         .onTapGesture { UtilRecentScreenshotsPanel.toggle(w) }
     }

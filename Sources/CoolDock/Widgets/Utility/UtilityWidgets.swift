@@ -146,6 +146,7 @@ struct UtilInlineField: View {
     var placeholder: String
     var size: CGFloat
     var weight: Font.Weight = .medium
+    var design: Font.Design = .rounded
     var color: Color?
     var placeholderColor: Color? = nil
     var onSubmit: () -> Void = {}
@@ -156,11 +157,11 @@ struct UtilInlineField: View {
         ZStack(alignment: .leading) {
             if editing {
                 if text.isEmpty {
-                    Text(verbatim: placeholder).dock(size, weight, placeholderColor ?? p.tertiary).allowsHitTesting(false)
+                    Text(verbatim: placeholder).dock(size, weight, placeholderColor ?? p.tertiary, design: design).allowsHitTesting(false)
                 }
                 TextField("", text: $text)
                     .textFieldStyle(.plain)
-                    .font(.dock(m.u(size), weight))
+                    .font(.dock(m.u(size), weight, design: design))
                     .foregroundStyle(color ?? p.primary)
                     .lineLimit(1)
                     .focused($focused)
@@ -176,7 +177,7 @@ struct UtilInlineField: View {
                     .onChange(of: focused) { _, isFocused in if !isFocused { finish() } }
             } else {
                 Text(verbatim: text.isEmpty ? placeholder : text)
-                    .dock(size, weight, text.isEmpty ? (placeholderColor ?? p.tertiary) : (color ?? p.primary))
+                    .dock(size, weight, text.isEmpty ? (placeholderColor ?? p.tertiary) : (color ?? p.primary), design: design)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -364,10 +365,11 @@ struct UtilColorPickerView: View {
                     swatch(2, colors)
                     Button { UtilColorPicking.pick(w) } label: {
                         Image(systemName: "eyedropper")
-                            .font(.system(size: m.u(8.7), weight: .semibold))
+                            .font(.system(size: m.u(9), weight: .semibold))
                             .foregroundStyle(p.secondary)
+                            .offset(x: m.u(0.25))
                             .frame(width: m.u(22.5), height: m.u(22.5))
-                            .background(RoundedRectangle(cornerRadius: m.u(5), style: .continuous).fill(p.primary.opacity(0.045)))
+                            .background(RoundedRectangle(cornerRadius: m.u(3), style: .continuous).fill(p.primary.opacity(0.045)))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(PressableStyle())
@@ -392,7 +394,7 @@ struct UtilColorPickerView: View {
                 }
             }
         } label: {
-            RoundedRectangle(cornerRadius: m.u(5), style: .continuous)
+            RoundedRectangle(cornerRadius: m.u(3), style: .continuous)
                 .fill(Color(hex: hex))
                 .frame(width: m.u(22.5), height: m.u(22.5))
                 .overlay {
@@ -567,21 +569,23 @@ struct UtilSearchWebView: View {
     }
 
     var body: some View {
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)) {
-            HStack(spacing: m.u(8)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 6.5, bottom: 0, trailing: 7.5)) {
+            HStack(spacing: m.u(7.5)) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: m.u(12), weight: .semibold))
+                    .font(.system(size: m.u(13), weight: .semibold))
                     .foregroundStyle(p.secondary)
-                UtilInlineField(text: $query, editing: $editing, placeholder: L("Search web…"), size: 13.25, weight: .semibold,
+                    .offset(y: m.u(0.25))
+                // The placeholder is SF Pro 13 medium in the reference frame.
+                UtilInlineField(text: $query, editing: $editing, placeholder: L("Search web…"), size: 13, weight: .medium, design: .default,
                                 placeholderColor: p.primary.opacity(0.27),
                                 onSubmit: submit, onEnd: { if query.trimmingCharacters(in: .whitespaces).isEmpty { query = "" } })
                 Button(action: submit) {
                     Image(systemName: "arrow.right")
-                        .font(.system(size: m.u(9.5), weight: .heavy))
+                        .font(.system(size: m.u(9.5), weight: .black))
                         .foregroundStyle(p.primary)
                         .flipsForRTL()
                         .frame(width: m.u(18.5), height: m.u(18.5))
-                        .background(Circle().fill(p.primary.opacity(0.28)))
+                        .background(Circle().fill(p.primary.opacity(0.26)))
                         .contentShape(Circle())
                 }
                 .buttonStyle(PressableStyle())

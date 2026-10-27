@@ -86,7 +86,7 @@ struct ConnBrandMark: View {
                 (icon ? AnyShape(squircle(s)) : AnyShape(Circle())).fill(Color.black)
                 ConnGlyph(d: ConnBrandPaths.resend)
                     .fill(LinearGradient(colors: [Color(white: 0.98), Color(white: 0.33)], startPoint: .top, endPoint: .bottom))
-                    .frame(width: s * 0.511, height: s * 0.511)
+                    .frame(width: s * 0.526, height: s * 0.526)
             }
         case .github:
             BrandBadge(brand: .github, size: size)

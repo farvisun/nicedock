@@ -102,11 +102,12 @@ struct AppsGridGlyph: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
     var cell: CGFloat = 8.5
-    var gap: CGFloat = 1.6
-    var line: CGFloat = 1.75
+    var gap: CGFloat = 1.5
+    var line: CGFloat = 1.85
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: m.u(2.6), style: .continuous)
+        // Plain circular corners: the reference glyph's cells are not squircles.
+        let shape = RoundedRectangle(cornerRadius: m.u(2), style: .circular)
         VStack(spacing: m.u(gap)) {
             ForEach(0..<2, id: \.self) { _ in
                 HStack(spacing: m.u(gap)) {

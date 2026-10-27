@@ -383,26 +383,31 @@ private struct UtilToggleButton: View {
         switch kind {
         case .wifi:
             Image(systemName: on ? "wifi" : "wifi.slash")
-                .font(.system(size: m.u(15), weight: .semibold))
+                .font(.system(size: m.u(14.5), weight: .medium))
+                .modifier(UtilGlyphNudge())
                 .foregroundStyle(on ? accent : p.secondary)
         case .bluetooth:
             UtilBluetoothRune()
                 .stroke(on ? accent : p.secondary, style: StrokeStyle(lineWidth: m.u(1.5), lineCap: .round, lineJoin: .round))
                 .frame(width: m.u(7.5), height: m.u(13))
+                .modifier(UtilGlyphNudge(x: -0.25, y: 0))
         case .darkMode:
             Image(systemName: on ? "moon.fill" : "sun.max.fill")
-                .font(.system(size: m.u(15), weight: .semibold))
+                .font(.system(size: m.u(14.5), weight: .semibold))
+                .modifier(UtilGlyphNudge(x: -0.25))
                 .foregroundStyle(on ? p.primary : p.secondary)
         case .keepAwake:
             Image(systemName: "moon.zzz.fill")
-                .font(.system(size: m.u(15), weight: .semibold))
+                .font(.system(size: m.u(14), weight: .semibold))
+                .modifier(UtilGlyphNudge())
                 .foregroundStyle(on ? accent : p.secondary)
         case .keyboardLock:
             if service.lockRemaining > 0 {
                 Text(verbatim: Fmt.int(service.lockRemaining)).dock(14, .bold, accent, mono: true)
             } else {
                 Image(systemName: "keyboard")
-                    .font(.system(size: m.u(15), weight: .medium))
+                    .font(.system(size: m.u(14), weight: .semibold))
+                    .modifier(UtilGlyphNudge())
                     .foregroundStyle(p.secondary)
             }
         case .hideDesktop:
@@ -437,5 +442,17 @@ struct UtilBluetoothRune: Shape {
         path.addLine(to: CGPoint(x: x1, y: y0 + h * 0.27))
         path.addLine(to: CGPoint(x: x0, y: y0 + h * 0.73))
         return path
+    }
+}
+
+/// Sub-pixel placement of a toggle glyph: the reference symbols sit half a device pixel below the
+/// circle's centre (`.offset` would snap that to a whole pixel).
+private struct UtilGlyphNudge: ViewModifier {
+    @Environment(\.metrics) private var m
+    var x: CGFloat = 0
+    var y: CGFloat = 0.25
+
+    func body(content: Content) -> some View {
+        content.transformEffect(CGAffineTransform(translationX: m.u(x), y: m.u(y)))
     }
 }

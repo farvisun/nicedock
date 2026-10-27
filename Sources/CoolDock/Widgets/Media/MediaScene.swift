@@ -26,7 +26,7 @@ enum MediaScene {
         switch kind {
         case .nowPlaying, .nowPlayingHero:
             track = Track(name: "Evil Ways (feat. J. Cole)", artist: "Drake", artwork: ReferenceScene.asset("frame-nowplaying-artwork.png"),
-                          isPlaying: false, duration: 254, position: 3, titleScroll: kind == .nowPlaying ? 40 : 0)
+                          isPlaying: false, duration: 254, position: 3, titleScroll: kind == .nowPlaying ? 38.25 : 0)
             return [:]
         case .backgroundSounds:
             return ["sound": "rain"]
@@ -51,12 +51,14 @@ enum MediaScene {
             }
             return [:]
         case .contactCard:
-            // Same person as the first Quick Contacts portrait; the frame shows no name, only the avatar.
+            // Same person as the first Quick Contacts portrait; the frame shows no name, only the avatar. The portrait is
+            // cut from this frame (it was resampled from the site's widget atlas at another scale), under its own id so
+            // the avatar cache never hands it to Quick Contacts.
             // `contactCard-email` (no reference frame) previews the dimmed Call button of an email-only contact.
-            contacts = [MediaContact(id: "scene-maya", name: "Maya Brooks", initials: "MB", phone: variant == "email" ? nil : "+1 555 0100",
+            contacts = [MediaContact(id: "scene-maya-card", name: "Maya Brooks", initials: "MB", phone: variant == "email" ? nil : "+1 555 0100",
                                      email: "maya@example.com",
-                                     thumbnail: try? Data(contentsOf: ReferenceScene.assetsURL.appendingPathComponent("frame-contact-1.png")))]
-            return ["contact": "scene-maya"]
+                                     thumbnail: try? Data(contentsOf: ReferenceScene.assetsURL.appendingPathComponent("frame-contact-card.png")))]
+            return ["contact": "scene-maya-card"]
         default:
             return nil
         }

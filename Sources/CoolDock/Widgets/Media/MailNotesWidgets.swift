@@ -155,7 +155,9 @@ struct MediaMailTile: View {
                 MediaMailIcon(size: 36)
                 VStack(alignment: .leading, spacing: m.u(1)) {
                     if let snap {
-                        T(Fmt.int(snap.unread)).dock(21.75, .bold, mono: true)
+                        // 22 pt, half a device pixel left of the column (the frame's sub-pixel placement).
+                        T(Fmt.int(snap.unread)).dock(22, .bold, mono: true)
+                            .transformEffect(CGAffineTransform(translationX: m.u(-0.25), y: 0))
                         HStack(spacing: m.u(4)) {
                             Text(L("Unread"))
                             if snap.today > 0 {

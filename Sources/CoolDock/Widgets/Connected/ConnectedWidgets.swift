@@ -295,8 +295,10 @@ private struct ConnTableTile: View {
                         }
                         T(row.value).dock(10, .bold, state.snap == nil ? p.tertiary : nil, mono: true)
                             .minimumScaleFactor(0.6)
+                            .connNudge(w.kind, .value)
                         if hasDeltas, let d = row.delta {
-                            T(ConnFmt.delta(d)).dock(9, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
+                            // SF Pro 9 medium in the reference frame (the deltas' own font, not the tile's Rounded).
+                            T(ConnFmt.delta(d)).dock(9, .medium, p.accent(d >= 0 ? .cdGreen : .cdRed), design: .default)
                                 .fixedSize()
                                 .padding(.leading, m.u(4))
                         }

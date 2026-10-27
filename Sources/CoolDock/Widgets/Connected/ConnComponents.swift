@@ -72,7 +72,8 @@ struct ConnCaption: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: m.u(3)) {
-            Text(text).dock(size, .semibold, p.secondary)
+            // Captions are SF Pro medium in the reference frames (not the tiles' Rounded).
+            Text(text).dock(size, .medium, p.secondary, design: .default)
             if stale { ConnWarning() }
         }
     }
