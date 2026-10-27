@@ -18,13 +18,14 @@ enum AppsScene {
 
     /// App icon as the reference frames show it, never the system-styled icon, so renders don't depend on this
     /// Mac's icon appearance or light/dark mode: the frame's own asset when there is one (full-bleed artwork,
-    /// drawn at the icon grid's 81.5 % content size), else the bundle's flat .icns artwork. Finder's frame uses
-    /// the classic artwork that CoreTypes still ships.
+    /// drawn at the icon grid's 81.5 % content size; Mail and Photos are the older artwork cut from the frame since
+    /// macOS no longer ships it), else the bundle's flat .icns artwork. Finder's frame uses the classic artwork that
+    /// CoreTypes still ships.
     @MainActor static func icon(_ path: String) -> (image: NSImage, scale: CGFloat)? {
         if let cached = icons[path] { return cached }
         let name = (path as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "").lowercased()
         var found: (NSImage, CGFloat)?
-        if let asset = ReferenceScene.asset("app-\(name)-72.webp") {
+        if let asset = ReferenceScene.asset("app-\(name)-72.webp") ?? ReferenceScene.asset("frame-app-\(name).png") {
             found = (asset, 0.815)
         } else if name == "finder", let classic = NSImage(contentsOfFile: "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/FinderIcon.icns") {
             found = (classic, 1)
