@@ -4,9 +4,11 @@ import SwiftUI
 /// Developer tool: renders widgets to PNG without showing the dock.
 ///
 ///     CoolDock --render <outdir> <kind,kind,...|all|category:clocks> [--wait seconds] [--lang fa] [--style darkGlass]
+///                       [--scene reference]
 ///
 /// Output files are `<outdir>/<kind>.png` at 2× scale on the dock plate colour, so they can be
-/// compared side by side with the reference frames.
+/// compared with the reference frames. With `--scene reference` each widget is rendered on its own with the
+/// deterministic data of `ReferenceScene` (frame names may carry a variant: `voiceMemo-recording`).
 @MainActor
 enum RenderHarness {
     /// True for developer renders: services must not trigger permission prompts or AppleScript.
@@ -26,6 +28,11 @@ enum RenderHarness {
         if let lang = value(after: "--lang").flatMap(AppLanguage.init(rawValue:)) { store.settings.language = lang }
         if let style = value(after: "--style").flatMap(DockStyle.init(rawValue:)) { store.settings.dockStyle = style }
         if let radius = value(after: "--radius").flatMap(Double.init) { store.settings.cornerRadius = radius }
+
+        if ReferenceScene.isActive {
+            renderScene(selector.split(separator: ",").map(String.init), to: outDir, wait: value(after: "--wait").flatMap(Double.init) ?? 0.6)
+            return true
+        }
 
         let kinds: [WidgetKind]
         if selector == "all" {
@@ -53,7 +60,7 @@ enum RenderHarness {
         DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
             for w in instances {
                 let view = WidgetHost(instance: w)
-                    .background(Color(red: 11 / 255, green: 11 / 255, blue: 13 / 255))
+                    .background(Color(red: 11 / 255, green: 11 / 255, blue: 11 / 255))
                     .environment(\.palette, store.palette)
                     .environment(\.metrics, store.metrics)
                     .environment(\.layoutDirection, store.layoutDirection)
@@ -69,6 +76,47 @@ enum RenderHarness {
             exit(0)
         }
         return true
+    }
+
+    /// One widget at a time: seed its reference data, mount it so loaders run, then render.
+    private static func renderScene(_ names: [String], to outDir: URL, wait: Double) {
+        let store = AppStore.shared
+        let frames: [(name: String, kind: WidgetKind, variant: String?)] = names.compactMap { name in
+            let parts = name.split(separator: "-", maxSplits: 1).map(String.init)
+            guard let kind = WidgetKind(rawValue: parts[0]) else { return nil }
+            return (name, kind, parts.count > 1 ? parts[1] : nil)
+        }
+        let mount = NSWindow(contentRect: NSRect(x: -10000, y: -10000, width: 1600, height: 200), styleMask: .borderless, backing: .buffered, defer: false)
+        mount.orderFrontRegardless()
+
+        func render(_ index: Int) {
+            guard index < frames.count else {
+                print("Rendered \(frames.count) widget(s) to \(outDir.path)")
+                exit(0)
+            }
+            let frame = frames[index]
+            let config = ReferenceScene.prepare(frame.kind, variant: frame.variant)
+            let instance = WidgetInstance(kind: frame.kind, config: config)
+            func host() -> some View {
+                WidgetHost(instance: instance)
+                    .environment(\.palette, store.palette)
+                    .environment(\.metrics, store.metrics)
+                    .environment(\.layoutDirection, store.layoutDirection)
+                    .environment(\.locale, Fmt.locale)
+            }
+            mount.contentView = NSHostingView(rootView: host())
+            DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
+                let renderer = ImageRenderer(content: host().background(Color(red: 11 / 255, green: 11 / 255, blue: 11 / 255)))
+                renderer.scale = 2
+                if let cg = renderer.cgImage {
+                    let rep = NSBitmapImageRep(cgImage: cg)
+                    try? rep.representation(using: .png, properties: [:])?.write(to: outDir.appendingPathComponent("\(frame.name).png"))
+                }
+                mount.contentView = nil
+                render(index + 1)
+            }
+        }
+        render(0)
     }
 
     private static func value(after flag: String) -> String? {

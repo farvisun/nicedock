@@ -183,9 +183,9 @@ struct DockPalette {
             p.tileFill = .white.opacity(0.14)
             p.tileStroke = .white.opacity(0.18)
         case .darkGlass:
-            // Measured from the reference frames: plate ≈ #0B0B0D, tile ≈ +4.5 % white, border ≈ 12 % white.
-            p.plate = reduceTransparency ? Color(red: 11 / 255, green: 11 / 255, blue: 13 / 255) : Color.black.opacity(0.9)
-            p.tileFill = .white.opacity(0.045)
+            // Measured from the reference frames: plate ≈ #0B0B0B, tile ≈ +3.5 % white (#141414), border ≈ 10 % white.
+            p.plate = reduceTransparency ? Color(red: 11 / 255, green: 11 / 255, blue: 11 / 255) : Color.black.opacity(0.9)
+            p.tileFill = .white.opacity(0.035)
             p.tileStroke = .white.opacity(0.10)
             // Reference text is ≈86 % white (primary) and ≈59 % (secondary) on the dark plate.
             p.primary = .white.opacity(0.86)
@@ -220,7 +220,7 @@ struct DockPalette {
 struct DockMetrics {
     var scale: CGFloat = 1
     var spacing: CGFloat = 6
-    var cornerRadius: CGFloat = 9.5
+    var cornerRadius: CGFloat = 11.5
 
     static let baseTileHeight: CGFloat = 62
     static let basePadding: CGFloat = 8
@@ -230,6 +230,7 @@ struct DockMetrics {
     var padding: CGFloat { Self.basePadding * scale }
     var gap: CGFloat { spacing * scale }
     var tileRadius: CGFloat { cornerRadius * scale }
+    var tileOutset: CGFloat { 0.5 * scale }
     var plateRadius: CGFloat { (cornerRadius + Self.basePadding) * scale }
 }
 

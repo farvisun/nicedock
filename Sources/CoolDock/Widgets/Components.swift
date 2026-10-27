@@ -16,19 +16,25 @@ struct Tile<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
+        // The hairline border sits just outside the layout frame (as in the reference frames), so tiles
+        // read as the same size while their interiors line up pixel for pixel.
+        let outset = m.tileOutset
         let shape = RoundedRectangle(cornerRadius: m.tileRadius, style: .continuous)
+        let outer = RoundedRectangle(cornerRadius: m.tileRadius + outset, style: .continuous)
+        let lw = 1 / max(displayScale, 1)
         content()
             .padding(padding.map { EdgeInsets(top: m.u($0.top), leading: m.u($0.leading), bottom: m.u($0.bottom), trailing: m.u($0.trailing)) } ?? EdgeInsets())
             .frame(width: m.u(width), height: m.tileHeight, alignment: alignment)
+            .clipShape(shape)
             .background {
                 if p.drawTiles {
-                    shape.fill(fill ?? AnyShapeStyle(p.tileFill))
-                        .overlay(shape.strokeBorder(p.tileStroke, lineWidth: 1 / max(displayScale, 1)))
+                    outer.fill(fill ?? AnyShapeStyle(p.tileFill))
+                        .overlay(outer.strokeBorder(p.tileStroke, lineWidth: lw))
+                        .padding(-outset)
                 } else if let fill {
-                    shape.fill(fill)
+                    outer.fill(fill).padding(-outset)
                 }
             }
-            .clipShape(shape)
             .contentShape(shape)
     }
 }
