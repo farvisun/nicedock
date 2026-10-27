@@ -17,6 +17,12 @@ enum UtilFX {
 
     static func key(_ from: String, _ to: String) -> String { "fx-\(from)-\(to)" }
 
+    /// Fixed rate for `--scene reference` renders: served from memory, so no disk cache or network is touched.
+    static func seedReference(_ from: String, _ to: String, rate: Double) {
+        guard ReferenceScene.isActive else { return }
+        memory[key(from, to)] = UtilFXRate(rate: rate, fetched: Date())
+    }
+
     /// Last known rate, even if stale (for instant display).
     static func cached(_ from: String, _ to: String) -> Double? {
         if from == to { return 1 }
@@ -44,6 +50,7 @@ enum UtilFX {
     }
 
     private static func fetch(_ from: String, _ to: String) async throws -> Double {
+        if ReferenceScene.isActive { throw URLError(.notConnectedToInternet) }
         if from == "BTC" || to == "BTC" {
             let base = from == "BTC" ? from : to
             let other = from == "BTC" ? to : from
@@ -95,23 +102,35 @@ struct UtilConverterView: View {
     var body: some View {
         Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 11, bottom: 0, trailing: 6.5)) {
             HStack(spacing: m.u(6)) {
-                VStack(alignment: .leading, spacing: m.u(2)) {
-                    UtilInlineField(text: $amountText, editing: $editing, placeholder: Fmt.digits("0"), size: 14, weight: .medium,
-                                    color: p.secondary, onSubmit: { editing = false }, onEnd: save)
-                        .frame(height: m.u(17))
+                VStack(alignment: .leading, spacing: m.u(0.5)) {
+                    Group {
+                        if ReferenceScene.isActive {
+                            // The reference frame was captured mid-edit: the amount followed by the caret.
+                            HStack(spacing: m.u(0.5)) {
+                                Text(verbatim: amountText).dock(13.5, .medium, p.secondary)
+                                RoundedRectangle(cornerRadius: m.u(0.9)).fill(p.primary).frame(width: m.u(1.85), height: m.u(15.5))
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            UtilInlineField(text: $amountText, editing: $editing, placeholder: Fmt.digits("0"), size: 13.5, weight: .medium,
+                                            color: p.secondary, onSubmit: { editing = false }, onEnd: save)
+                        }
+                    }
+                    .frame(height: m.u(17))
                     Text(verbatim: result)
                         .dock(28, .bold, mono: true)
                         .minimumScaleFactor(0.4)
                         .frame(height: m.u(30))
                         .help(rateHelp)
                 }
+                .offset(y: m.u(-1.9))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                VStack(spacing: m.u(2)) {
+                VStack(spacing: m.u(2.5)) {
                     currencyCapsule(from) { code in AppStore.shared.updateWidget(w.id) { $0.config["from"] = code } }
                     Button { Self.swap(w) } label: {
                         Image(systemName: "arrow.up.arrow.down")
-                            .font(.system(size: m.u(10), weight: .semibold))
-                            .foregroundStyle(p.tertiary)
+                            .font(.system(size: m.u(8.5), weight: .semibold))
+                            .foregroundStyle(p.tertiary.opacity(0.75))
                             .frame(width: m.u(30), height: m.u(13))
                             .contentShape(Rectangle())
                     }
@@ -133,6 +152,8 @@ struct UtilConverterView: View {
     private var result: String {
         guard let rate = currentRate else { return failed ? "—" : "…" }
         let v = amount * rate
+        // The reference frame shows the amount in a euro locale ("436,03").
+        if ReferenceScene.isActive { return v.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "de_DE"))) }
         return Fmt.number(v, decimals: abs(v) >= 100_000 ? 0 : 2)
     }
 
@@ -165,9 +186,9 @@ struct UtilConverterView: View {
             })
         } label: {
             Text(verbatim: code)
-                .dock(9.5, .bold, p.primary.opacity(0.88))
-                .frame(width: m.u(39.5), height: m.u(15.5))
-                .background(Capsule().fill(p.control))
+                .dock(8.8, .bold)
+                .frame(width: m.u(39.75), height: m.u(16))
+                .background(Capsule().fill(p.primary.opacity(0.07)))
                 .contentShape(Capsule())
         }
         .buttonStyle(PressableStyle())

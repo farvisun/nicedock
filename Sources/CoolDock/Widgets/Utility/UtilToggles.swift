@@ -22,9 +22,9 @@ enum UtilToggleKind: String, CaseIterable, Identifiable {
 
     var accent: Color {
         switch self {
-        case .wifi, .bluetooth: return .cdBlue
+        case .wifi, .bluetooth: return UtilTint.toggleBlue
         case .darkMode: return .cdIndigo
-        case .keepAwake: return .cdOrange
+        case .keepAwake: return UtilTint.toggleOrange
         case .keyboardLock: return .cdRed
         case .hideDesktop: return .cdTeal
         }
@@ -55,7 +55,19 @@ final class UtilToggleService: DemandDriven {
     @ObservationIgnored private var wifiDelegate: UtilWiFiDelegate?
     @ObservationIgnored private var lockTask: Task<Void, Never>?
 
+    /// Deterministic switch states for `--scene reference` renders. No effect outside the scene.
+    func seedReference(wifi: Bool, bluetooth: Bool, darkMode: Bool, keepAwake: Bool) {
+        guard ReferenceScene.isActive else { return }
+        (wifiOn, wifiAvailable, bluetoothOn, bluetoothAvailable) = (wifi, true, bluetooth, true)
+        self.darkMode = darkMode
+        self.keepAwake = keepAwake
+        lockRemaining = 0
+        desktopHidden = false
+    }
+
     func subscribe(_ id: String) {
+        // Reference renders keep their seeded states instead of reading this Mac's.
+        guard !ReferenceScene.isActive else { return }
         subscribers.insert(id)
         guard subscribers.count == 1 else { return }
         refreshAll()
@@ -350,9 +362,14 @@ private struct UtilToggleButton: View {
         Button { service.toggle(kind) } label: {
             glyph(on: on)
                 .frame(width: m.u(40), height: m.u(40))
-                .background(Circle().fill(showsRing ? accent.opacity(0.16) : p.control))
+                .background(Circle().fill(showsRing ? accent.opacity(0.16) : p.primary.opacity(0.065)))
                 .overlay {
-                    if showsRing { Circle().strokeBorder(accent, lineWidth: m.u(2)) }
+                    // The reference rings brighten towards the top.
+                    if showsRing {
+                        Circle().strokeBorder(LinearGradient(stops: [.init(color: p.monochrome ? accent : UtilTint.lighten(accent, 0.23), location: 0),
+                                                                     .init(color: accent, location: 0.7)],
+                                                             startPoint: .top, endPoint: .bottom), lineWidth: m.u(2))
+                    }
                 }
                 .contentShape(Circle())
         }
@@ -375,7 +392,7 @@ private struct UtilToggleButton: View {
         case .darkMode:
             Image(systemName: on ? "moon.fill" : "sun.max.fill")
                 .font(.system(size: m.u(15), weight: .semibold))
-                .foregroundStyle(p.primary)
+                .foregroundStyle(on ? p.primary : p.secondary)
         case .keepAwake:
             Image(systemName: "moon.zzz.fill")
                 .font(.system(size: m.u(15), weight: .semibold))

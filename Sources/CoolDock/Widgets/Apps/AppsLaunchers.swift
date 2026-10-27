@@ -44,6 +44,7 @@ struct AppsAppTile: View {
 // MARK: - App Folder
 
 struct AppsAppFolderTile: View {
+    @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
     let w: WidgetInstance
     @State private var targeted = false
@@ -51,12 +52,15 @@ struct AppsAppFolderTile: View {
     var body: some View {
         let apps = w.list("apps").prefix(4).map(AppsLaunch.resolve)
         let tint = w.string("color")
-        let fill: AnyShapeStyle? = tint.isEmpty ? nil : AnyShapeStyle(p.monochrome ? p.controlStrong : Color(hex: tint).opacity(0.45))
+        // Untinted folders sit on a slightly lighter plate than other tiles (as in the reference frame).
+        let plain: AnyShapeStyle? = p.drawTiles ? AnyShapeStyle(p.primary.opacity(0.09)) : nil
+        let fill: AnyShapeStyle? = tint.isEmpty ? plain : AnyShapeStyle(p.monochrome ? p.controlStrong : Color(hex: tint).opacity(0.45))
         Button {
             Panels.shared.toggle(w.id) { AppsAppFolderPanel(id: w.id, fallback: w) }
         } label: {
             Tile(width: w.kind.spec.width, fill: fill) {
-                AppsIconQuad(paths: apps)
+                AppsIconQuad(paths: apps, rowGap: 2)
+                    .offset(y: m.u(-0.25))
             }
         }
         .buttonStyle(PressableStyle())
