@@ -38,17 +38,19 @@ struct MediaNowPlayingTile: View {
         Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 5.85, bottom: 0, trailing: 5.6)) {
             if let track = MediaTrack.current {
                 HStack(spacing: 0) {
-                    MediaArtwork(image: track.artwork, size: 49.2, radius: 6.5)
+                    MediaArtwork(image: track.artwork, size: 49.2, radius: 6)
                         .onTapGesture { NowPlayingService.shared.openPlayer() }
                     VStack(alignment: .leading, spacing: 0) {
-                        MediaMarquee(text: track.title, size: 11, weight: .bold,
+                        // Title and artist are SF Pro (not Rounded) in the reference frame.
+                        MediaMarquee(text: track.title, size: 11, weight: .medium, design: .default,
                                      frozenScroll: ReferenceScene.isActive ? MediaScene.track?.titleScroll : nil)
-                        Text(track.artist).dock(9.5, .medium, p.secondary)
-                            .padding(.leading, m.u(-0.5))
+                        Text(track.artist).dock(9, .medium, p.secondary, design: .default)
+                            .transformEffect(.init(translationX: m.u(-0.75), y: 0))
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, m.u(2.25))
+                            .padding(.top, m.u(2))
                         progress(track)
-                            .padding(.top, m.u(2.5))
+                            .offset(x: m.u(-0.5))
+                            .padding(.top, m.u(3.5))
                     }
                     .frame(width: m.u(85))
                     .offset(y: m.u(-0.625))
@@ -207,6 +209,7 @@ private struct MediaMarquee: View {
     var text: String
     var size: CGFloat
     var weight: Font.Weight
+    var design: Font.Design = .rounded
     /// Fixed scroll position (pt) for deterministic renders; nil = live hover marquee.
     var frozenScroll: CGFloat? = nil
     @State private var hovering = false
@@ -223,12 +226,14 @@ private struct MediaMarquee: View {
         let textDirection: LayoutDirection = Self.isRTL(text) ? .rightToLeft : .leftToRight
         let alignment: Alignment = overflow > 1 || frozenScroll != nil || textDirection == uiDirection ? .leading : .trailing
         Text(text)
-            .font(.dock(m.u(size), weight))
+            .font(.dock(m.u(size), weight, design: design))
             .foregroundStyle(p.primary)
             .lineLimit(1)
             .fixedSize()
             .background(GeometryReader { g in Color.clear.preference(key: MediaWidthKey.self, value: g.size.width) })
-            .offset(x: frozenScroll.map { -m.u($0) } ?? (scrolling ? -overflow : 0))
+            .offset(x: frozenScroll == nil && scrolling ? -overflow : 0)
+            // A frozen phase may fall between device pixels (like the reference frame's); `.offset` would snap it.
+            .transformEffect(.init(translationX: frozenScroll.map { -m.u($0) } ?? 0, y: 0))
             .animation(scrolling ? .linear(duration: Double(overflow / m.u(22))).delay(0.5).repeatForever(autoreverses: true)
                                  : .easeOut(duration: 0.2), value: scrolling)
             .frame(minWidth: 0, maxWidth: .infinity, alignment: alignment)

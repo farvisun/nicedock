@@ -107,13 +107,15 @@ struct WeatherColumn: View {
     var gaps: (CGFloat, CGFloat) = (2, 2)
     /// Vertical offset of the label and temperature (not the glyph).
     var textNudge: CGFloat = 0
+    var tempDesign: Font.Design = .rounded
+    var tempMono = true
 
     var body: some View {
         VStack(spacing: 0) {
             Text(verbatim: label).dock(labelFont.0, labelFont.1, labelColor).lineLimit(1).minimumScaleFactor(0.7)
                 .offset(y: m.u(textNudge))
             WeatherGlyph(code: code, isDay: isDay, size: glyph).padding(.top, m.u(gaps.0)).padding(.bottom, m.u(gaps.1))
-            Text(verbatim: temp).dock(tempFont.0, tempFont.1, mono: true).lineLimit(1)
+            Text(verbatim: temp).dock(tempFont.0, tempFont.1, mono: tempMono, design: tempDesign).lineLimit(1)
                 .offset(y: m.u(textNudge))
         }
     }

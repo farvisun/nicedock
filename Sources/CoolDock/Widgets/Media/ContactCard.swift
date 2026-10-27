@@ -116,8 +116,8 @@ private struct MediaContactCard: View {
     @Environment(\.metrics) private var m
 
     var body: some View {
-        HStack(spacing: m.u(7.2)) {
-            MediaAvatar(contact: contact, size: 45.5)
+        HStack(spacing: m.u(6.7)) {
+            MediaAvatar(contact: contact, size: 46)
                 .offset(y: m.u(-0.25))
                 .onTapGesture { MediaContactAction.reveal(contact) }
                 .help(contact.name)
@@ -126,7 +126,8 @@ private struct MediaContactCard: View {
                     MediaCallButton(action: action, url: action.url(for: contact))
                 }
             }
-            .offset(y: m.u(0.5))
+            // The reference row sits 1.5 device px below centre; `.offset` would snap the half pixel.
+            .transformEffect(CGAffineTransform(translationX: 0, y: m.u(0.75)))
         }
     }
 }

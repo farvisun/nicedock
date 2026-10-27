@@ -150,10 +150,21 @@ struct MediaCompactMessage: View {
 /// Round compose button used by the mail and notes tiles.
 struct MediaComposeButton: View {
     @Environment(\.palette) private var p
+    @Environment(\.metrics) private var m
     var action: () -> Void
 
     var body: some View {
-        CircleButton(symbol: "square.and.pencil", size: 38, fill: p.controlStrong.opacity(0.9), iconScale: 0.4, action: action)
-            .help(L("New"))
+        Button(action: action) {
+            Image(systemName: "square.and.pencil")
+                .font(.system(size: m.u(15.2), weight: .bold))
+                .foregroundStyle(p.primary)
+                // The reference pencil sits half a device pixel left of and below the circle's centre.
+                .transformEffect(CGAffineTransform(translationX: m.u(-0.25), y: m.u(0.25)))
+                .frame(width: m.u(38), height: m.u(38))
+                .background(Circle().fill(p.controlStrong.opacity(0.9)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(PressableStyle())
+        .help(L("New"))
     }
 }

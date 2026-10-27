@@ -60,15 +60,17 @@ enum ConnectedScene {
 
     /// Sibling tiles on the site are not laid out identically: the same design sits up to 1 pt apart from
     /// one frame to the next (Plausible vs Simple Analytics, X vs YouTube…). Live tiles share one layout;
-    /// in the scene each part is shifted by what was measured for that frame. Values are 2× pixels.
+    /// in the scene each part is shifted by what was measured for that frame. Values are 2× pixels; a half
+    /// pixel is a sub-pixel placement (the browser lays text out on fractional positions).
     private static let nudges: [WidgetKind: [Part: (Double, Double)]] = [
-        .polarRevenue: [.value: (-2, 0), .caption: (-1, 0)],
-        .dodoRevenue: [.value: (0, -1), .caption: (1, -1), .mark: (0, -1)],
+        .polarRevenue: [.value: (-2, 0), .caption: (-2, 0)],
+        .dodoRevenue: [.value: (0, -1), .caption: (0, -1), .mark: (0, -1)],
         .simpleAnalytics: [.value: (-2, -2), .caption: (-2, -2), .mark: (0, -2)],
-        .shopifyChart: [.caption: (1, 0), .mark: (0, 1)],
+        .shopifyChart: [.mark: (0, 1)],
         .visitorsChart: [.value: (-2, -2), .caption: (-2, -2), .chart: (-2, -2), .mark: (0, -1)],
         .shopifyToday: [.icon: (0, 1)],
         .shopifyOverview: [.icon: (0, 1), .rows: (0, 1)],
+        .dubStats: [.value: (0.5, 0)],
         .socialX: [.icon: (4, 0), .value: (1, 0), .caption: (1, 0)],
         .socialTikTok: [.icon: (2, 0), .value: (-1, 0), .caption: (-1, 0)],
         .socialYouTube: [.value: (-3, 0), .caption: (-3, 0)]
@@ -94,7 +96,8 @@ private struct ConnNudge: ViewModifier {
         if offset == .zero {
             content
         } else {
-            content.offset(x: m.u(offset.width), y: m.u(offset.height))
+            // `transformEffect` keeps sub-pixel offsets (`.offset` snaps to whole device pixels).
+            content.transformEffect(CGAffineTransform(translationX: m.u(offset.width), y: m.u(offset.height)))
         }
     }
 }

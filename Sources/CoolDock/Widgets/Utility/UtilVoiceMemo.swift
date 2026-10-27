@@ -222,7 +222,7 @@ struct UtilVoiceMemoView: View {
 
     private var idleTile: some View {
         // Decorative arc, as long as in the reference frame.
-        SysRingTile(value: 0.477, color: rec.permissionDenied || rec.failed ? .cdRed : .cdGreen, label: nil) {
+        SysRingTile(value: 0.477, color: rec.permissionDenied || rec.failed ? .cdRed : .cdGreen, label: nil, ringY: -0.5) {
             Image(systemName: rec.permissionDenied ? "mic.slash.fill" : "mic.fill")
                 .font(.system(size: m.u(12.75), weight: .semibold))
         }

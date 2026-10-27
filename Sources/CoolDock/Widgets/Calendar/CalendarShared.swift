@@ -22,11 +22,12 @@ struct CalAppIcon: View {
             ctx.fill(Path(CGRect(x: 0, y: 0, width: w, height: band)),
                      with: .linearGradient(Gradient(colors: [Color(hex: "#FF636A"), Color(hex: "#F5333E")]),
                                            startPoint: .zero, endPoint: CGPoint(x: 0, y: band)))
-            let dot = max(w * 0.04, 1)
-            let red = w * 0.11
+            let dot = max(w * 0.045, 1)
+            let red = w * 0.1
             for row in 0..<4 {
                 for col in Self.columns(row) {
-                    let c = CGPoint(x: w * (0.17 + 0.11 * CGFloat(col)), y: h * (0.418 + 0.134 * CGFloat(row)))
+                    // Column pitch and first column measured from the reference frames' dot centres.
+                    let c = CGPoint(x: w * (0.179 + 0.107 * CGFloat(col)), y: h * (0.418 + 0.134 * CGFloat(row)))
                     let d = (row == slot.row && col == slot.col) ? red : dot
                     let color = (row == slot.row && col == slot.col) ? Color(hex: "#F5333E") : Color(white: 0.12)
                     ctx.fill(Path(ellipseIn: CGRect(x: c.x - d / 2, y: c.y - d / 2, width: d, height: d)), with: .color(color))

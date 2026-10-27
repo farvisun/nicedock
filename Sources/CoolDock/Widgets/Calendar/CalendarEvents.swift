@@ -244,11 +244,12 @@ struct CalNextMeetingWidget: View {
                     CalAppIcon(size: 36)
                     VStack(alignment: .leading, spacing: m.u(3)) {
                         if let e = next {
-                            Text(e.title).dock(11, .bold)
-                            HStack(spacing: m.u(4.5)) {
+                            // The meeting title is SF Pro 11 semibold in the reference frame (like other list titles).
+                            Text(e.title).dock(11, .semibold, design: .default)
+                            HStack(spacing: m.u(5)) {
                                 Text(verbatim: CalText.range(e)).dock(9, .semibold, p.secondary)
                                 Text(verbatim: CalText.countdown(e, now: now))
-                                    .dock(9, .bold, e.start <= now ? p.accent(.cdGreen) : p.secondary)
+                                    .dock(9, .semibold, e.start <= now ? p.accent(.cdGreen) : p.secondary)
                             }
                         } else if !CalData.hasEvents {
                             Text(L("Allow Calendar access")).dock(11, .bold)

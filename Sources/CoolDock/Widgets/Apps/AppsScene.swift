@@ -46,19 +46,39 @@ enum AppsScene {
 
     @MainActor private static var icons: [String: (image: NSImage, scale: CGFloat)] = [:]
 
+    /// `image` redrawn at 512 px with its artwork moved down by `fraction` of its height.
+    private static func shiftedDown(_ image: NSImage, by fraction: CGFloat) -> NSImage {
+        let side = 512
+        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side, bitsPerSample: 8, samplesPerPixel: 4,
+                                         hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
+              let ctx = NSGraphicsContext(bitmapImageRep: rep) else { return image }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = ctx
+        ctx.imageInterpolation = .high
+        let rect = NSRect(x: 0, y: 0, width: side, height: side)
+        image.draw(in: rect.offsetBy(dx: 0, dy: -CGFloat(side) * fraction))
+        NSGraphicsContext.restoreGraphicsState()
+        let out = NSImage(size: NSSize(width: side, height: side))
+        out.addRepresentation(rep)
+        return out
+    }
+
     /// App icon as the reference frames show it, never the system-styled icon, so renders don't depend on this
     /// Mac's icon appearance or light/dark mode: the frame's own asset when there is one (full-bleed artwork,
     /// drawn at the icon grid's 81.5 % content size; Mail and Photos are the older artwork cut from the frame since
-    /// macOS no longer ships it), else the bundle's flat .icns artwork. Finder's frame uses the classic artwork that
-    /// CoreTypes still ships.
+    /// macOS no longer ships it, and Music is cut from the frame too because the App Folder frame's Music gradient
+    /// is not the site's `app-music-72.webp`), else the bundle's flat .icns artwork. Finder's frame uses the classic
+    /// artwork that CoreTypes still ships.
     @MainActor static func icon(_ path: String) -> (image: NSImage, scale: CGFloat)? {
         if let cached = icons[path] { return cached }
         let name = (path as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "").lowercased()
         var found: (NSImage, CGFloat)?
-        if let asset = ReferenceScene.asset("app-\(name)-72.webp") ?? ReferenceScene.asset("frame-app-\(name).png") {
+        if let asset = ReferenceScene.asset("frame-app-\(name).png") ?? ReferenceScene.asset("app-\(name)-72.webp") {
             found = (asset, 0.815)
         } else if name == "finder", let classic = NSImage(contentsOfFile: "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/FinderIcon.icns") {
-            found = (classic, 1)
+            // The classic artwork fills its canvas slightly less than the site's Finder icon and sits higher:
+            // scaled 2.5 % up and moved down by 0.9 % of its size it covers the same pixels as the frame's.
+            found = (shiftedDown(classic, by: 0.009), 1.025)
         } else if let bundle = Bundle(path: path), let file = bundle.object(forInfoDictionaryKey: "CFBundleIconFile") as? String {
             let icns = file.hasSuffix(".icns") ? file : file + ".icns"
             found = bundle.url(forResource: icns, withExtension: nil).flatMap(NSImage.init(contentsOf:)).map { ($0, 1) }
