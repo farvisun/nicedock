@@ -55,7 +55,7 @@ struct CalTodayWidget: View {
     }
 }
 
-/// One event row: coloured dot, bold title and right-aligned time.
+/// One event row: coloured dot, title (SF Pro medium, like Calendar) and right-aligned time.
 private struct CalLine: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
@@ -70,7 +70,7 @@ private struct CalLine: View {
                 Circle().fill(dot).frame(width: m.u(5), height: m.u(5))
                     .alignmentGuide(.firstTextBaseline) { d in d.height + m.u(0.5) }
             }
-            Text(title).dock(10.1, .semibold, titleColor ?? p.primary).truncationMode(.tail)
+            Text(title).dock(10, .medium, titleColor ?? p.primary, design: .default).truncationMode(.tail)
                 .offset(y: m.u(0.5))
             Spacer(minLength: m.u(6))
             if let trailing { Text(trailing).dock(9, .semibold, p.secondary, mono: true).layoutPriority(1).offset(y: m.u(0.5)) }
@@ -107,7 +107,7 @@ struct CalAgendaWidget: View {
 
     private func dateBlock(_ now: Date) -> some View {
         VStack(spacing: m.u(1)) {
-            Text(verbatim: Fmt.dayNumber(now)).dock(21.5, .bold, mono: true)
+            Text(verbatim: Fmt.dayNumber(now)).dock(22, .bold, mono: true)
             Text(verbatim: Fmt.monthShort(now)).dock(9, .semibold, p.secondary).minimumScaleFactor(0.7)
                 .offset(x: m.u(-0.5))
         }
@@ -131,9 +131,9 @@ struct CalAgendaWidget: View {
             VStack(alignment: .leading, spacing: m.u(4)) {
                 ForEach(shown) { e in
                     VStack(alignment: .leading, spacing: m.u(1)) {
-                        Text(e.title).dock(10, .bold, p.accent(e.color))
+                        Text(e.title).dock(10, .semibold, p.accent(e.color), design: .default)
                         Text(verbatim: today.isEmpty ? Fmt.relativeDay(e.start) + " " + CalText.range(e) : CalText.range(e))
-                            .dock(9, .semibold, p.secondary, mono: true)
+                            .dock(9, .medium, p.secondary, mono: true)
                     }
                 }
             }
@@ -141,7 +141,7 @@ struct CalAgendaWidget: View {
             .offset(y: m.u(0.5))
             .overlay(alignment: .bottomTrailing) {
                 if extra > 0 {
-                    Text(verbatim: "+" + Fmt.int(extra)).dock(8.3, .bold, p.secondary)
+                    Text(verbatim: "+" + Fmt.int(extra)).dock(8, .bold, p.secondary).offset(x: m.u(0.5))
                         .padding(.horizontal, m.u(5.5)).frame(height: m.u(14))
                         .background(Capsule().fill(p.control.opacity(0.65)))
                         .padding(.trailing, m.u(-2))
@@ -179,14 +179,14 @@ struct CalWeekStripWidget: View {
             Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 5, leading: 6, bottom: 4.5, trailing: 6)) {
                 VStack(spacing: m.u(2.5)) {
                     HStack(spacing: m.u(3.5)) {
-                        Text(verbatim: Fmt.month(start)).dock(9.1, .bold).offset(y: m.u(-0.5))
+                        Text(verbatim: Fmt.month(start)).dock(9, .bold).offset(y: m.u(-0.5))
                         Spacer(minLength: 4)
                         if let s = WeatherService.shared.snapshot(city) {
                             Image(systemName: WeatherCode.symbol(s.code, isDay: s.isDay))
                                 .font(.system(size: m.u(11), weight: .medium))
                                 .foregroundStyle(p.weatherGlyph)
-                                .offset(x: m.u(0.5), y: m.u(-0.25))
-                            Text(verbatim: Fmt.temp(s.temp)).dock(9, .bold, mono: true).offset(y: m.u(-0.5))
+                                .offset(y: m.u(-0.25))
+                            Text(verbatim: Fmt.temp(s.temp)).dock(9, .semibold, mono: true).offset(x: m.u(-0.5), y: m.u(-0.5))
                         }
                     }
                     .padding(.trailing, m.u(-0.5))
@@ -211,9 +211,10 @@ struct CalWeekStripWidget: View {
 
     private func pill(_ day: Date, today: Bool, events: Bool) -> some View {
         VStack(spacing: m.u(0)) {
-            Text(verbatim: CalText.weekdayNarrow(day)).dock(9, .bold, today ? p.calOnAccent.opacity(0.93) : p.secondary).minimumScaleFactor(0.7)
-                .offset(y: m.u(-1))
-            Text(verbatim: Fmt.dayNumber(day)).dock(12.3, .bold, today ? p.calOnAccent.opacity(0.93) : p.primary, mono: true)
+            // Today's pill is bold white on blue; the other days are semibold.
+            Text(verbatim: CalText.weekdayNarrow(day)).dock(9, today ? .bold : .semibold, today ? p.calOnAccent : p.secondary).minimumScaleFactor(0.7)
+                .offset(y: m.u(-0.5))
+            Text(verbatim: Fmt.dayNumber(day)).dock(13, today ? .bold : .semibold, today ? p.calOnAccent : p.primary, mono: true)
                 .offset(y: m.u(0.6))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

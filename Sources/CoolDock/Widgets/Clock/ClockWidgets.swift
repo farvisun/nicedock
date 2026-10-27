@@ -232,9 +232,10 @@ private struct ClockDateTimeWeatherView: View {
                 let date = ReferenceScene.date(tick)
                 VStack(spacing: m.u(3)) {
                     Text(ClockFormat.date(date, en: "MMM d, EEEE", template: "MMMdEEEE"))
-                        .dock(12.1, .semibold, p.clockInk)
+                        .dock(12, .semibold, p.clockInk)
                         .minimumScaleFactor(0.75)
-                        .offset(x: m.u(0.5))
+                        // Sub-pixel nudge (a transform is not pixel-snapped) to the reference glyph phase.
+                        .transformEffect(CGAffineTransform(translationX: m.u(0.125), y: 0))
                     HStack(spacing: m.u(4)) {
                         ClockDigits(text: Fmt.clock(date), size: 12)
                             .padding(.trailing, m.u(-0.5))
@@ -243,6 +244,7 @@ private struct ClockDateTimeWeatherView: View {
                                 .font(.system(size: m.u(11.85), weight: .semibold))
                                 .foregroundStyle(p.primary.opacity(0.47))
                             Text(Fmt.temp(snap.temp)).dock(12, .semibold, p.clockInk, mono: true)
+                                .offset(x: m.u(0.5))
                         }
                     }
                 }

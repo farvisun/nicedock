@@ -394,11 +394,11 @@ struct MediaNotesTile: View {
                 MediaNotesIcon(size: 36)
                 VStack(alignment: .leading, spacing: m.u(2)) {
                     if let snap, !snap.title.isEmpty {
-                        Text(snap.title).dock(11, .bold)
-                            .padding(.leading, m.u(-0.5))
+                        // Note title and snippet use SF Pro (not Rounded), like Notes.
+                        Text(snap.title).dock(11, .semibold, design: .default)
                         if !snap.body.isEmpty {
                             Text(snap.body)
-                                .font(.dock(m.u(9), .semibold))
+                                .font(.dock(m.u(9), .medium, design: .default))
                                 .foregroundStyle(p.secondary)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)

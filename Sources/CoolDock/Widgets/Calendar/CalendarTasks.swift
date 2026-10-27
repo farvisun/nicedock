@@ -3,7 +3,8 @@ import SwiftUI
 
 // MARK: - Shared task row
 
-/// Reminders-style row: list-coloured circle, bold title, optional "!" priority and a right-aligned due label.
+/// Reminders-style row: list-coloured circle, title (SF Pro medium, like Reminders), optional "!" priority and a
+/// right-aligned due label.
 struct CalTaskRow: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
@@ -22,8 +23,12 @@ struct CalTaskRow: View {
             circle.alignmentGuide(.firstTextBaseline) { d in d.height - m.u(4.5) }
             HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
                 if let prefix { Text(verbatim: prefix).dock(8.5, .semibold, p.tertiary, mono: true).layoutPriority(1) }
-                Text(title).dock(10, .semibold, done ? p.tertiary : p.primary).truncationMode(.tail)
-                if let priority { Text(verbatim: priority).dock(10, .semibold, p.accent(CalBrand.alertOrange)).padding(.leading, m.u(0.25)).layoutPriority(1) }
+                Text(title).dock(10, .medium, done ? p.tertiary : p.primary, design: .default).truncationMode(.tail)
+                    .offset(x: m.u(-0.5))
+                if let priority {
+                    Text(verbatim: priority).dock(10, .semibold, p.accent(CalBrand.alertOrange)).padding(.leading, m.u(0.25)).layoutPriority(1)
+                        .offset(x: m.u(0.5), y: m.u(0.5))
+                }
             }
             .contentShape(Rectangle())
             .onTapGesture { onOpen?() }
