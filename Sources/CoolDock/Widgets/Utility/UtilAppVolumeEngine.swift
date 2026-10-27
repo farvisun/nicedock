@@ -151,13 +151,13 @@ enum UtilAppVolumeDSP {
 // MARK: - Aggregate device
 
 enum UtilAppVolumeAggregate {
-    /// UIDs of CoolDock's private aggregates (hidden from the Audio widget's output list).
-    static let uidPrefix = "app.cooldock.appvolume."
+    /// UIDs of NiceDock's private aggregates (hidden from the Audio widget's output list).
+    static let uidPrefix = "app.nicedock.appvolume."
 
     /// Private aggregate: the default output as its main (clock) sub-device plus one drift-compensated tap.
     static func description(outputUID: String, tapUID: String, uid: String) -> [String: Any] {
         [
-            kAudioAggregateDeviceNameKey: "CoolDock App Volume",
+            kAudioAggregateDeviceNameKey: "NiceDock App Volume",
             kAudioAggregateDeviceUIDKey: uid,
             kAudioAggregateDeviceMainSubDeviceKey: outputUID,
             kAudioAggregateDeviceIsPrivateKey: true,
@@ -218,7 +218,7 @@ enum UtilAppVolumeModel {
         return (new.filter { !old.contains($0) }, old.filter { !fresh.contains($0) }.sorted())
     }
 
-    /// Groups processes by the app they belong to. `identity` returns nil for processes to skip (CoolDock itself).
+    /// Groups processes by the app they belong to. `identity` returns nil for processes to skip (NiceDock itself).
     static func group(_ processes: [UtilAudioProcess], identity: (UtilAudioProcess) -> UtilAudioIdentity?) -> [UtilAudioApp] {
         var order: [String] = []
         var apps: [String: UtilAudioApp] = [:]
@@ -287,7 +287,7 @@ enum UtilAudioProcessInfo {
         return buffer.withUnsafeBufferPointer { $0.baseAddress.map { String(cString: $0) } }
     }
 
-    /// The app a process plays for. Never CoolDock itself: our own aggregate IO shows up as a playing process.
+    /// The app a process plays for. Never NiceDock itself: our own aggregate IO shows up as a playing process.
     @MainActor static func identity(pid: pid_t, bundleID: String) -> UtilAudioIdentity? {
         let own = getpid()
         guard pid > 0, pid != own else { return nil }
@@ -439,7 +439,7 @@ final class UtilAppVolumeTap: @unchecked Sendable {
         guard #available(macOS 14.2, *) else { return (nil, OSStatus(kAudioHardwareUnsupportedOperationError)) }
         guard !processes.isEmpty else { return (nil, OSStatus(kAudioHardwareIllegalOperationError)) }
         let desc = CATapDescription(stereoMixdownOfProcesses: processes)
-        desc.name = "CoolDock App Volume"
+        desc.name = "NiceDock App Volume"
         desc.muteBehavior = .muted
         desc.isPrivate = true
         var tap = AudioObjectID(kAudioObjectUnknown)

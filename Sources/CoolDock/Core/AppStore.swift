@@ -252,6 +252,6 @@ final class AppStore {
 }
 
 extension Notification.Name {
-    static let coolDockLanguageChanged = Notification.Name("CoolDockLanguageChanged")
-    static let coolDockSettingsChanged = Notification.Name("CoolDockSettingsChanged")
+    static let coolDockLanguageChanged = Notification.Name("NiceDockLanguageChanged")
+    static let coolDockSettingsChanged = Notification.Name("NiceDockSettingsChanged")
 }

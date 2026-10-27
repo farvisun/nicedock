@@ -5,7 +5,7 @@ reference scene. The renders use no account, no Keychain and no network:
 
 ```sh
 scripts/build-app.sh release
-build/CoolDock.app/Contents/MacOS/CoolDock --render docs/verification/ai-usage/en \
+build/NiceDock.app/Contents/MacOS/NiceDock --render docs/verification/ai-usage/en \
   aiUsage,aiUsage-opencode,aiUsage-antigravity,aiUsage-cursor,aiUsage-copilot,aiUsage-gemini,aiUsage-perplexity,aiUsage-xai,aiUsage-zai \
   --scene reference --lang en --style darkGlass     # same with --lang fa → fa/
 ```

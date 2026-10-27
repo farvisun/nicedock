@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// "AI Assistant" section of Privacy & Permissions: the two safety switches for `CoolDock --mcp` and
+/// "AI Assistant" section of Privacy & Permissions: the two safety switches for `NiceDock --mcp` and
 /// ready-to-paste setup for MCP clients.
 struct AIAssistantGroup: View {
     static let anchor = "aiAssistant"
@@ -10,8 +10,8 @@ struct AIAssistantGroup: View {
     var body: some View {
         let s = store.settings
         SettingsGroup(title: L("AI Assistant"),
-                      footer: L("Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared.")) {
-            ToggleRow(title: L("Enable AI Assistant"), subtitle: L("Lets assistants on this Mac read your Dock setup through CoolDock's MCP server."),
+                      footer: L("Claude, Codex, Cursor, VS Code and other MCP clients can read and configure NiceDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared.")) {
+            ToggleRow(title: L("Enable AI Assistant"), subtitle: L("Lets assistants on this Mac read your Dock setup through NiceDock's MCP server."),
                       isOn: setting(\.assistantEnabled))
             ToggleRow(title: L("Allow Changes"),
                       subtitle: s.assistantEnabled
@@ -24,9 +24,9 @@ struct AIAssistantGroup: View {
         .id(Self.anchor)
 
         SettingsGroup(title: L("Connect an Assistant"),
-                      footer: L("Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened.")) {
+                      footer: L("Paste the setup into your assistant, then start a new session. The assistant starts NiceDock's MCP server itself; no network port is opened.")) {
             if AssistantSetup.isTranslocated {
-                Label(L("Move CoolDock to the Applications folder first: macOS is running it from a temporary location."), systemImage: "exclamationmark.triangle.fill")
+                Label(L("Move NiceDock to the Applications folder first: macOS is running it from a temporary location."), systemImage: "exclamationmark.triangle.fill")
                     .font(.ui(11.5)).foregroundStyle(Color.cdOrange).fixedSize(horizontal: false, vertical: true)
             }
             SetupSnippetRow(product: "Claude Code", detail: L("Run in Terminal:"), snippet: AssistantSetup.claudeCode)
@@ -88,13 +88,13 @@ private struct SetupSnippetRow: View {
     }
 }
 
-/// Setup snippets with the path of the running CoolDock binary.
+/// Setup snippets with the path of the running NiceDock binary.
 enum AssistantSetup {
     /// Snapshot tests show the installed path instead of the test runner's.
     nonisolated(unsafe) static var pathOverride: String?
 
     static var executablePath: String {
-        pathOverride ?? Bundle.main.executableURL?.resolvingSymlinksInPath().path ?? "/Applications/CoolDock.app/Contents/MacOS/CoolDock"
+        pathOverride ?? Bundle.main.executableURL?.resolvingSymlinksInPath().path ?? "/Applications/NiceDock.app/Contents/MacOS/NiceDock"
     }
 
     /// Gatekeeper path randomization: the path changes on every launch until the app is moved.
@@ -110,10 +110,10 @@ enum AssistantSetup {
     static func snippets(path: String) -> (claudeCode: String, codex: String, cursor: String, vscode: String, command: String) {
         let json = jsonQuoted(path)
         return (
-            "claude mcp add cooldock -- \(shellQuoted(path)) --mcp",
-            "[mcp_servers.cooldock]\ncommand = \(json)\nargs = [\"--mcp\"]",
-            "{\n  \"mcpServers\": {\n    \"cooldock\": {\n      \"command\": \(json),\n      \"args\": [\"--mcp\"]\n    }\n  }\n}",
-            "{\n  \"servers\": {\n    \"cooldock\": {\n      \"type\": \"stdio\",\n      \"command\": \(json),\n      \"args\": [\"--mcp\"]\n    }\n  }\n}",
+            "claude mcp add nicedock -- \(shellQuoted(path)) --mcp",
+            "[mcp_servers.nicedock]\ncommand = \(json)\nargs = [\"--mcp\"]",
+            "{\n  \"mcpServers\": {\n    \"nicedock\": {\n      \"command\": \(json),\n      \"args\": [\"--mcp\"]\n    }\n  }\n}",
+            "{\n  \"servers\": {\n    \"nicedock\": {\n      \"type\": \"stdio\",\n      \"command\": \(json),\n      \"args\": [\"--mcp\"]\n    }\n  }\n}",
             "\(shellQuoted(path)) --mcp"
         )
     }

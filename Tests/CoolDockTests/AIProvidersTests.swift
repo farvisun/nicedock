@@ -282,7 +282,7 @@ import Testing
 /// Python from the same rows.
 @Suite struct OpenCodeUsageTests {
     func database() throws -> URL {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-opencode-\(UUID().uuidString)", isDirectory: true)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-opencode-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         var db: OpaquePointer?
         guard sqlite3_open(dir.appendingPathComponent("opencode.db").path, &db) == SQLITE_OK else { throw ConnError("sqlite open") }

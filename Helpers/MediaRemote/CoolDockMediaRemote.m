@@ -1,6 +1,6 @@
-// System-wide Now Playing for CoolDock.
+// System-wide Now Playing for NiceDock.
 //
-// Since macOS 15.4 the MediaRemote daemon only answers Apple-signed clients, so CoolDock cannot ask it directly.
+// Since macOS 15.4 the MediaRemote daemon only answers Apple-signed clients, so NiceDock cannot ask it directly.
 // This small library is loaded into /usr/bin/perl (an Apple platform binary) by mediaremote.pl and talks to
 // MediaRemote from there. Protocol, one JSON object per line on stdout:
 //   {"type":"ready"}                                   once, after notifications are registered
@@ -9,7 +9,7 @@
 //                                                      on every change; artwork bytes only when artworkID changes
 //   {"type":"none"}                                    nothing is playing
 // Commands, one per line on stdin: play, pause, toggle, stop, next, previous, seek <seconds>, refresh.
-// End of stdin (CoolDock quit or closed the pipe) exits the process.
+// End of stdin (NiceDock quit or closed the pipe) exits the process.
 //
 // Build: clang -dynamiclib -fobjc-arc -O2 -framework Foundation -mmacosx-version-min=14.0 CoolDockMediaRemote.m
 
@@ -140,7 +140,7 @@ static void listenToStdin(void) {
     dispatch_source_set_event_handler(stdinSource, ^{
         char buffer[512];
         ssize_t n = read(STDIN_FILENO, buffer, sizeof buffer);
-        if (n <= 0) exit(0);  // CoolDock went away
+        if (n <= 0) exit(0);  // NiceDock went away
         [pending appendBytes:buffer length:(NSUInteger)n];
         while (true) {
             NSRange nl = [pending rangeOfData:[NSData dataWithBytes:"\n" length:1] options:0 range:NSMakeRange(0, pending.length)];
@@ -169,7 +169,7 @@ void cdmr_stream(void) {
     setElapsed = (MRSetElapsedFn)dlsym(mr, "MRMediaRemoteSetElapsedTime");
     if (!registerFn || !getInfo || !getPlaying || !getPID || !sendCommand) { fprintf(stderr, "MediaRemote symbols missing\n"); exit(3); }
 
-    queue = dispatch_queue_create("app.cooldock.mediaremote", DISPATCH_QUEUE_SERIAL);
+    queue = dispatch_queue_create("app.nicedock.mediaremote", DISPATCH_QUEUE_SERIAL);
     registerFn(queue);
     for (NSString *name in @[@"kMRMediaRemoteNowPlayingInfoDidChangeNotification",
                              @"kMRMediaRemoteNowPlayingApplicationIsPlayingDidChangeNotification",

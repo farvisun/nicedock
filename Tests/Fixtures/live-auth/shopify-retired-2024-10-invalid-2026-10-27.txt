@@ -2,7 +2,7 @@
 # headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
 # telemetry headers are removed, ids/IPs inside the body redacted.
 > GET https://your-development-store.myshopify.com/admin/api/2024-10/orders.json?status=any&created_at_min=2026-10-14T00:00:00%2B03:30&limit=250&fields=total_price,current_total_price,created_at,currency,cancelled_at,test
-> User-Agent: CoolDock/1.0 (macOS)
+> User-Agent: NiceDock/1.0 (macOS)
 > Accept-Encoding: deflate, gzip
 > Accept-Language: en-US,en;q=0.9
 > Accept: application/json

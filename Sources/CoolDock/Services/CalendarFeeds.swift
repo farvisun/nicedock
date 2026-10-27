@@ -294,7 +294,7 @@ final class CalendarFeedService {
 
     // MARK: Developer renders
 
-    /// `COOLDOCK_ICS_FILE=/a.ics:/b.ics CoolDock --render <dir> <kinds>` shows local ICS files instead of the saved
+    /// `COOLDOCK_ICS_FILE=/a.ics:/b.ics NiceDock --render <dir> <kinds>` shows local ICS files instead of the saved
     /// feeds (no network, no Keychain). Read only by the render harness, never in the reference scene.
     nonisolated static let renderFiles: [String] = {
         guard RenderHarness.isActive, !ReferenceScene.isActive,

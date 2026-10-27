@@ -111,7 +111,7 @@ final class DockWindowModel {
 
     init(screenID: String) { self.screenID = screenID }
 
-    /// Hidden with "Pause widgets while CoolDock is hidden" on: the strip is unmounted (timers and services stop)
+    /// Hidden with "Pause widgets while NiceDock is hidden" on: the strip is unmounted (timers and services stop)
     /// and an empty frame of its last size keeps the footprint.
     var widgetsPaused: Bool { !revealed && AppStore.shared.settings.pauseWhenHidden && lastStripSize != .zero }
 }

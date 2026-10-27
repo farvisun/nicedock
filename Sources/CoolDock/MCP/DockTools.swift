@@ -43,8 +43,8 @@ enum DockTools {
         case savedState = "saved_state"
     }
 
-    static let disabledMessage = "The AI Assistant is disabled in CoolDock Settings. Ask the user to turn on Enable AI Assistant in CoolDock Settings → Privacy & Permissions → AI Assistant."
-    static let readOnlyMessage = "CoolDock is read-only; turn on Allow Changes in Settings → AI Assistant (CoolDock Settings → Privacy & Permissions) to let assistants change it."
+    static let disabledMessage = "The AI Assistant is disabled in NiceDock Settings. Ask the user to turn on Enable AI Assistant in NiceDock Settings → Privacy & Permissions → AI Assistant."
+    static let readOnlyMessage = "NiceDock is read-only; turn on Allow Changes in Settings → AI Assistant (NiceDock Settings → Privacy & Permissions) to let assistants change it."
 
     /// Safety model: nothing works until the user enables the assistant; changes also need Allow Changes.
     static func gate(_ tool: AssistantTool, enabled: Bool, allowChanges: Bool) throws {
@@ -81,7 +81,7 @@ enum DockTools {
         }
         outcome.changed = state != before
         if source == .savedState, outcome.changed, case .object(var o) = outcome.result {
-            o["note"] = "CoolDock isn't running: the change was saved and appears when CoolDock starts."
+            o["note"] = "NiceDock isn't running: the change was saved and appears when NiceDock starts."
             outcome.result = .object(o)
         }
         return outcome
@@ -102,7 +102,7 @@ enum DockTools {
             "limits": ["max_profiles": .int(DockProfile.maxProfiles), "profile_name_length": .int(DockProfile.maxNameLength)]
         ]
         if source == .savedState {
-            o["note"] = "CoolDock isn't running; this is its saved state. Changes are saved and appear when it starts."
+            o["note"] = "NiceDock isn't running; this is its saved state. Changes are saved and appear when it starts."
         }
         return .object(o)
     }
@@ -204,7 +204,7 @@ enum DockTools {
         case .multiline: o["type"] = "list"; o["format"] = "array of strings, or one item per line"
         case .secret:
             o["type"] = "secret"; o["settable"] = false
-            o["note"] = "Stored in the macOS Keychain; the user enters it in CoolDock (right-click the widget → Customize…)."
+            o["note"] = "Stored in the macOS Keychain; the user enters it in NiceDock (right-click the widget → Customize…)."
         case .number(let min, let max, let step, let unit):
             o["type"] = "number"; o["minimum"] = .double(min); o["maximum"] = .double(max); o["step"] = .double(step)
             if !unit.isEmpty { o["unit"] = .string(unit) }
@@ -219,7 +219,7 @@ enum DockTools {
         case .city: o["type"] = "location"; o["format"] = "city name or \"latitude,longitude\"; empty uses the current location"
         case .contacts:
             o["type"] = "contacts"; o["settable"] = false
-            o["note"] = "Chosen from Contacts in CoolDock (right-click the widget → Customize…)."
+            o["note"] = "Chosen from Contacts in NiceDock (right-click the widget → Customize…)."
         }
         if let def {
             switch f.type {
@@ -238,7 +238,7 @@ enum DockTools {
     static func addWidget(_ args: ToolArgs, _ state: inout DockState) throws -> ToolOutcome {
         let kind = try kindArgument(args, "kind")
         guard kind.spec.browsable else {
-            throw ToolFailure("'\(kind.rawValue)' can't be added as a widget (running apps are a Dock setting in CoolDock Settings → Dock).")
+            throw ToolFailure("'\(kind.rawValue)' can't be added as a widget (running apps are a Dock setting in NiceDock Settings → Dock).")
         }
         let p = try profileIndex(args.values["profile"], state)
         let count = state.profiles[p].widgets.count
@@ -373,7 +373,7 @@ enum DockTools {
 
     static func createProfile(_ args: ToolArgs, _ state: inout DockState) throws -> ToolOutcome {
         guard state.profiles.count < DockProfile.maxProfiles else {
-            throw ToolFailure("CoolDock keeps at most \(DockProfile.maxProfiles) profiles; rename or reuse one instead.")
+            throw ToolFailure("NiceDock keeps at most \(DockProfile.maxProfiles) profiles; rename or reuse one instead.")
         }
         let name = try profileName(args, state, excluding: nil)
         var profile = DockProfile(name: name)
@@ -552,9 +552,9 @@ enum DockTools {
         }
         switch f.type {
         case .secret:
-            throw ToolFailure("\(name) is a secret. Tokens never pass through the assistant: ask the user to paste it in CoolDock (right-click the widget → Customize…).")
+            throw ToolFailure("\(name) is a secret. Tokens never pass through the assistant: ask the user to paste it in NiceDock (right-click the widget → Customize…).")
         case .contacts:
-            throw ToolFailure("\(name) is chosen from Contacts in CoolDock (right-click the widget → Customize…).")
+            throw ToolFailure("\(name) is chosen from Contacts in NiceDock (right-click the widget → Customize…).")
         case .text: return try text()
         case .city: return try text(100).trimmingCharacters(in: .whitespacesAndNewlines)
         case .multiline:

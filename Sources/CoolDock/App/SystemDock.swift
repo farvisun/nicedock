@@ -5,8 +5,8 @@ import AppKit
 final class SystemDock {
     static let shared = SystemDock()
     private let domain = "com.apple.dock" as CFString
-    private let backupKey = "CoolDockDockBackup"
-    /// Receives every change CoolDock would make to the macOS Dock instead of making it (`--ui-probe`: the system Dock's
+    private let backupKey = "NiceDockDockBackup"
+    /// Receives every change NiceDock would make to the macOS Dock instead of making it (`--ui-probe`: the system Dock's
     /// preferences must never change while the probe clicks through Settings).
     var interceptor: ((String) -> Void)?
 
@@ -25,7 +25,7 @@ final class SystemDock {
         restartDock()
     }
 
-    /// What a layout scenario asks of the macOS Dock: hidden while CoolDock replaces it, else as the user had it.
+    /// What a layout scenario asks of the macOS Dock: hidden while NiceDock replaces it, else as the user had it.
     enum Intent: Equatable { case hide, restore }
 
     nonisolated static func intent(for scenario: LayoutScenario) -> Intent {
@@ -55,7 +55,7 @@ final class SystemDock {
         restartDock()
     }
 
-    /// Restores the macOS Dock to how it was before CoolDock replaced it.
+    /// Restores the macOS Dock to how it was before NiceDock replaced it.
     func restore() {
         let defaults = UserDefaults.standard
         guard let backup = defaults.dictionary(forKey: backupKey) else { return }

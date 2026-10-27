@@ -1,4 +1,4 @@
-# Loads CoolDock's MediaRemote helper library into this (Apple-signed) perl and runs its stream loop.
+# Loads NiceDock's MediaRemote helper library into this (Apple-signed) perl and runs its stream loop.
 # Usage: /usr/bin/perl mediaremote.pl /path/to/libCoolDockMediaRemote.dylib
 use strict;
 use warnings;

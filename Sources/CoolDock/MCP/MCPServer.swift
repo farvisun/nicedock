@@ -13,18 +13,18 @@ struct RPCError: Error, Equatable {
     static let internalError = -32603
 }
 
-/// `CoolDock --mcp`: Model Context Protocol server over stdio (JSON-RPC 2.0, one message per line).
+/// `NiceDock --mcp`: Model Context Protocol server over stdio (JSON-RPC 2.0, one message per line).
 ///
 /// Starts before NSApplication exists, never opens a window and never asks for a permission; tools that
 /// touch the dock talk to the running app (see `AssistantRouter`).
 final class MCPServer {
     static let protocolVersions = ["2025-06-18", "2025-03-26", "2024-11-05"]
-    static let serverName = "cooldock"
+    static let serverName = "nicedock"
 
     static let instructions = """
-    CoolDock is the user's second Dock with live widgets on this Mac. Start with get_dock (current settings, \
+    NiceDock is the user's second Dock with live widgets on this Mac. Start with get_dock (current settings, \
     profiles and widget ids) and list_widget_kinds (kinds and their settings). Tools are read-only until the user \
-    turns on Allow Changes in CoolDock Settings → Privacy & Permissions → AI Assistant. set_wallpaper paints a \
+    turns on Allow Changes in NiceDock Settings → Privacy & Permissions → AI Assistant. set_wallpaper paints a \
     wallpaper from mood, style, color, time_of_day, season and weather and applies it; preview_wallpaper only saves it.
     """
 
@@ -125,7 +125,7 @@ final class MCPServer {
         return [
             "protocolVersion": .string(protocolVersion),
             "capabilities": ["tools": ["listChanged": false]],
-            "serverInfo": ["name": .string(Self.serverName), "title": "CoolDock", "version": .string(Self.version)],
+            "serverInfo": ["name": .string(Self.serverName), "title": "NiceDock", "version": .string(Self.version)],
             "instructions": .string(Self.instructions)
         ]
     }
@@ -164,7 +164,7 @@ final class MCPServer {
         signal(SIGPIPE, SIG_IGN)
         let router = AssistantRouter.live()
         let server = MCPServer(call: router.call)
-        fputs("CoolDock MCP server \(version) ready on stdio\n", stderr)
+        fputs("NiceDock MCP server \(version) ready on stdio\n", stderr)
         while let line = readLine(strippingNewline: true) {
             autoreleasepool {
                 if let reply = server.handle(line: line) { writeOut(reply + "\n") }

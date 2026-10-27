@@ -91,7 +91,7 @@ enum AppsScene {
 // MARK: - Synthetic data for the app-menu frame (render harness only)
 
 enum AppsSceneFiles {
-    static var base: URL { URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("CoolDockScene", isDirectory: true) }
+    static var base: URL { URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("NiceDockScene", isDirectory: true) }
 
     /// A stand-in Chromium app (Chrome Canary's bundle id, so it's never the user's running browser), its
     /// `Local State` with three synthetic profiles, and Dock recent-document lists for Finder and TextEdit that point

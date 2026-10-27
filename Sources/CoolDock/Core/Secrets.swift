@@ -28,7 +28,7 @@ enum Secrets {
         }
     }
 
-    /// Removes every CoolDock credential from the active storage.
+    /// Removes every NiceDock credential from the active storage.
     static func wipe() { vault.wipe() }
 
     static var backend: CredentialBackend { vault.backend }
@@ -71,7 +71,7 @@ enum CredentialError: Error, Equatable {
     case keychain(OSStatus)
     /// The encrypted file failed authentication: it was modified, or it was written on another Mac / with another key.
     case tampered
-    /// The encrypted file isn't a CoolDock credential file (truncated, wrong format, unknown version).
+    /// The encrypted file isn't a NiceDock credential file (truncated, wrong format, unknown version).
     case corrupt
     /// The credential file exists but its key file is gone.
     case keyMissing
@@ -93,11 +93,11 @@ enum CredentialError: Error, Equatable {
     }
 }
 
-/// Generic passwords in the login Keychain, service `app.cooldock.credentials`.
+/// Generic passwords in the login Keychain, service `app.nicedock.credentials`.
 final class KeychainCredentialStore: CredentialStore {
     let service: String
 
-    init(service: String = "app.cooldock.credentials") { self.service = service }
+    init(service: String = "app.nicedock.credentials") { self.service = service }
 
     private var base: [String: Any] {
         [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service]
@@ -125,7 +125,7 @@ final class KeychainCredentialStore: CredentialStore {
         }
         query[kSecValueData as String] = data
         query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-        query[kSecAttrLabel as String] = "CoolDock widget credential"
+        query[kSecAttrLabel as String] = "NiceDock widget credential"
         let status = SecItemAdd(query as CFDictionary, nil)
         guard status == errSecSuccess else { throw CredentialError.keychain(status) }
     }
@@ -149,25 +149,25 @@ final class KeychainCredentialStore: CredentialStore {
 
 /// Credentials in one AES-256-GCM encrypted file, for Macs where the login Keychain can't be unlocked reliably.
 ///
-/// Layout (`~/Library/Application Support/CoolDock/`):
+/// Layout (`~/Library/Application Support/NiceDock/`):
 /// * `credentials.cdvault` — JSON envelope `{format, version, kdf, cipher, salt, sealed}`; `sealed` is the AES-GCM
 ///   combined box (12-byte random nonce ‖ ciphertext ‖ 16-byte tag) of the JSON dictionary account → value.
 ///   The format name, version and salt are authenticated as associated data, so editing any of them is detected.
 /// * `credentials.key` — 32 random bytes created on first use (`0600`).
 ///
 /// Key = HKDF-SHA256(input: key-file bytes ‖ the Mac's hardware UUID, salt: per-install random 32-byte salt from the
-/// envelope, info: "app.cooldock.credentials.v1"). Every save uses a fresh nonce. Both files are written atomically
+/// envelope, info: "app.nicedock.credentials.v1"). Every save uses a fresh nonce. Both files are written atomically
 /// with owner-only permissions.
 ///
 /// Threat model, stated plainly: the file protects tokens when the credential file is copied on its own (a synced or
-/// shared folder, a support upload, a stray commit) and when the CoolDock folder is copied to another Mac (the hardware
+/// shared folder, a support upload, a stray commit) and when the NiceDock folder is copied to another Mac (the hardware
 /// UUID differs). It does **not** protect against malware or a person using your macOS account, root, or a complete
 /// copy of this Mac's disk, because everything needed to derive the key is readable by your account. The login
 /// Keychain is stronger and stays the recommended option.
 final class EncryptedFileCredentialStore: CredentialStore {
-    static let format = "app.cooldock.credentials"
+    static let format = "app.nicedock.credentials"
     static let version = 1
-    static let info = Data("app.cooldock.credentials.v1".utf8)
+    static let info = Data("app.nicedock.credentials.v1".utf8)
 
     let fileURL: URL
     let keyURL: URL
@@ -225,7 +225,7 @@ final class EncryptedFileCredentialStore: CredentialStore {
     /// Decrypted contents; an absent file is an empty store.
     func load() throws -> [String: String] {
         guard let data = try? Data(contentsOf: fileURL) else {
-            if exists { throw CredentialError.io(L("CoolDock can't read the encrypted credential file.")) }
+            if exists { throw CredentialError.io(L("NiceDock can't read the encrypted credential file.")) }
             return [:]
         }
         guard let env = try? JSONDecoder().decode(Envelope.self, from: data),
@@ -384,7 +384,7 @@ final class CredentialVault: @unchecked Sendable {
     static let preferenceKey = "CredentialStorage"
 
     static var directory: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("CoolDock", isDirectory: true)
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("NiceDock", isDirectory: true)
     }
 
     /// The real stores, or in-memory ones when this process is a test runner.
@@ -430,7 +430,7 @@ final class CredentialVault: @unchecked Sendable {
             cache[account] = value ?? ""
             return true
         } catch {
-            NSLog("CoolDock credential write failed: \((error as? CredentialError)?.message ?? error.localizedDescription)")
+            NSLog("NiceDock credential write failed: \((error as? CredentialError)?.message ?? error.localizedDescription)")
             cache[account] = nil
             return false
         }
@@ -495,7 +495,7 @@ final class CredentialVault: @unchecked Sendable {
 
     func status() -> CredentialStatus {
         lock.lock(); defer { lock.unlock() }
-        var path = (file as? EncryptedFileCredentialStore)?.fileURL.path ?? "~/Library/Application Support/CoolDock/credentials.cdvault"
+        var path = (file as? EncryptedFileCredentialStore)?.fileURL.path ?? "~/Library/Application Support/NiceDock/credentials.cdvault"
         let home = NSHomeDirectory()
         if path.hasPrefix(home) { path = "~" + path.dropFirst(home.count) }
         let state: CredentialStatus.FileState

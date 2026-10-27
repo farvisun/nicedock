@@ -3,9 +3,9 @@ import Foundation
 /// One MCP tool: name, description and JSON Schema of its arguments.
 struct AssistantTool {
     enum Access {
-        /// Reads CoolDock; allowed while the assistant is read-only.
+        /// Reads NiceDock; allowed while the assistant is read-only.
         case read
-        /// Renders a wallpaper file into CoolDock's own folder without applying it; allowed while read-only.
+        /// Renders a wallpaper file into NiceDock's own folder without applying it; allowed while read-only.
         case preview
         /// Changes the dock, a profile or the desktop; needs Allow Changes.
         case change
@@ -85,7 +85,7 @@ enum AssistantTools {
 
     static let wallpaperProperties: [String: JSONValue] = [
         "mood": Schema.string("Feeling of the image.", oneOf: Schema.raw(WallpaperMood.self)),
-        "style": Schema.string("Composition. Omit to let CoolDock pick one that suits the other parameters.", oneOf: Schema.raw(WallpaperStyle.self)),
+        "style": Schema.string("Composition. Omit to let NiceDock pick one that suits the other parameters.", oneOf: Schema.raw(WallpaperStyle.self)),
         "color": Schema.string("Dominant colour: a name (\(WallpaperColor.names.prefix(12).joined(separator: ", ")), …) or a hex value like #3A7BD5."),
         "time_of_day": Schema.string("Light of the scene.", oneOf: Schema.raw(WallpaperTime.self)),
         "season": Schema.string("Season palette.", oneOf: Schema.raw(WallpaperSeason.self)),
@@ -96,7 +96,7 @@ enum AssistantTools {
     static let all: [AssistantTool] = [
         AssistantTool(
             name: "get_dock", displayName: "Get Dock",
-            description: "Summary of CoolDock: appearance (dock style, size, spacing, corner radius, theme…), layout scenario and position, language, and every profile with its widgets (ids, kinds, positions, settings). Call this first; ids from here are used by the other tools.",
+            description: "Summary of NiceDock: appearance (dock style, size, spacing, corner radius, theme…), layout scenario and position, language, and every profile with its widgets (ids, kinds, positions, settings). Call this first; ids from here are used by the other tools.",
             access: .read, properties: [:]),
         AssistantTool(
             name: "list_widget_kinds", displayName: "List Widget Kinds",
@@ -108,7 +108,7 @@ enum AssistantTools {
             ]),
         AssistantTool(
             name: "add_widget", displayName: "Add Widget",
-            description: "Adds a widget to a profile. Settings not given keep their defaults; see list_widget_kinds for kinds and settings. API tokens can't be set here — the user enters them in CoolDock.",
+            description: "Adds a widget to a profile. Settings not given keep their defaults; see list_widget_kinds for kinds and settings. API tokens can't be set here — the user enters them in NiceDock.",
             access: .change,
             properties: [
                 "kind": Schema.string("Widget kind id, e.g. flipClock, weatherHero, stockQuote (or its English title)."),
@@ -149,7 +149,7 @@ enum AssistantTools {
             properties: [
                 "dock_style": Schema.string("Dock bar style (liquidGlass needs macOS 26).", oneOf: Schema.raw(DockStyle.self)),
                 "widget_surface": Schema.string("Widget tiles on the transparent dock style.", oneOf: Schema.raw(WidgetSurface.self)),
-                "theme": Schema.string("CoolDock windows: follow macOS, light or dark.", oneOf: Schema.raw(AppTheme.self)),
+                "theme": Schema.string("NiceDock windows: follow macOS, light or dark.", oneOf: Schema.raw(AppTheme.self)),
                 "scale": Schema.number("Dock size, 1 = 100 %.", min: 0.7, max: 1.4),
                 "spacing": Schema.number("Space between widgets in points.", min: 0, max: 20),
                 "corner_radius": Schema.number("Widget corner radius in points.", min: 4, max: 22),
@@ -176,12 +176,12 @@ enum AssistantTools {
                 "trigger_size": Schema.number("Reveal trigger area in pixels.", min: 1, max: 60),
                 "hide_on_window_hover": Schema.boolean("Fade out when another window overlaps the Dock."),
                 "hide_during_fullscreen": Schema.boolean("Hide while an app or video is fullscreen."),
-                "screens": Schema.string("Displays that show CoolDock.", oneOf: Schema.raw(ScreensMode.self))
+                "screens": Schema.string("Displays that show NiceDock.", oneOf: Schema.raw(ScreensMode.self))
             ],
             idempotent: true),
         AssistantTool(
             name: "set_language", displayName: "Set Language",
-            description: "Changes CoolDock's language and regional formats. Changes apply instantly.",
+            description: "Changes NiceDock's language and regional formats. Changes apply instantly.",
             access: .change,
             properties: [
                 "language": Schema.string("Language code (system follows macOS).", oneOf: Schema.raw(AppLanguage.self)),
@@ -197,7 +197,7 @@ enum AssistantTools {
             access: .change, properties: ["profile": Schema.string("Profile id, name, or 0-based index.")], required: ["profile"], idempotent: true),
         AssistantTool(
             name: "create_profile", displayName: "Create Profile",
-            description: "Creates a profile (CoolDock keeps up to 8), empty or as a copy of another one, and makes it active unless activate is false.",
+            description: "Creates a profile (NiceDock keeps up to 8), empty or as a copy of another one, and makes it active unless activate is false.",
             access: .change,
             properties: [
                 "name": Schema.string("Profile name, up to 24 characters."),
@@ -218,7 +218,7 @@ enum AssistantTools {
             required: ["profile"], idempotent: true),
         AssistantTool(
             name: "set_wallpaper", displayName: "Set Wallpaper",
-            description: "Paints a wallpaper on this Mac from mood, style, colour, time of day, season and weather (all optional), at the main display's pixel size, saves it in CoolDock's Wallpapers folder and sets it as the desktop picture on every display. Returns the file path.",
+            description: "Paints a wallpaper on this Mac from mood, style, colour, time of day, season and weather (all optional), at the main display's pixel size, saves it in NiceDock's Wallpapers folder and sets it as the desktop picture on every display. Returns the file path.",
             access: .change, properties: wallpaperProperties, idempotent: true),
         AssistantTool(
             name: "preview_wallpaper", displayName: "Preview Wallpaper",

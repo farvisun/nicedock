@@ -17,7 +17,7 @@ import Testing
         try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         AppPaths.overrideDirectory = AssistantFixture.tempDirectory()
         AppStore.persistenceEnabled = false
-        AssistantSetup.pathOverride = "/Applications/CoolDock.app/Contents/MacOS/CoolDock"
+        AssistantSetup.pathOverride = "/Applications/NiceDock.app/Contents/MacOS/NiceDock"
         DockFonts.registerBundledFonts()
         let store = AppStore.shared
         store.settings.assistantEnabled = true

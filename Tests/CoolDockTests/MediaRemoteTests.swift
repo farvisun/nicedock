@@ -90,7 +90,7 @@ struct MediaRemoteLiveTests {
     static let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
 
     func buildHelper() throws -> URL {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-mediaremote-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-mediaremote-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let src = Self.repo.appendingPathComponent("Helpers/MediaRemote")
         try FileManager.default.copyItem(at: src.appendingPathComponent("mediaremote.pl"), to: dir.appendingPathComponent("mediaremote.pl"))
@@ -144,13 +144,13 @@ struct MediaRemoteLiveTests {
             center.nowPlayingInfo = nil
             center.playbackState = .stopped
         }
-        center.nowPlayingInfo = [MPMediaItemPropertyTitle: "CoolDock Live Probe", MPMediaItemPropertyArtist: "Test Suite",
+        center.nowPlayingInfo = [MPMediaItemPropertyTitle: "NiceDock Live Probe", MPMediaItemPropertyArtist: "Test Suite",
                                  MPMediaItemPropertyPlaybackDuration: 180.0, MPNowPlayingInfoPropertyElapsedPlaybackTime: 12.0,
                                  MPNowPlayingInfoPropertyPlaybackRate: 1.0]
         center.playbackState = .playing
 
         func probe(playing: Bool) -> MediaRemoteBridge.Update? {
-            log.updates.last { $0.title == "CoolDock Live Probe" && $0.playing == playing }
+            log.updates.last { $0.title == "NiceDock Live Probe" && $0.playing == playing }
         }
         #expect(await wait(8) { probe(playing: true) != nil })
         let mine = try #require(probe(playing: true))
@@ -159,7 +159,7 @@ struct MediaRemoteLiveTests {
 
         let service = NowPlayingService()
         service.apply(mine)
-        #expect(service.title == "CoolDock Live Probe" && service.isPlaying && service.player == nil)
+        #expect(service.title == "NiceDock Live Probe" && service.isPlaying && service.player == nil)
 
         bridge.send("pause")
         let reported = await wait(8) { probe(playing: false) != nil }

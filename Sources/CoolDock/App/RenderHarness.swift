@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Developer tool: renders widgets to PNG without showing the dock.
 ///
-///     CoolDock --render <outdir> <kind,kind,...|all|category:clocks> [--wait seconds] [--lang fa] [--style darkGlass]
+///     NiceDock --render <outdir> <kind,kind,...|all|category:clocks> [--wait seconds] [--lang fa] [--style darkGlass]
 ///                       [--scene reference]
 ///
 /// Output files are `<outdir>/<kind>.png` at 2× scale on the dock plate colour, so they can be

@@ -166,7 +166,7 @@ struct PrivacyPane: View {
     private var store: AppStore { .shared }
 
     var body: some View {
-        PaneHeader(pane: .privacy, subtitle: L("CoolDock is local-first. It only asks for a permission when a widget needs it."))
+        PaneHeader(pane: .privacy, subtitle: L("NiceDock is local-first. It only asks for a permission when a widget needs it."))
         SettingsGroup(title: L("Permissions")) {
             PermissionRow(title: L("Calendars"), detail: L("Events, agendas and meetings"), symbol: "calendar", tint: .cdRed,
                           status: Self.ekStatus(.event)) { Task { await CalendarService.shared.requestEvents(); refresh += 1 } }

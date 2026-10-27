@@ -45,7 +45,7 @@ extension EnvironmentValues {
 
 extension Notification.Name {
     /// Posted with `object` = widget UUID (or nil for all) when the user chooses Refresh.
-    static let coolDockRefresh = Notification.Name("CoolDockRefresh")
+    static let coolDockRefresh = Notification.Name("NiceDockRefresh")
 }
 
 struct WidgetMenu: View {

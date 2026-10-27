@@ -254,7 +254,7 @@ private struct UtilClipboardPanelView: View {
             }
             if !service.captureAllowed {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(L("macOS asks before apps read the clipboard. Allow CoolDock to keep a history, or set it to Always Allow in Privacy & Security."))
+                    Text(L("macOS asks before apps read the clipboard. Allow NiceDock to keep a history, or set it to Always Allow in Privacy & Security."))
                         .font(.dock(11, .medium)).foregroundStyle(p.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack {

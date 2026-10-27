@@ -77,7 +77,7 @@ enum SettingsWindow {
         if let pane { nav.pane = pane }
         nav.anchor = anchor
         Panels.shared.close()
-        host.show(title: L("CoolDock Settings"), size: NSSize(width: 860, height: 640), minSize: NSSize(width: 760, height: 520), toolbar: true) {
+        host.show(title: L("NiceDock Settings"), size: NSSize(width: 860, height: 640), minSize: NSSize(width: 760, height: 520), toolbar: true) {
             SettingsRoot(nav: nav).id(AppStore.shared.languageRevision)
         }
     }

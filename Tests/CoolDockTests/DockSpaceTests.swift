@@ -150,7 +150,7 @@ import Testing
         #expect(ReserveSpace.adjusted(Self.primaryVisible, in: both) == CGRect(x: 0, y: 37, width: 1512, height: 853))
     }
 
-    @Test func displayWithoutACoolDockIsUntouched() {
+    @Test func displayWithoutANiceDockIsUntouched() {
         // One Display mode: only the secondary has a Dock.
         #expect(ReserveSpace.adjusted(Self.primaryVisible, in: [Self.secondaryDock]) == nil)
         #expect(ReserveSpace.adjusted(Self.secondaryVisible, in: [Self.bottomDock]) == nil)

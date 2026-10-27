@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// Every widget CoolDock can place in the dock. Raw values are persisted — never rename.
+/// Every widget NiceDock can place in the dock. Raw values are persisted — never rename.
 enum WidgetKind: String, Codable, CaseIterable, Identifiable {
     // Apps & files
     case app, appFolder, applications, trash, folder, downloads, recentFiles, fileShelf, airDrop, dropbox

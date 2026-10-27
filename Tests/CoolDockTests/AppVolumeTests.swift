@@ -177,10 +177,10 @@ final class TestBufferList {
 
 @Suite struct AppVolumeAggregateTests {
     @Test func privateAggregateWithOutputAndOneTap() throws {
-        let d = UtilAppVolumeAggregate.description(outputUID: "BuiltInSpeakerDevice", tapUID: "TAP-UUID", uid: "app.cooldock.appvolume.X")
-        #expect(d[kAudioAggregateDeviceUIDKey] as? String == "app.cooldock.appvolume.X")
+        let d = UtilAppVolumeAggregate.description(outputUID: "BuiltInSpeakerDevice", tapUID: "TAP-UUID", uid: "app.nicedock.appvolume.X")
+        #expect(d[kAudioAggregateDeviceUIDKey] as? String == "app.nicedock.appvolume.X")
         #expect((d[kAudioAggregateDeviceUIDKey] as? String)?.hasPrefix(UtilAppVolumeAggregate.uidPrefix) == true)
-        #expect(d[kAudioAggregateDeviceNameKey] as? String == "CoolDock App Volume")
+        #expect(d[kAudioAggregateDeviceNameKey] as? String == "NiceDock App Volume")
         #expect(d[kAudioAggregateDeviceMainSubDeviceKey] as? String == "BuiltInSpeakerDevice")
         #expect(d[kAudioAggregateDeviceIsPrivateKey] as? Bool == true)
         #expect(d[kAudioAggregateDeviceIsStackedKey] as? Bool == false)
@@ -217,7 +217,7 @@ final class TestBufferList {
         UtilAudioProcess(object: 109, pid: 1757, bundleID: "com.google.Chrome", running: false),
         UtilAudioProcess(object: 108, pid: 6815, bundleID: "com.google.Chrome.helper", running: false),
         UtilAudioProcess(object: 120, pid: 900, bundleID: "", running: true),           // afplay
-        UtilAudioProcess(object: 130, pid: 42, bundleID: "app.cooldock.CoolDock", running: true),  // ourselves
+        UtilAudioProcess(object: 130, pid: 42, bundleID: "app.nicedock.NiceDock", running: true),  // ourselves
         UtilAudioProcess(object: 140, pid: 77, bundleID: "com.apple.WebKit.GPU", running: false)
     ]
 
@@ -240,7 +240,7 @@ final class TestBufferList {
         #expect(chrome.running, "one playing helper makes the app playing")
         #expect(apps[1].running && apps[1].name == "afplay" && apps[1].iconPath == nil)
         #expect(!apps[2].running)
-        #expect(!apps.contains { $0.pids.contains(42) }, "CoolDock never lists itself")
+        #expect(!apps.contains { $0.pids.contains(42) }, "NiceDock never lists itself")
     }
 
     func app(_ id: String, _ processes: [AudioObjectID], running: Bool = true) -> UtilAudioApp {

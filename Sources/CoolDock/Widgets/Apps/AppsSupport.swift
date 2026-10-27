@@ -208,7 +208,7 @@ enum AppsFileOps {
                     if sameVolume && !forceCopy { try fm.moveItem(at: src, to: dest) } else { try fm.copyItem(at: src, to: dest) }
                     done += 1
                 } catch {
-                    NSLog("CoolDock: file transfer failed: \(error.localizedDescription)")
+                    NSLog("NiceDock: file transfer failed: \(error.localizedDescription)")
                 }
             }
             return done
@@ -225,7 +225,7 @@ enum AppsFileOps {
             var done = 0
             for u in files {
                 do { try FileManager.default.trashItem(at: u, resultingItemURL: nil); done += 1 } catch {
-                    NSLog("CoolDock: trash failed: \(error.localizedDescription)")
+                    NSLog("NiceDock: trash failed: \(error.localizedDescription)")
                 }
             }
             return done

@@ -19,9 +19,9 @@ struct WindowSettingsSection: View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsGroup(title: L("Windows")) {
                 ToggleRow(title: L("Hide on Window Hover"),
-                          subtitle: L("Fade CoolDock on a display while another app's window overlaps it. Clicks reach the window; rest the pointer on the Dock to bring it back."),
+                          subtitle: L("Fade NiceDock on a display while another app's window overlaps it. Clicks reach the window; rest the pointer on the Dock to bring it back."),
                           isOn: setting(\.hideOnWindowHover))
-                ToggleRow(title: L("Hide During Fullscreen"), subtitle: L("Hide CoolDock on a display while an app or video is fullscreen."), isOn: setting(\.hideDuringFullscreen))
+                ToggleRow(title: L("Hide During Fullscreen"), subtitle: L("Hide NiceDock on a display while an app or video is fullscreen."), isOn: setting(\.hideDuringFullscreen))
             }
             SettingsGroup(title: L("Dock Space"), footer: footer(s)) {
                 ToggleRow(title: L("Reserve Dock Space"),
@@ -47,15 +47,15 @@ struct WindowSettingsSection: View {
     }
 
     private func footer(_ s: Settings) -> String {
-        var lines = [L("macOS doesn't let apps change the usable screen area, so CoolDock moves other apps' windows with Accessibility. Panels, dialogs, minimized and fullscreen windows are left alone.")]
-        if s.scenario.isReveal { lines.append(L("Not used while CoolDock auto-hides in this layout.")) }
+        var lines = [L("macOS doesn't let apps change the usable screen area, so NiceDock moves other apps' windows with Accessibility. Panels, dialogs, minimized and fullscreen windows are left alone.")]
+        if s.scenario.isReveal { lines.append(L("Not used while NiceDock auto-hides in this layout.")) }
         if s.screensMode == .all { lines.append(L("Each display keeps room for its own Dock.")) }
         return lines.joined(separator: "\n")
     }
 
     nonisolated(unsafe) private static var prompted = false
 
-    /// Only on the user's click. The first click shows the system prompt (which also adds CoolDock to Privacy & Security
+    /// Only on the user's click. The first click shows the system prompt (which also adds NiceDock to Privacy & Security
     /// → Accessibility); later clicks open that list directly, since a dismissed prompt may not come back.
     static func requestAccess() {
         guard !AXIsProcessTrusted() else { return }
@@ -109,7 +109,7 @@ struct CredentialStorageGroup: View {
     }
 
     private func footer(_ st: CredentialStatus) -> String {
-        var lines = [L("Connected widgets store tokens only on this Mac. CoolDock has no cloud account and never syncs credentials.")]
+        var lines = [L("Connected widgets store tokens only on this Mac. NiceDock has no cloud account and never syncs credentials.")]
         if st.backend == .encryptedFile {
             lines.append(L("The encrypted file can't be read if it is copied off this Mac, but apps and people using your macOS account can decrypt it. The Keychain is the stronger option."))
         }
@@ -128,10 +128,10 @@ struct CredentialStorageGroup: View {
         let alert = NSAlert()
         if target == .encryptedFile {
             alert.messageText = L("Store credentials in an encrypted file?")
-            alert.informativeText = L("CoolDock moves your saved tokens out of the Keychain into an encrypted file tied to this Mac. Use this only if the login Keychain keeps asking for its password or fails to unlock.")
+            alert.informativeText = L("NiceDock moves your saved tokens out of the Keychain into an encrypted file tied to this Mac. Use this only if the login Keychain keeps asking for its password or fails to unlock.")
         } else {
             alert.messageText = L("Move credentials back to the Keychain?")
-            alert.informativeText = L("CoolDock moves your saved tokens from the encrypted file into your login Keychain and deletes the file.")
+            alert.informativeText = L("NiceDock moves your saved tokens from the encrypted file into your login Keychain and deletes the file.")
         }
         alert.addButton(withTitle: L("Move Credentials"))
         alert.addButton(withTitle: L("Cancel"))

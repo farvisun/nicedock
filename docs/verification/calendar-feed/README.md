@@ -11,7 +11,7 @@ Each PNG is the 2× render harness output (`<kind>.png`, no padding, dock plate 
 ```bash
 scripts/build-app.sh release
 COOLDOCK_OFFLINE=1 COOLDOCK_ICS_FILE=$PWD/Tests/Fixtures/ics/google-us-holidays-2026-10-27.ics \
-  build/CoolDock.app/Contents/MacOS/CoolDock --render out/holidays-en agenda,calendarToday,nextMeeting,weekStrip --wait 3 --lang en
+  build/NiceDock.app/Contents/MacOS/NiceDock --render out/holidays-en agenda,calendarToday,nextMeeting,weekStrip --wait 3 --lang en
 # holidays-llvm-*: COOLDOCK_ICS_FILE=<holidays.ics>:<llvm-community.ics>; unconfigured-*: no COOLDOCK_ICS_FILE
 ```
 

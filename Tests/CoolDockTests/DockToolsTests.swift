@@ -17,7 +17,7 @@ import Testing
             let before = state
             // Even malformed arguments get the disabled answer first.
             let message = AssistantFixture.failure(tool.name, ["bogus": 1], on: &state)
-            #expect(message?.contains("disabled in CoolDock Settings") == true, "\(tool.name): \(message ?? "nil")")
+            #expect(message?.contains("disabled in NiceDock Settings") == true, "\(tool.name): \(message ?? "nil")")
             #expect(state == before)
         }
     }
@@ -301,7 +301,7 @@ import Testing
     }
 }
 
-/// The offline path (CoolDock not running): the same tools on state.json in a temp directory.
+/// The offline path (NiceDock not running): the same tools on state.json in a temp directory.
 @Suite struct StateFileApplyTests {
     @Test func appliesAndPersists() throws {
         let dir = AssistantFixture.tempDirectory()
@@ -430,14 +430,14 @@ import Testing
     }
 
     @Test func setupSnippets() {
-        let s = AssistantSetup.snippets(path: "/Applications/CoolDock.app/Contents/MacOS/CoolDock")
-        #expect(s.claudeCode == #"claude mcp add cooldock -- "/Applications/CoolDock.app/Contents/MacOS/CoolDock" --mcp"#)
-        #expect(s.codex == "[mcp_servers.cooldock]\ncommand = \"/Applications/CoolDock.app/Contents/MacOS/CoolDock\"\nargs = [\"--mcp\"]")
+        let s = AssistantSetup.snippets(path: "/Applications/NiceDock.app/Contents/MacOS/NiceDock")
+        #expect(s.claudeCode == #"claude mcp add nicedock -- "/Applications/NiceDock.app/Contents/MacOS/NiceDock" --mcp"#)
+        #expect(s.codex == "[mcp_servers.nicedock]\ncommand = \"/Applications/NiceDock.app/Contents/MacOS/NiceDock\"\nargs = [\"--mcp\"]")
         let cursor = try? JSONValue.parse(s.cursor)
-        #expect(cursor?["mcpServers"]?["cooldock"]?["args"] == ["--mcp"])
+        #expect(cursor?["mcpServers"]?["nicedock"]?["args"] == ["--mcp"])
         let vscode = try? JSONValue.parse(s.vscode)
-        #expect(vscode?["servers"]?["cooldock"]?["type"] == "stdio")
-        #expect(vscode?["servers"]?["cooldock"]?["command"] == "/Applications/CoolDock.app/Contents/MacOS/CoolDock")
+        #expect(vscode?["servers"]?["nicedock"]?["type"] == "stdio")
+        #expect(vscode?["servers"]?["nicedock"]?["command"] == "/Applications/NiceDock.app/Contents/MacOS/NiceDock")
         #expect(AssistantSetup.shellQuoted("/a b/$x\"y") == #""/a b/\$x\"y""#)
     }
 
@@ -447,7 +447,7 @@ import Testing
         #expect(path.utf8.count < 104)
         #expect(path == AppPaths.socketPath(in: deep), "the app and the MCP process must agree")
         #expect(UnixSocket.address(path) != nil)
-        let short = URL(fileURLWithPath: "/Users/me/Library/Application Support/CoolDock")
-        #expect(AppPaths.socketPath(in: short) == "/Users/me/Library/Application Support/CoolDock/assistant.sock")
+        let short = URL(fileURLWithPath: "/Users/me/Library/Application Support/NiceDock")
+        #expect(AppPaths.socketPath(in: short) == "/Users/me/Library/Application Support/NiceDock/assistant.sock")
     }
 }

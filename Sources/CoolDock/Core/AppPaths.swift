@@ -1,13 +1,13 @@
 import Foundation
 
-/// Files CoolDock keeps in Application Support. One place so the app, the `--mcp` server and the tests agree.
+/// Files NiceDock keeps in Application Support. One place so the app, the `--mcp` server and the tests agree.
 ///
 /// `COOLDOCK_SUPPORT_DIR` (environment) or `AppPaths.overrideDirectory` (tests) replaces
-/// `~/Library/Application Support/CoolDock`, so tests and the end-to-end MCP run never touch the user's state.
+/// `~/Library/Application Support/NiceDock`, so tests and the end-to-end MCP run never touch the user's state.
 /// A test runner that sets neither still gets a private temporary folder (`testRoot`), for state and caches alike.
 enum AppPaths {
     nonisolated(unsafe) static var overrideDirectory: URL?
-    /// Replaces `~/Library/Caches/CoolDock` (`--ui-probe` keeps its caches in its temporary folder).
+    /// Replaces `~/Library/Caches/NiceDock` (`--ui-probe` keeps its caches in its temporary folder).
     nonisolated(unsafe) static var overrideCacheDirectory: URL?
 
     static var supportDirectory: URL {
@@ -17,19 +17,19 @@ enum AppPaths {
         }
         if let testRoot { return testRoot.appendingPathComponent("Support", isDirectory: true) }
         return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("CoolDock", isDirectory: true)
+            .appendingPathComponent("NiceDock", isDirectory: true)
     }
 
-    /// `~/Library/Caches/CoolDock` (`DiskCache`, favicons, thumbnails).
+    /// `~/Library/Caches/NiceDock` (`DiskCache`, favicons, thumbnails).
     static var cacheDirectory: URL {
         if let overrideCacheDirectory { return overrideCacheDirectory }
         if let testRoot { return testRoot.appendingPathComponent("Caches", isDirectory: true) }
-        return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("CoolDock", isDirectory: true)
+        return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("NiceDock", isDirectory: true)
     }
 
     /// Per-process temporary folder used instead of the user's Library when this process is a test runner.
     static let testRoot: URL? = CredentialVault.isTestProcess
-        ? FileManager.default.temporaryDirectory.appendingPathComponent("CoolDockTests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
+        ? FileManager.default.temporaryDirectory.appendingPathComponent("NiceDockTests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
         : nil
 
     static var stateFile: URL { supportDirectory.appendingPathComponent("state.json") }
@@ -45,7 +45,7 @@ enum AppPaths {
         if path.utf8.count < 100 { return path }
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for b in directory.path.utf8 { hash = (hash ^ UInt64(b)) &* 0x0000_0100_0000_01B3 }
-        return "/tmp/cooldock-\(getuid())-\(String(hash, radix: 36)).sock"
+        return "/tmp/nicedock-\(getuid())-\(String(hash, radix: 36)).sock"
     }
 
     static func ensureSupportDirectory() {

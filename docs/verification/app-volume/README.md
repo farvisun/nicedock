@@ -25,7 +25,7 @@ the widget is not offered and the panel section is hidden.
   volume) but its IO is stopped: no IO thread, no CPU.
 * **Apps, not processes**: processes are grouped by the app responsible for them
   (`responsibility_get_pid_responsible_for_pid`): Chrome's helpers → Chrome, Safari's WebKit GPU process → Safari,
-  a command-line tool → the terminal app that started it (or its executable path). CoolDock never lists itself.
+  a command-line tool → the terminal app that started it (or its executable path). NiceDock never lists itself.
 * **Event-driven only**: listeners on `kAudioHardwarePropertyProcessObjectList`, `kAudioHardwarePropertyDefaultOutputDevice`
   and each process's IsRunning / IsRunningOutput. They run while an App Volume view is shown or while any app has a
   changed level; no timers. Gotcha found on macOS 27.0.1: `kAudioProcessPropertyIsRunningOutput` never posts a change
@@ -34,16 +34,16 @@ the widget is not offered and the panel section is hidden.
   new IO started, old destroyed: both taps mute the app meanwhile, so no full-volume blip). A browser that spawns
   another audio helper is handled the same way.
 * **Cleanup**: tap and aggregate are destroyed at 100 %, when the app's processes go away, on Reset All, and on quit
-  (`applicationWillTerminate` → `shutdown()`, bounded to 1.5 s). CoolDock's aggregates are hidden from the Audio
+  (`applicationWillTerminate` → `shutdown()`, bounded to 1.5 s). NiceDock's aggregates are hidden from the Audio
   widget's output list.
 * **Persistence**: `Settings.appVolumes` (`[bundle id: {volume, muted}]`, only changed apps, optional so older
   state files load) and `Settings.appVolumeRemember` (default on), saved through `AppStore` 0.6 s after the last
   change, so `AppStore.persistenceEnabled` (renders, tests) is respected. With Remember off a level lasts while the app
-  runs. Remembered levels apply as soon as the app appears (CoolDock starts listening at launch when any exist).
+  runs. Remembered levels apply as soon as the app appears (NiceDock starts listening at launch when any exist).
 * **Permission**: `NSAudioCaptureUsageDescription` is in `Resources/Info.plist`. TCC's read-only preflight is
   checked before creating taps, when a view appears and 1.5 s / 6 s after a tap starts; denied removes every tap
   (apps play normally), disables the sliders and shows a short hint with **Open Privacy Settings**
-  (`appVolume-denied`, `appVolume-panel-denied`). When CoolDock ran as its own responsible process (launched outside a
+  (`appVolume-denied`, `appVolume-panel-denied`). When NiceDock ran as its own responsible process (launched outside a
   terminal that already has the permission), `AudioDeviceCreateIOProcIDWithBlock` for the first tap stayed blocked in
   a reply from coreaudiod (`sample` stack), consistent with macOS waiting for the System Audio Recording prompt to be
   answered. That wait is on the tap queue: the UI stays responsive, the app is muted rather than loud, and after
@@ -103,7 +103,7 @@ collapsed Audio tile is unchanged). Reference-scene data, rendered with:
 
 ```bash
 scripts/build-app.sh release
-COOLDOCK_SUPPORT_DIR=$(mktemp -d) build/CoolDock.app/Contents/MacOS/CoolDock --render <dir> \
+COOLDOCK_SUPPORT_DIR=$(mktemp -d) build/NiceDock.app/Contents/MacOS/NiceDock --render <dir> \
   appVolume,appVolume-panel,appVolume-denied,appVolume-empty,appVolume-panel-denied,audioControls-panel \
   --scene reference --lang en   # and --lang fa
 ```

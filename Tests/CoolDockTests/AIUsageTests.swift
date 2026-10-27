@@ -108,7 +108,7 @@ import Testing
     }
 
     @Test func incrementalRescanReadsOnlyNewLines() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-logs-\(UUID().uuidString)", isDirectory: true)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-logs-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let lines = try Fixture.string("claude-code/projects/-Users-demo-app/0b6f4c0e-session-a.jsonl").split(separator: "\n", omittingEmptySubsequences: true)
@@ -146,7 +146,7 @@ import Testing
             "start": Int(max(since.timeIntervalSince1970, 0)),
             "files": Dictionary(uniqueKeysWithValues: files.map { ($0.key, $0.value.offset) })
         ]
-        let manifestURL = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-usage-\(UUID().uuidString).json")
+        let manifestURL = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-usage-\(UUID().uuidString).json")
         try JSONSerialization.data(withJSONObject: manifest).write(to: manifestURL)
         defer { try? FileManager.default.removeItem(at: manifestURL) }
 

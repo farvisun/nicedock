@@ -12,7 +12,7 @@ struct GeneralPane: View {
     var body: some View {
         PaneHeader(pane: .general, subtitle: L("Startup behaviour, the menu bar icon, units and diagnostics."))
         SettingsGroup(title: L("Startup")) {
-            SettingsRow(title: L("Launch CoolDock at login"), subtitle: LoginItem.needsApproval ? L("Waiting for approval in System Settings → Login Items.") : nil) {
+            SettingsRow(title: L("Launch NiceDock at login"), subtitle: LoginItem.needsApproval ? L("Waiting for approval in System Settings → Login Items.") : nil) {
                 HStack {
                     if LoginItem.needsApproval { Button(L("Open Login Items")) { LoginItem.openSystemSettings() } }
                     Toggle("", isOn: Binding(get: { loginEnabled }, set: { LoginItem.set($0); loginEnabled = LoginItem.isEnabled; store.settings.launchAtLogin = $0 }))
@@ -45,7 +45,7 @@ struct GeneralPane: View {
                 Button(L("Export…")) { Diagnostics.export() }
             }
             SettingsRow(title: L("Show Onboarding")) { Button(L("Show")) { OnboardingWindow.show() } }
-            SettingsRow(title: L("Reset CoolDock"), subtitle: L("Restores default settings and profiles.")) {
+            SettingsRow(title: L("Reset NiceDock"), subtitle: L("Restores default settings and profiles.")) {
                 Button(L("Reset…"), role: .destructive) { confirmReset() }
             }
         }
@@ -72,7 +72,7 @@ struct AppearancePane: View {
         PaneHeader(pane: .appearance, subtitle: L("Scale, density, colours and surfaces of the Dock."))
         DockPreview().padding(.bottom, 20)
 
-        SettingsGroup(title: L("App appearance"), footer: L("Affects CoolDock windows. Dock Style controls the Dock bar separately.")) {
+        SettingsGroup(title: L("App appearance"), footer: L("Affects NiceDock windows. Dock Style controls the Dock bar separately.")) {
             SettingsRow(title: L("Theme")) {
                 Picker("", selection: setting(\.appTheme)) { ForEach(AppTheme.allCases) { Text($0.title).tag($0) } }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 220)
@@ -176,7 +176,7 @@ struct StyleSwatch: View {
     }
 }
 
-/// Soft green-hills gradient inspired by the CoolDock hero scene.
+/// Soft green-hills gradient inspired by the cooldock.app hero scene.
 struct WallpaperBackdrop: View {
     var body: some View {
         ZStack {
@@ -228,7 +228,7 @@ struct LayoutPane: View {
 
     var body: some View {
         let s = store.settings
-        PaneHeader(pane: .layout, subtitle: L("Where CoolDock sits and how it works with the macOS Dock."))
+        PaneHeader(pane: .layout, subtitle: L("Where NiceDock sits and how it works with the macOS Dock."))
         SettingsGroup(title: L("Layout scenario")) {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(LayoutScenario.allCases) { sc in ScenarioCard(scenario: sc, selected: s.scenario == sc) { store.settings.scenario = sc } }
@@ -258,7 +258,7 @@ struct LayoutPane: View {
         }
 
         if s.scenario.isReveal || s.scenario == .swapBottom {
-            SettingsGroup(title: L("Reveal"), footer: L("If the macOS Dock also auto-hides at the bottom edge, a trigger area of 20–40 px keeps CoolDock's zone above the macOS Dock's.")) {
+            SettingsGroup(title: L("Reveal"), footer: L("If the macOS Dock also auto-hides at the bottom edge, a trigger area of 20–40 px keeps NiceDock's zone above the macOS Dock's.")) {
                 SliderRow(title: L("Show Delay"), value: setting(\.showDelay), range: 0...2, step: 0.05) { Fmt.number($0, decimals: 2) + " " + L("s") }
                 SliderRow(title: L("Hide Delay"), value: setting(\.hideDelay), range: 0...3, step: 0.05) { Fmt.number($0, decimals: 2) + " " + L("s") }
                 SliderRow(title: L("Trigger Area Size"), value: setting(\.triggerSize), range: 1...60, step: 1) { Fmt.int(Int($0)) + " " + L("px") }
@@ -391,9 +391,9 @@ struct ScreensPane: View {
         let s = store.settings
         let connected = Set(NSScreen.screens.map(DockController.stableID))
         let displays = s.displays.sorted { (connected.contains($0.id) ? 0 : 1, 0) < (connected.contains($1.id) ? 0 : 1, 0) }
-        PaneHeader(pane: .screens, subtitle: L("Choose which displays host CoolDock. Disconnected displays are remembered."))
+        PaneHeader(pane: .screens, subtitle: L("Choose which displays host NiceDock. Disconnected displays are remembered."))
         SettingsGroup {
-            SettingsRow(title: L("Show CoolDock on")) {
+            SettingsRow(title: L("Show NiceDock on")) {
                 Picker("", selection: setting(\.screensMode)) { ForEach(ScreensMode.allCases) { Text($0.title).tag($0) } }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 330)
             }
@@ -441,9 +441,9 @@ struct ScreensPane: View {
 
     private func footer(_ mode: ScreensMode) -> String {
         switch mode {
-        case .one: return L("If the preferred display is disconnected, CoolDock moves to the built-in display and returns when it comes back.")
-        case .attached: return L("The highest attached display in the list wins. If none is connected, CoolDock stays hidden.")
-        case .all: return L("A copy of CoolDock appears on every connected display with the same profile.")
+        case .one: return L("If the preferred display is disconnected, NiceDock moves to the built-in display and returns when it comes back.")
+        case .attached: return L("The highest attached display in the list wins. If none is connected, NiceDock stays hidden.")
+        case .all: return L("A copy of NiceDock appears on every connected display with the same profile.")
         }
     }
 
@@ -698,7 +698,7 @@ struct LanguagePane: View {
                 Picker("", selection: setting(\.clockStyle)) { ForEach(ClockStyle.allCases) { Text($0.title).tag($0) } }.pickerStyle(.segmented).labelsHidden().frame(width: 240)
             }
         }
-        SettingsGroup(title: L("Typeface"), footer: L("Estedad is an open-source Persian typeface (SIL Open Font License) bundled with CoolDock.")) {
+        SettingsGroup(title: L("Typeface"), footer: L("Estedad is an open-source Persian typeface (SIL Open Font License) bundled with NiceDock.")) {
             ToggleRow(title: L("Use Estedad for Persian and Arabic"), isOn: setting(\.useEstedad))
         }
     }
@@ -735,7 +735,7 @@ struct PerformancePane: View {
     private var store: AppStore { .shared }
 
     var body: some View {
-        PaneHeader(pane: .performance, subtitle: L("CoolDock samples only what visible widgets need and pauses everything else."))
+        PaneHeader(pane: .performance, subtitle: L("NiceDock samples only what visible widgets need and pauses everything else."))
         HStack(spacing: 12) {
             StatCard(title: L("Memory"), value: Fmt.number(footprint, decimals: 1) + " " + L("MB"), symbol: "memorychip", tint: .cdBlue)
             StatCard(title: L("CPU"), value: Fmt.number(cpu * 100, decimals: 1) + Fmt.digits("%"), symbol: "cpu", tint: .cdGreen)
@@ -748,7 +748,7 @@ struct PerformancePane: View {
         }
         SettingsGroup(title: L("Sampling")) {
             SliderRow(title: L("System stats interval"), value: setting(\.systemSampleInterval), range: 1...10, step: 1) { L("%@ s", Fmt.int(Int($0))) }
-            ToggleRow(title: L("Pause widgets while CoolDock is hidden"), isOn: setting(\.pauseWhenHidden))
+            ToggleRow(title: L("Pause widgets while NiceDock is hidden"), isOn: setting(\.pauseWhenHidden))
         }
         SettingsGroup(title: L("Rendering")) {
             ToggleRow(title: L("Reduce transparency"), subtitle: L("Solid fills instead of live blur."), isOn: setting(\.reduceTransparency))
@@ -803,7 +803,7 @@ struct AboutPane: View {
         let info = Bundle.main.infoDictionary ?? [:]
         VStack(spacing: 14) {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 96, height: 96)
-            Text(verbatim: "CoolDock").font(.ui(26, .bold))
+            Text(verbatim: "NiceDock").font(.ui(26, .bold))
             Text(L("Your smart second Dock")).font(.ui(14)).foregroundStyle(.secondary)
             Text(L("Version %@ (%@)", info["CFBundleShortVersionString"] as? String ?? "1.0", info["CFBundleVersion"] as? String ?? "1"))
                 .font(.ui(12)).foregroundStyle(.secondary)

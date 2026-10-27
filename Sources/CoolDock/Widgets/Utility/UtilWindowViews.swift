@@ -216,7 +216,7 @@ struct UtilWindowPanelView: View {
             Image(systemName: "hand.raised.fill").font(.system(size: 17, weight: .semibold)).foregroundStyle(p.accent(.cdOrange))
             VStack(alignment: .leading, spacing: 6) {
                 Text(L("Accessibility access needed")).font(.dock(12.5, .bold)).foregroundStyle(p.primary)
-                Text(L("CoolDock moves, resizes and closes windows with the macOS Accessibility API. Turn CoolDock on in Privacy & Security → Accessibility."))
+                Text(L("NiceDock moves, resizes and closes windows with the macOS Accessibility API. Turn NiceDock on in Privacy & Security → Accessibility."))
                     .font(.dock(11, .medium)).foregroundStyle(p.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Button { service.requestAccess() } label: {

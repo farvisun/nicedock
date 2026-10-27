@@ -6,7 +6,7 @@ import Testing
 
 // Accessibility code paths end to end against real windows. A process needs no Accessibility permission to drive
 // its own windows, so the test process opens windows of its own ("AX Probe A", "AX Probe B", …) and hands its own pid
-// to CoolDock's real functions: the same AX calls the Window Manager, the window list, the app menu, window events
+// to NiceDock's real functions: the same AX calls the Window Manager, the window list, the app menu, window events
 // and Dock badges make on other apps (which do need the permission; apart from the pid the code path is identical).
 // Opt-in, because it puts windows on screen for a few seconds and briefly shows the test runner in the Dock:
 //
@@ -17,7 +17,7 @@ import Testing
 //
 // The main run loop. AppKit stops the main run loop to end its own waits: blocks it queues while windows move,
 // resize or reorder, and the Dock's answers to minimize / restore (HIServices `_DCXTransactionComplete`). A stop ends
-// whichever run is innermost. In CoolDock that is `NSApplication.run()`, which simply goes on; in the test runner it
+// whichever run is innermost. In NiceDock that is `NSApplication.run()`, which simply goes on; in the test runner it
 // can be Swift's async-main `CFRunLoopRun()` (between tests), which then returns and exits the process. So:
 // the tests are synchronous and pump events through `NSApp.nextEvent` (AppKit's own wait), and from the first gap
 // between tests on the session runs inside a loop that keeps going when stopped, like `NSApplication.run()`
@@ -30,7 +30,7 @@ nonisolated(unsafe) var axLiveBreadcrumb = "start"
 /// True from a test's start until its windows are closed.
 nonisolated(unsafe) var axLiveInTest = false
 nonisolated(unsafe) var axLiveLoopRunning = false
-/// Stand-in for CoolDock's Application Support folder, removed when the process exits.
+/// Stand-in for NiceDock's Application Support folder, removed when the process exits.
 nonisolated(unsafe) var axLiveSupportDir: URL?
 
 /// Queues the session loop for the next gap between tests (a block runs at the next block pass of any run, so one
@@ -59,7 +59,7 @@ enum AXLive {
     static func prepare() {
         guard !prepared else { return }
         prepared = true
-        let support = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-axlive-\(UUID().uuidString)")
+        let support = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-axlive-\(UUID().uuidString)")
         axLiveSupportDir = support
         AppPaths.overrideDirectory = support
         AppStore.persistenceEnabled = false
@@ -182,7 +182,7 @@ enum AXLive {
 
     static func id(_ w: NSWindow) -> CGWindowID { CGWindowID(w.windowNumber) }
 
-    /// This process's on-screen windows as CoolDock's window list sees them (pid 0 is excluded instead of CoolDock's own).
+    /// This process's on-screen windows as NiceDock's window list sees them (pid 0 is excluded instead of NiceDock's own).
     static func entries() -> [UtilWinEntry] {
         UtilWindowService.onScreenEntries(excluding: 0).filter { $0.pid == pid }
     }
@@ -364,7 +364,7 @@ struct AXLiveTests {
         }
         #expect(UtilAX.window(pid: AXLive.pid, id: 0, frame: CGRect(x: 1, y: 1, width: 7, height: 7)) == nil)
 
-        // CGWindowList: front to back, this process's windows only when CoolDock's own pid is excluded.
+        // CGWindowList: front to back, this process's windows only when NiceDock's own pid is excluded.
         let entries = AXLive.entries()
         let ids = entries.map(\.id)
         #expect(Set(ids).isSuperset(of: [AXLive.id(a), AXLive.id(b), AXLive.id(fixed)]))
@@ -417,7 +417,7 @@ struct AXLiveTests {
         let a = AXLive.window("AX Probe A", start)
         #expect(AXLive.wait { AXLive.entry(a) != nil })
 
-        // No CoolDock Dock in the test process: the usable area is the display's visible frame.
+        // No NiceDock Dock in the test process: the usable area is the display's visible frame.
         let screens = NSScreen.screens
         #expect(UtilWindowService.screens() == screens.map { UtilWinScreen(frame: $0.frame, usable: $0.visibleFrame) })
         let area = AXLive.screen.visibleFrame
@@ -460,14 +460,14 @@ struct AXLiveTests {
         print("AXLive layouts: \(UtilWinAction.allCases.count) actions on \(screens.count) display(s), visible \(area), worst error \(worst) pt \(off)")
     }
 
-    @Test func layoutsKeepClearOfADockedCoolDock() throws {
+    @Test func layoutsKeepClearOfADockedNiceDock() throws {
         defer { AXLive.closeAll() }
         let start = AXLive.spot(150, 120, 640, 420)
         let a = AXLive.window("AX Probe A", start)
         #expect(AXLive.wait { AXLive.entry(a) != nil })
         let s = AXLive.screen
         let visible = s.visibleFrame
-        // A CoolDock docked at the bottom (86 pt tall, 4 pt margin), then one under the menu bar.
+        // A NiceDock docked at the bottom (86 pt tall, 4 pt margin), then one under the menu bar.
         let bottomDock = CGRect(x: visible.midX - 320, y: visible.minY + 4, width: 640, height: 86)
         let topDock = CGRect(x: visible.midX - 320, y: visible.maxY - 84, width: 640, height: 80)
         for (dock, usable) in [(bottomDock, CGRect(x: visible.minX, y: visible.minY + 90, width: visible.width, height: visible.height - 90)),

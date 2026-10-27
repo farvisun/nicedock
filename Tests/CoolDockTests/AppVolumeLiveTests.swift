@@ -19,7 +19,7 @@ import Testing
 struct AppVolumeLiveTests {
     /// 220 Hz stereo sine at `amplitude` (0.1 ≈ −20 dBFS), float CAF in a temp directory.
     static func tone(seconds: Double, amplitude: Float) throws -> URL {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-appvolume-\(UUID().uuidString)")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-appvolume-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let url = dir.appendingPathComponent("tone.caf")
         let format = try #require(AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 48000, channels: 2, interleaved: true))

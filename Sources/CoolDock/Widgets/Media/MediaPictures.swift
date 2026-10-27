@@ -304,7 +304,7 @@ final class MediaWallpaperModel {
         }
         for screen in NSScreen.screens {
             let opts = NSWorkspace.shared.desktopImageOptions(for: screen) ?? [:]
-            do { try NSWorkspace.shared.setDesktopImageURL(pick, for: screen, options: opts) } catch { NSLog("CoolDock wallpaper: \(error)") }
+            do { try NSWorkspace.shared.setDesktopImageURL(pick, for: screen, options: opts) } catch { NSLog("NiceDock wallpaper: \(error)") }
         }
         await refresh(force: true)
     }

@@ -97,7 +97,7 @@ import Testing
         let r = WallpaperRequest(mood: .dreamy, style: .blobs)
         let out = try WallpaperStudio.generate(r, width: 160, height: 100, directory: dir)
         #expect(out.url.deletingLastPathComponent().standardizedFileURL == dir.standardizedFileURL)
-        #expect(out.url.lastPathComponent.hasPrefix("cooldock-dreamy-blobs-"))
+        #expect(out.url.lastPathComponent.hasPrefix("nicedock-dreamy-blobs-"))
         #expect(out.url.lastPathComponent.hasSuffix("-160x100.jpg"))
         let source = try #require(CGImageSourceCreateWithURL(out.url as CFURL, nil))
         let props = try #require(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any])

@@ -44,7 +44,7 @@ struct OnboardingView: View {
                 }
                 Spacer()
                 if step > 0 { Button(L("Back")) { withAnimation(.easeOut(duration: 0.25)) { step -= 1 } } }
-                Button(step == steps - 1 ? L("Start Using CoolDock") : L("Continue")) {
+                Button(step == steps - 1 ? L("Start Using NiceDock") : L("Continue")) {
                     if step == steps - 1 { complete() } else { withAnimation(.easeOut(duration: 0.25)) { step += 1 } }
                 }
                 .keyboardShortcut(.defaultAction)
@@ -79,7 +79,7 @@ struct OnboardingView: View {
         VStack(spacing: 18) {
             Image(systemName: "globe").font(.system(size: 40)).foregroundStyle(Color.accentColor).padding(.top, 36)
             Text(L("Choose your language")).font(.ui(24, .bold))
-            Text(L("CoolDock speaks your language — including Persian with the Estedad typeface and the Solar Hijri calendar."))
+            Text(L("NiceDock speaks your language — including Persian with the Estedad typeface and the Solar Hijri calendar."))
                 .font(.ui(13)).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 480)
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(150), spacing: 10), count: 4), spacing: 10) {
                 ForEach(AppLanguage.allCases.filter { $0 != .system }) { lang in
@@ -101,7 +101,7 @@ struct OnboardingView: View {
 
     private var layout: some View {
         VStack(spacing: 16) {
-            Text(L("Where should CoolDock live?")).font(.ui(24, .bold)).padding(.top, 30)
+            Text(L("Where should NiceDock live?")).font(.ui(24, .bold)).padding(.top, 30)
             Text(L("You can change this any time in Settings → Layout.")).font(.ui(13)).foregroundStyle(.secondary)
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach([LayoutScenario.swapBottom, .fixed, .revealBottom, .floating]) { sc in
@@ -122,7 +122,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 10) {
                 tip("cursorarrow.click.2", L("Right-click the Dock or any widget for options."))
                 tip("square.grid.2x2", L("Open Widgets to add more — or drag a card straight into the Dock."))
-                tip("command", L("Hold ⌘ and drag to reorder. Press ⌃⌥⌘D to hide or show CoolDock."))
+                tip("command", L("Hold ⌘ and drag to reorder. Press ⌃⌥⌘D to hide or show NiceDock."))
                 tip("person.2.crop.square.stack", L("Hover the Dock to switch between profiles."))
             }
             .frame(maxWidth: 460)

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Languages CoolDock ships with. English strings are the lookup keys, so `en` needs no table.
+/// Languages NiceDock ships with. English strings are the lookup keys, so `en` needs no table.
 enum AppLanguage: String, CaseIterable, Codable, Identifiable {
     case system
     case en

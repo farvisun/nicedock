@@ -2,14 +2,14 @@ import Foundation
 import Testing
 @testable import CoolDock
 
-/// Spawns the built `CoolDock --mcp` binary with a temporary HOME and support directory and talks to it over
+/// Spawns the built `NiceDock --mcp` binary with a temporary HOME and support directory and talks to it over
 /// stdin/stdout like an MCP client. Set `COOLDOCK_MCP_TRANSCRIPT=<file>` / `COOLDOCK_MCP_TRANSCRIPT_CHANGES=<file>` to
 /// save the exchanged JSON.
 @Suite struct MCPEndToEndTests {
     static var binary: URL? {
         var candidates: [URL] = []
         if let bundle = Bundle.allBundles.first(where: { $0.bundlePath.hasSuffix(".xctest") }) {
-            candidates.append(bundle.bundleURL.deletingLastPathComponent().appendingPathComponent("CoolDock"))
+            candidates.append(bundle.bundleURL.deletingLastPathComponent().appendingPathComponent("NiceDock"))
         }
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         candidates += [".build/debug/CoolDock", ".build/arm64-apple-macosx/debug/CoolDock", ".build/x86_64-apple-macosx/debug/CoolDock"]
@@ -19,13 +19,13 @@ import Testing
 
     /// Writes `lines` to the server's stdin, closes it and returns stdout lines (the server exits on EOF).
     static func exchange(_ lines: [String], home: URL) throws -> (replies: [String], status: Int32, stderr: String) {
-        let exe = try #require(binary, "build the CoolDock product first (swift build)")
+        let exe = try #require(binary, "build the NiceDock product first (swift build)")
         let process = Process()
         process.executableURL = exe
         process.arguments = ["--mcp"]
         var env = ProcessInfo.processInfo.environment
         env["HOME"] = home.path
-        env["COOLDOCK_SUPPORT_DIR"] = home.appendingPathComponent("Library/Application Support/CoolDock").path
+        env["COOLDOCK_SUPPORT_DIR"] = home.appendingPathComponent("Library/Application Support/NiceDock").path
         process.environment = env
         let input = Pipe(), output = Pipe(), errors = Pipe()
         process.standardInput = input
@@ -37,7 +37,7 @@ import Testing
         input.fileHandleForWriting.write(Data((lines.joined(separator: "\n") + "\n").utf8))
         try input.fileHandleForWriting.close()
         let finished = out.wait(30) && err.wait(5)
-        if !finished { process.terminate(); Issue.record("CoolDock --mcp did not exit after stdin closed") }
+        if !finished { process.terminate(); Issue.record("NiceDock --mcp did not exit after stdin closed") }
         process.waitUntilExit()
         return (out.text.split(separator: "\n").map(String.init), process.terminationStatus, err.text)
     }
@@ -61,14 +61,14 @@ import Testing
     @Test func initializeListAndGetDock() throws {
         let home = AssistantFixture.tempDirectory()
         defer { try? FileManager.default.removeItem(at: home) }
-        let support = home.appendingPathComponent("Library/Application Support/CoolDock")
+        let support = home.appendingPathComponent("Library/Application Support/NiceDock")
         var state = AssistantFixture.state(enabled: true, allowChanges: false)
         state.settings.dockStyle = .lightGlass
         try AssistantFixture.write(state, to: support.appendingPathComponent("state.json"))
         let before = try Data(contentsOf: support.appendingPathComponent("state.json"))
 
         let requests = [
-            #"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"cooldock-e2e","version":"1.0"}}}"#,
+            #"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nicedock-e2e","version":"1.0"}}}"#,
             #"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
             #"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#,
             #"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_dock","arguments":{}}}"#,
@@ -83,7 +83,7 @@ import Testing
         #expect(parsed.map { $0["id"] } == [1, 2, 3, 4, 5])
 
         #expect(parsed[0]["result"]?["protocolVersion"] == "2025-06-18")
-        #expect(parsed[0]["result"]?["serverInfo"]?["name"] == "cooldock")
+        #expect(parsed[0]["result"]?["serverInfo"]?["name"] == "nicedock")
 
         let tools = try #require(parsed[1]["result"]?["tools"]?.arrayValue)
         #expect(tools.count == AssistantTools.all.count)
@@ -105,15 +105,15 @@ import Testing
         Self.saveTranscript(requests, replies, env: "COOLDOCK_MCP_TRANSCRIPT")
     }
 
-    /// With Allow Changes on and CoolDock not running, changes land in state.json; previews never touch the desktop.
+    /// With Allow Changes on and NiceDock not running, changes land in state.json; previews never touch the desktop.
     @Test func changesWithoutTheRunningApp() throws {
         let home = AssistantFixture.tempDirectory()
         defer { try? FileManager.default.removeItem(at: home) }
-        let support = home.appendingPathComponent("Library/Application Support/CoolDock")
+        let support = home.appendingPathComponent("Library/Application Support/NiceDock")
         let state = AssistantFixture.state(enabled: true, allowChanges: true)
         try AssistantFixture.write(state, to: support.appendingPathComponent("state.json"))
         let requests = [
-            #"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"cooldock-e2e","version":"1.0"}}}"#,
+            #"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nicedock-e2e","version":"1.0"}}}"#,
             #"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
             #"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add_widget","arguments":{"kind":"flipClock","profile":"Work","position":0}}}"#,
             #"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"set_appearance","arguments":{"dock_style":"black","corner_radius":14}}}"#,
@@ -172,7 +172,7 @@ import Testing
         #expect(parsed[0]["result"]?["protocolVersion"] == "2024-11-05")
         #expect(parsed[1]["error"]?["code"] == .int(RPCError.parseError))
         #expect(parsed[2]["result"]?["isError"] == true)
-        #expect(parsed[2]["result"]?["content"]?.arrayValue?.first?["text"]?.stringValue?.contains("disabled in CoolDock Settings") == true)
-        #expect(!FileManager.default.fileExists(atPath: home.appendingPathComponent("Library/Application Support/CoolDock/state.json").path))
+        #expect(parsed[2]["result"]?["content"]?.arrayValue?.first?["text"]?.stringValue?.contains("disabled in NiceDock Settings") == true)
+        #expect(!FileManager.default.fileExists(atPath: home.appendingPathComponent("Library/Application Support/NiceDock/state.json").path))
     }
 }

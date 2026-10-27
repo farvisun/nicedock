@@ -15,7 +15,7 @@
         "Button \"Choose Folder…\" — present, not pressed",
         "Button \"Export…\" — present, not pressed",
         "Button \"Reset…\" — present, not pressed",
-        "\"Launch CoolDock at login\" CheckBox — present, not pressed"
+        "\"Launch NiceDock at login\" CheckBox — present, not pressed"
       ],
       "failures" : [
 
@@ -33,7 +33,7 @@
             "windowTitle" : "General"
           },
           "before" : {
-            "header" : "CoolDock",
+            "header" : "NiceDock",
             "windowTitle" : "About"
           },
           "ok" : true
@@ -173,8 +173,8 @@
         "\"Distance from Bottom Edge\" Slider value 8.0",
         "Button \"Bottom Left\"",
         "Button \"Turn On Dock Auto-Hide\" — present, not pressed",
-        "Button \"Replace the macOS Dock, Hide the macOS Dock while CoolDock runs and keep CoolDock fixed at the bottom.\" — present, not pressed",
-        "Button \"Replace & Auto-Hide, Hide the macOS Dock and reveal CoolDock only at the bottom edge.\" — present, not pressed"
+        "Button \"Replace the macOS Dock, Hide the macOS Dock while NiceDock runs and keep NiceDock fixed at the bottom.\" — present, not pressed",
+        "Button \"Replace & Auto-Hide, Hide the macOS Dock and reveal NiceDock only at the bottom edge.\" — present, not pressed"
       ],
       "failures" : [
 
@@ -253,7 +253,7 @@
     {
       "elements" : [
         "sidebar row Unknown \"Screens\"",
-        "\"Show CoolDock on\" segments One Display=1, Attached Displays=0, All Displays=0"
+        "\"Show NiceDock on\" segments One Display=1, Attached Displays=0, All Displays=0"
       ],
       "failures" : [
 
@@ -277,7 +277,7 @@
           "ok" : true
         },
         {
-          "action" : "press segment \"All Displays\" of \"Show CoolDock on\"",
+          "action" : "press segment \"All Displays\" of \"Show NiceDock on\"",
           "after" : {
             "model" : "all",
             "selected" : "All Displays"
@@ -711,7 +711,7 @@
       "elements" : [
         "sidebar row Unknown \"Performance\"",
         "\"System stats interval\" Slider value 2.0",
-        "\"Pause widgets while CoolDock is hidden\" CheckBox",
+        "\"Pause widgets while NiceDock is hidden\" CheckBox",
         "Button \"Clear Cache\" — present, not pressed"
       ],
       "failures" : [
@@ -755,7 +755,7 @@
           "ok" : true
         },
         {
-          "action" : "press switch \"Pause widgets while CoolDock is hidden\"",
+          "action" : "press switch \"Pause widgets while NiceDock is hidden\"",
           "after" : {
             "AXValue" : 0,
             "model" : false
@@ -801,7 +801,7 @@
         {
           "action" : "press sidebar row \"About\"",
           "after" : {
-            "header" : "CoolDock",
+            "header" : "NiceDock",
             "windowTitle" : "About"
           },
           "before" : {
@@ -851,7 +851,7 @@
     }
   ],
   "passed" : true,
-  "probe" : "CoolDock --ui-probe",
+  "probe" : "NiceDock --ui-probe",
   "seconds" : 16.5,
   "summary" : {
     "panes" : "12\/12",

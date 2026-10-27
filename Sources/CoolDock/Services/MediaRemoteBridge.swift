@@ -2,9 +2,9 @@ import AppKit
 
 /// System-wide Now Playing (browsers, Podcasts, VLC, IINA… anything in Control Center) through MediaRemote.
 ///
-/// Since macOS 15.4 MediaRemote only answers Apple-signed clients, so CoolDock runs `/usr/bin/perl` with a tiny
+/// Since macOS 15.4 MediaRemote only answers Apple-signed clients, so NiceDock runs `/usr/bin/perl` with a tiny
 /// helper library (`Helpers/MediaRemote`, bundled in `Contents/Resources/MediaRemote`) that streams one JSON object
-/// per line and takes commands on stdin. The helper exits as soon as its stdin closes, so it never outlives CoolDock.
+/// per line and takes commands on stdin. The helper exits as soon as its stdin closes, so it never outlives NiceDock.
 @MainActor
 final class MediaRemoteBridge {
     struct Update: Decodable, Equatable {
@@ -93,7 +93,7 @@ final class MediaRemoteBridge {
 
     private func launch() {
         guard Self.isAvailable, let dir = Self.helperDirectory else { onUnavailable?(); return }
-        // Writing to a helper that just died must not kill CoolDock.
+        // Writing to a helper that just died must not kill NiceDock.
         signal(SIGPIPE, SIG_IGN)
         let p = Process()
         p.executableURL = URL(fileURLWithPath: Self.perl)

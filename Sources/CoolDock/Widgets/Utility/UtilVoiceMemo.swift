@@ -3,7 +3,7 @@ import AVFoundation
 import Observation
 import SwiftUI
 
-/// Records m4a voice memos into ~/Music/CoolDock Voice Memos and plays them back.
+/// Records m4a voice memos into ~/Music/NiceDock Voice Memos and plays them back.
 @Observable
 @MainActor
 final class UtilVoiceRecorder {
@@ -38,9 +38,9 @@ final class UtilVoiceRecorder {
     @ObservationIgnored var makeRecorder: (URL) throws -> UtilVoiceCapture = UtilVoiceRecorder.audioRecorder
     @ObservationIgnored var now: () -> Date = { Date() }
 
-    /// ~/Music/CoolDock Voice Memos (a temporary folder in tests).
+    /// ~/Music/NiceDock Voice Memos (a temporary folder in tests).
     static var directory: URL = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Music/CoolDock Voice Memos", isDirectory: true)
+        .appendingPathComponent("Music/NiceDock Voice Memos", isDirectory: true)
 
     private static let nameFormatter: DateFormatter = {
         let f = DateFormatter()

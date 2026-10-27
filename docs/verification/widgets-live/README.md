@@ -1,6 +1,6 @@
 # Live widget states (27 Oct 2026, macOS 27.0.1, final build)
 
-Every one of the 111 widget kinds rendered with live data on this Mac (`CoolDock --render <dir> all --wait 4`, the
+Every one of the 111 widget kinds rendered with live data on this Mac (`NiceDock --render <dir> all --wait 4`, the
 same pass `scripts/chrome-check.sh` makes). The sheets in this folder are from an earlier pass; the final pass is
 summarised here instead of committed because it shows personal calendar, files and wallpaper.
 
@@ -17,7 +17,7 @@ summarised here instead of committed because it shows personal calendar, files a
 In the app render these showed "Offline". The system log shows why: each connection failed within 4 ms with
 `NSURLErrorDomain -1005` / POSIX 57, at the same millisecond Little Snitch's network extension logged
 `No current verdict available, cannot report flow closed`. Little Snitch holds every freshly built, ad-hoc signed
-`CoolDock` binary until it is allowed; `curl` from the same shell reached every service.
+`NiceDock` binary until it is allowed; `curl` from the same shell reached every service.
 
 The same service code, run from the test process (`COOLDOCK_LIVE_NET=1 swift test --filter NetworkLive`), passed
 against the real services:

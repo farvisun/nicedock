@@ -9,7 +9,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         if visible, item == nil {
             let i = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
             if let button = i.button {
-                let image = NSImage(systemSymbolName: "dock.rectangle", accessibilityDescription: "CoolDock")
+                let image = NSImage(systemSymbolName: "dock.rectangle", accessibilityDescription: "NiceDock")
                 image?.isTemplate = true
                 button.image = image
             }
@@ -83,7 +83,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             profiles.submenu = pm
             menu.addItem(profiles)
         }
-        menu.addItem(action(store.dockHidden ? L("Show CoolDock") : L("Hide CoolDock"), #selector(toggleDock)))
+        menu.addItem(action(store.dockHidden ? L("Show NiceDock") : L("Hide NiceDock"), #selector(toggleDock)))
         menu.addItem(.separator())
 
         let help = NSMenuItem(title: L("Help"), action: nil, keyEquivalent: "")
@@ -94,7 +94,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         help.submenu = hm
         menu.addItem(help)
         menu.addItem(.separator())
-        menu.addItem(action(L("Quit CoolDock"), #selector(quit), key: "q"))
+        menu.addItem(action(L("Quit NiceDock"), #selector(quit), key: "q"))
     }
 
     private func action(_ title: String, _ sel: Selector, key: String = "") -> NSMenuItem {
@@ -109,7 +109,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     @objc private func resetLayout() { DockController.shared.resetLayout() }
     @objc private func toggleDock() { DockController.shared.toggleVisibility() }
     @objc private func quit() { NSApp.terminate(nil) }
-    @objc private func contact() { Open.url("mailto:support@cooldock.app") }
+    @objc private func contact() { Open.url("https://github.com/farvisun/nicedock/issues") }
     @objc private func exportDiagnostics() { Diagnostics.export() }
 
     @objc private func pickScenario(_ sender: NSMenuItem) {
@@ -134,7 +134,7 @@ enum Diagnostics {
         let info = Bundle.main.infoDictionary ?? [:]
         let mem = Self.memoryFootprintMB()
         var lines = [
-            "CoolDock \(info["CFBundleShortVersionString"] as? String ?? "dev") (\(info["CFBundleVersion"] as? String ?? "0"))",
+            "NiceDock \(info["CFBundleShortVersionString"] as? String ?? "dev") (\(info["CFBundleVersion"] as? String ?? "0"))",
             "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)",
             "Memory footprint: \(String(format: "%.1f", mem)) MB",
             "Language: \(store.resolvedLanguage.rawValue)  Calendar: \(Fmt.calendar.identifier)",
@@ -162,7 +162,7 @@ enum Diagnostics {
     @MainActor
     static func export() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "CoolDock-Diagnostics.txt"
+        panel.nameFieldStringValue = "NiceDock-Diagnostics.txt"
         NSApp.activate(ignoringOtherApps: true)
         if panel.runModal() == .OK, let url = panel.url {
             try? report().write(to: url, atomically: true, encoding: .utf8)

@@ -1,4 +1,4 @@
-# Writing CoolDock widgets
+# Writing NiceDock widgets
 
 This is the contract every widget follows. Read it before touching `Sources/CoolDock/Widgets/`.
 

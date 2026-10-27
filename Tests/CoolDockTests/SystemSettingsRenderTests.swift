@@ -23,7 +23,7 @@ import Testing
         let store = AppStore.shared
         defer { store.settings.language = .en }
 
-        let path = "~/Library/Application Support/CoolDock/credentials.cdvault"
+        let path = "~/Library/Application Support/NiceDock/credentials.cdvault"
         for lang in [AppLanguage.en, .fa] {
             var s = Settings()
             s.language = lang

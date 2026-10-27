@@ -3,16 +3,16 @@ import ApplicationServices
 
 /// Reserve Dock Space (Settings → Layout → Dock Space).
 ///
-/// macOS gives third-party apps no way to shrink `NSScreen.visibleFrame`, so CoolDock does what a window manager does:
+/// macOS gives third-party apps no way to shrink `NSScreen.visibleFrame`, so NiceDock does what a window manager does:
 /// it listens to Accessibility window notifications (`WindowEventHub`) and, when a standard window of another app
-/// overlaps a visible CoolDock, moves it up (or down for a top Dock) — or shortens it when it is too tall — so it ends at
+/// overlaps a visible NiceDock, moves it up (or down for a top Dock) — or shortens it when it is too tall — so it ends at
 /// the Dock's edge. The geometry is `ReserveSpace` (pure, unit-tested).
 ///
-/// Rules: only standard windows (no panels, sheets, dialogs), never minimized or fullscreen ones, never CoolDock's own.
+/// Rules: only standard windows (no panels, sheets, dialogs), never minimized or fullscreen ones, never NiceDock's own.
 /// Notifications are coalesced (180 ms) and a window being dragged or resized is left alone until the mouse button is
 /// released; whether a window the user put there by hand is moved depends on "Also After Dragging". Each display
 /// reserves room for its own Dock. An app that keeps putting a window back is left alone after three tries
-/// (`AdjustmentLimiter`), so CoolDock never fights it.
+/// (`AdjustmentLimiter`), so NiceDock never fights it.
 @MainActor
 final class DockSpaceReserver {
     static let shared = DockSpaceReserver()

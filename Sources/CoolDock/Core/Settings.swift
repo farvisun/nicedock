@@ -29,13 +29,13 @@ enum LayoutScenario: String, Codable, CaseIterable, Identifiable {
     }
     var summary: String {
         switch self {
-        case .swapBottom: return L("CoolDock stays at the bottom; move to the edge and the auto-hiding macOS Dock takes over.")
+        case .swapBottom: return L("NiceDock stays at the bottom; move to the edge and the auto-hiding macOS Dock takes over.")
         case .revealBottom: return L("Hidden until the pointer reaches the bottom edge, then slides up above the macOS Dock.")
         case .fixed: return L("Always visible at one of six screen positions.")
         case .revealTop: return L("Hidden until the pointer reaches the top edge, then reveals below the menu bar.")
-        case .replaceDock: return L("Hide the macOS Dock while CoolDock runs and keep CoolDock fixed at the bottom.")
-        case .replaceAutoHide: return L("Hide the macOS Dock and reveal CoolDock only at the bottom edge.")
-        case .floating: return L("Drag CoolDock anywhere on the selected display.")
+        case .replaceDock: return L("Hide the macOS Dock while NiceDock runs and keep NiceDock fixed at the bottom.")
+        case .replaceAutoHide: return L("Hide the macOS Dock and reveal NiceDock only at the bottom edge.")
+        case .floating: return L("Drag NiceDock anywhere on the selected display.")
         }
     }
     var symbol: String {
@@ -240,9 +240,9 @@ struct Settings: Codable, Equatable {
     }
 
     // AI Assistant (MCP). Optional for the same reason as `calendarFeeds`; nil means off.
-    /// MCP clients may read CoolDock (`CoolDock --mcp`). Off by default: every tool answers "disabled".
+    /// MCP clients may read NiceDock (`NiceDock --mcp`). Off by default: every tool answers "disabled".
     var aiAssistantEnabled: Bool? = nil
-    /// MCP clients may also change CoolDock. Off by default: the assistant is read-only.
+    /// MCP clients may also change NiceDock. Off by default: the assistant is read-only.
     var aiAllowChanges: Bool? = nil
 
     var assistantEnabled: Bool {

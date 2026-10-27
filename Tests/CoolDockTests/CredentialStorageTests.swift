@@ -34,7 +34,7 @@ final class FakeKeychain: CredentialStore {
 
     /// A fresh directory per test, removed by the caller.
     static func tempDir() -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-cred-\(UUID().uuidString)", isDirectory: true)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-cred-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -97,7 +97,7 @@ final class FakeKeychain: CredentialStore {
             #expect(raw.range(of: Data(value.utf8)) == nil)
         }
         let env = try JSONDecoder().decode(EncryptedFileCredentialStore.Envelope.self, from: raw)
-        #expect(env.format == "app.cooldock.credentials" && env.version == 1)
+        #expect(env.format == "app.nicedock.credentials" && env.version == 1)
         #expect(env.kdf == "HKDF-SHA256" && env.cipher == "AES-256-GCM")
         #expect(env.salt.count == 32)
         #expect(env.sealed.count > 12 + 16)
@@ -131,8 +131,8 @@ final class FakeKeychain: CredentialStore {
         var ikm = try Data(contentsOf: store.keyURL)
         ikm.append(Data(Self.mac.utf8))
         let key = HKDF<SHA256>.deriveKey(inputKeyMaterial: SymmetricKey(data: ikm), salt: env.salt,
-                                         info: Data("app.cooldock.credentials.v1".utf8), outputByteCount: 32)
-        var aad = Data("app.cooldock.credentials|v1|".utf8)
+                                         info: Data("app.nicedock.credentials.v1".utf8), outputByteCount: 32)
+        var aad = Data("app.nicedock.credentials|v1|".utf8)
         aad.append(env.salt)
         let plain = try AES.GCM.open(AES.GCM.SealedBox(combined: env.sealed), using: key, authenticating: aad)
         #expect(try JSONDecoder().decode([String: String].self, from: plain) == Self.tokens)

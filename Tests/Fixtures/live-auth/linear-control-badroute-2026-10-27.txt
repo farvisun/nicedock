@@ -2,7 +2,7 @@
 # headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
 # telemetry headers are removed, ids/IPs inside the body redacted.
 > POST https://api.linear.app/graphqlz
-> User-Agent: CoolDock/1.0 (macOS)
+> User-Agent: NiceDock/1.0 (macOS)
 > Accept: */*
 > Accept-Encoding: deflate, gzip
 > Accept-Language: en-US,en;q=0.9

@@ -44,7 +44,7 @@ import UniformTypeIdentifiers
     }
 
     @Test func readsLocalStateFromTheChannelFolderAndRereadsWhenItChanges() throws {
-        let support = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-chromium-\(UUID().uuidString)")
+        let support = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-chromium-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: support) }
         let canary = try #require(AppsChromium.spec("com.google.Chrome.canary"))
         let file = canary.localState(in: support)
@@ -110,7 +110,7 @@ import UniformTypeIdentifiers
 @Suite struct RecentDocumentsTests {
     /// A temp folder with real files, so bookmarks can be created for them.
     static func sandbox() throws -> URL {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-sfl-\(UUID().uuidString)", isDirectory: true)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-sfl-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }

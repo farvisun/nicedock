@@ -4,8 +4,8 @@ import Observation
 
 /// Moves, resizes, raises, minimizes and closes other apps' windows through the Accessibility API.
 ///
-/// Tile buttons act on the focused window of the last app the user was in: CoolDock's dock and panels never
-/// activate CoolDock, and a CoolDock window that does become active (Settings) is skipped. Permission is only read
+/// Tile buttons act on the focused window of the last app the user was in: NiceDock's dock and panels never
+/// activate NiceDock, and a NiceDock window that does become active (Settings) is skipped. Permission is only read
 /// with `AXIsProcessTrusted()` — never the prompting variant; the user grants it in System Settings. Developer
 /// renders (`--render`) never touch real windows.
 @Observable
@@ -108,7 +108,7 @@ final class UtilWindowService: DemandDriven {
         NSScreen.screens.map { UtilWinScreen(frame: $0.frame, usable: UtilWinMath.usable(visible: $0.visibleFrame, dock: coolDockFrame(on: $0))) }
     }
 
-    /// CoolDock's dock on `screen` while it stays docked there (reveal and floating docks don't reserve space).
+    /// NiceDock's dock on `screen` while it stays docked there (reveal and floating docks don't reserve space).
     static func coolDockFrame(on screen: NSScreen) -> CGRect? {
         let store = AppStore.shared
         let scenario = store.settings.scenario
@@ -168,7 +168,7 @@ final class UtilWindowService: DemandDriven {
 
     private func onScreenEntries() -> [UtilWinEntry] { Self.onScreenEntries(excluding: ownPID) }
 
-    /// Visible normal windows of regular apps other than `own` (CoolDock), front to back (CGWindowList; titles only
+    /// Visible normal windows of regular apps other than `own` (NiceDock), front to back (CGWindowList; titles only
     /// with Screen Recording).
     static func onScreenEntries(excluding own: pid_t) -> [UtilWinEntry] {
         let infos = (CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]) ?? []
@@ -242,7 +242,7 @@ final class UtilWindowService: DemandDriven {
 /// trust: `UtilWindowService`'s entry points do that first, because other apps' windows need it. A process needs no
 /// permission for its own windows, so the live tests (`AXLiveTests`) call these with the test process's pid; apart
 /// from the pid the code path is the one the buttons take. `screens` defaults to the real displays
-/// (`UtilWindowService.screens()`, with CoolDock's docked Dock taken out).
+/// (`UtilWindowService.screens()`, with NiceDock's docked Dock taken out).
 @MainActor
 enum UtilWinActions {
     /// `action` on the focused window of `pid`.

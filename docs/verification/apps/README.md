@@ -5,13 +5,13 @@ and Persian. Every frame is a 2× harness render of the real views (no mock data
 
 ```bash
 scripts/build-app.sh release
-COOLDOCK_OFFLINE=1 build/CoolDock.app/Contents/MacOS/CoolDock --render docs/verification/apps/en \
+COOLDOCK_OFFLINE=1 build/NiceDock.app/Contents/MacOS/NiceDock --render docs/verification/apps/en \
   folder-panel,folder-panelNested,folder-panelSearch,folder-panelSorted,folder-colors,app-badges,app-menu \
   --scene reference --lang en --style darkGlass
 # fa: same with --lang fa and docs/verification/apps/fa
 ```
 
-The frames' data is synthetic and created by `AppsScene` in the temporary folder (`$TMPDIR/CoolDockScene`): a
+The frames' data is synthetic and created by `AppsScene` in the temporary folder (`$TMPDIR/NiceDockScene`): a
 `Studio` folder with sub-folders and files (sizes and dates fixed), a stand-in Chromium app with Chrome Canary's bundle
 id and a `Local State` with three profiles, and Dock recent-document lists (`.sfl3`) for Finder and TextEdit that point
 into `Studio`. Renders never read other apps (no Accessibility, AppleScript or login items), so the live window list
@@ -42,7 +42,7 @@ and live badges aren't in the pictures; badges are seeded with raw labels.
 - **App menus** (`app-menu`): the NSMenus `AppsAppMenu.build` returns, drawn as lists (submenus indented under their
   item; the harness can't draw NSMenu). Chromium: New Window, New Incognito Window, New Window with Profile ▸ in the
   browser's own profile order. Finder (running): New Window, Open Recent ▸ decoded from the `.sfl3`, Show All Windows,
-  Hide, and no Quit, like the Dock. TextEdit: New Document + Open Recent. Mail: New Message. CoolDock (the running render
+  Hide, and no Quit, like the Dock. TextEdit: New Document + Open Recent. Mail: New Message. NiceDock (the running render
   process): Quit with the ⌥ alternate Force Quit. Options ▸ holds Keep in Dock / Remove from Dock, Open at Login, Show in
   Finder, and "Show Windows & Badges…" while Accessibility is off. Live menus also start with the app's window list and
   end with the tile's own items (Customize…, Widgets…, Settings…, Remove).

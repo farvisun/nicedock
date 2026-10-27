@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Favicons fetched once per host and kept on disk (`Caches/CoolDock/favicons`), small in memory.
+/// Favicons fetched once per host and kept on disk (`Caches/NiceDock/favicons`), small in memory.
 @MainActor
 final class UtilFavicons {
     static let shared = UtilFavicons()

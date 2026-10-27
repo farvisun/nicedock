@@ -69,7 +69,7 @@ enum Behaviour {
 
     /// A fresh temporary folder (removed by the caller).
     static func tempDirectory(_ name: String = "behaviour") -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-\(name)-\(UUID().uuidString)", isDirectory: true)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-\(name)-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -1056,8 +1056,8 @@ struct PermissionDeniedBehaviourTests {
         svc.reloadReminders()
         #expect(!svc.hasReminderAccess && !CalData.hasReminders && svc.reminders.isEmpty)
 
-        svc.addReminder("CoolDock test — must never be saved") // no access: refused before EventKit is asked
-        svc.complete(DockReminder(id: "cooldock-test-missing", title: "x", due: nil, color: .red, priority: 0))
+        svc.addReminder("NiceDock test — must never be saved") // no access: refused before EventKit is asked
+        svc.complete(DockReminder(id: "nicedock-test-missing", title: "x", due: nil, color: .red, priority: 0))
         #expect(svc.reminders.isEmpty)
 
         // The widget appearing doesn't ask again once the user has answered (denied).
@@ -1083,8 +1083,8 @@ struct PermissionDeniedBehaviourTests {
         model.refreshStatus()
         #expect(!model.authorized && model.accessPrompt == "Contacts access off")
 
-        await model.load(["cooldock-test-id"], force: true)
-        #expect(model.contacts(["cooldock-test-id"]) == nil, "nothing is fetched without access")
+        await model.load(["nicedock-test-id"], force: true)
+        #expect(model.contacts(["nicedock-test-id"]) == nil, "nothing is fetched without access")
 
         model.requestAccess(then: []) // the tile's click: already answered, so System Settings instead of a prompt
         #expect(opened.map(\.absoluteString) == ["x-apple.systempreferences:com.apple.preference.security?Privacy_Contacts"])

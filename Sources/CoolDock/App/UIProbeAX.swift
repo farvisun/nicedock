@@ -2,7 +2,7 @@
 import AppKit
 import ApplicationServices
 
-/// Accessibility on CoolDock's own windows, for `--ui-probe`. A process needs no Accessibility permission for its own
+/// Accessibility on NiceDock's own windows, for `--ui-probe`. A process needs no Accessibility permission for its own
 /// pid: reading the tree, pressing, and setting values all work untrusted. Every call goes through the same
 /// `AXUIElement` API a screen reader or UI-scripting tool would use; nothing here reaches into SwiftUI or the models.
 @MainActor

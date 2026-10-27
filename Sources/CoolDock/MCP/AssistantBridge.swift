@@ -118,8 +118,8 @@ final class AssistantSocketServer: @unchecked Sendable {
     private let handler: (JSONValue) -> JSONValue
     private var listener: Int32 = -1
     private var source: DispatchSourceRead?
-    private let acceptQueue = DispatchQueue(label: "app.cooldock.assistant.accept")
-    private let workQueue = DispatchQueue(label: "app.cooldock.assistant.work", attributes: .concurrent)
+    private let acceptQueue = DispatchQueue(label: "app.nicedock.assistant.accept")
+    private let workQueue = DispatchQueue(label: "app.nicedock.assistant.work", attributes: .concurrent)
 
     init(path: String, handler: @escaping (JSONValue) -> JSONValue) {
         self.path = path
@@ -129,7 +129,7 @@ final class AssistantSocketServer: @unchecked Sendable {
     func start() throws {
         if let other = UnixSocket.connect(path, timeout: 1) {
             close(other)
-            throw ToolFailure("Another CoolDock already answers on \(path).")
+            throw ToolFailure("Another NiceDock already answers on \(path).")
         }
         let fd = try UnixSocket.listen(path)
         listener = fd
@@ -179,8 +179,8 @@ struct AssistantAppClient {
     func send(_ request: JSONValue) throws -> Outcome {
         guard FileManager.default.fileExists(atPath: path), let fd = UnixSocket.connect(path, timeout: timeout) else { return .unavailable }
         defer { close(fd) }
-        guard UnixSocket.writeAll(fd, request.encoded() + Data([0x0A])) else { throw ToolFailure("Couldn't send the request to CoolDock.") }
-        guard let line = UnixSocket.readLine(fd, limit: 16 << 20) else { throw ToolFailure("CoolDock didn't answer in time. Try again.") }
+        guard UnixSocket.writeAll(fd, request.encoded() + Data([0x0A])) else { throw ToolFailure("Couldn't send the request to NiceDock.") }
+        guard let line = UnixSocket.readLine(fd, limit: 16 << 20) else { throw ToolFailure("NiceDock didn't answer in time. Try again.") }
         return .reply(try JSONValue.parse(line))
     }
 }
@@ -213,11 +213,11 @@ enum AssistantService {
 
     static func unwrap(_ reply: JSONValue) throws -> JSONValue {
         if reply["ok"]?.boolValue == true { return reply["result"] ?? .null }
-        throw ToolFailure(reply["error"]?.stringValue ?? "CoolDock returned an unexpected answer.")
+        throw ToolFailure(reply["error"]?.stringValue ?? "NiceDock returned an unexpected answer.")
     }
 }
 
-/// Running app: listens while CoolDock runs and applies tool calls through AppStore on the main actor.
+/// Running app: listens while NiceDock runs and applies tool calls through AppStore on the main actor.
 @MainActor
 enum AssistantBridge {
     private static var server: AssistantSocketServer?
@@ -232,7 +232,7 @@ enum AssistantBridge {
             try server.start()
             self.server = server
         } catch {
-            NSLog("CoolDock AI Assistant: \(error)")
+            NSLog("NiceDock AI Assistant: \(error)")
         }
     }
 
@@ -252,14 +252,14 @@ enum AssistantBridge {
 
 // MARK: - Offline path: state.json
 
-/// Reads and writes CoolDock's saved state exactly like AppStore does, under an exclusive lock.
+/// Reads and writes NiceDock's saved state exactly like AppStore does, under an exclusive lock.
 struct DockStateFile {
     let url: URL
 
     func load() throws -> DockState {
         guard FileManager.default.fileExists(atPath: url.path) else { return .fresh() }
         guard let data = try? Data(contentsOf: url), var state = try? JSONDecoder().decode(DockState.self, from: data), !state.profiles.isEmpty else {
-            throw ToolFailure("CoolDock's saved settings (\(url.path)) couldn't be read. Open CoolDock once, then try again.")
+            throw ToolFailure("NiceDock's saved settings (\(url.path)) couldn't be read. Open NiceDock once, then try again.")
         }
         if !state.profiles.contains(where: { $0.id == state.activeProfileID }) { state.activeProfileID = state.profiles[0].id }
         return state
@@ -272,7 +272,7 @@ struct DockStateFile {
         do {
             try enc.encode(state).write(to: url, options: .atomic)
         } catch {
-            throw ToolFailure("Couldn't save CoolDock's settings: \(error.localizedDescription)")
+            throw ToolFailure("Couldn't save NiceDock's settings: \(error.localizedDescription)")
         }
     }
 
@@ -288,7 +288,7 @@ struct DockStateFile {
 
 // MARK: - Routing (MCP process)
 
-/// Sends each tool call to the running app, or applies it to state.json when CoolDock isn't running.
+/// Sends each tool call to the running app, or applies it to state.json when NiceDock isn't running.
 /// Wallpapers are painted in the MCP process so the Dock never stalls.
 struct AssistantRouter {
     var stateFile: DockStateFile

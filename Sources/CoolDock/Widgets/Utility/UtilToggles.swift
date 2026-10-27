@@ -194,7 +194,7 @@ final class UtilToggleService: DemandDriven {
             var id: IOPMAssertionID = 0
             let ok = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
                                                  IOPMAssertionLevel(kIOPMAssertionLevelOn),
-                                                 "CoolDock Keep Awake" as CFString, &id)
+                                                 "NiceDock Keep Awake" as CFString, &id)
             if ok == kIOReturnSuccess { assertion = id; keepAwake = true }
         } else {
             if assertion != 0 { IOPMAssertionRelease(assertion) }

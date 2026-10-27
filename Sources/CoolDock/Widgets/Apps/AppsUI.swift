@@ -294,7 +294,7 @@ struct AppsPanelMessage: View {
     /// Shown when Files & Folders privacy blocks a read, with a shortcut to the right Settings pane.
     static var denied: some View {
         VStack(spacing: 10) {
-            AppsPanelMessage(symbol: "lock.fill", text: L("CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders."), height: 0)
+            AppsPanelMessage(symbol: "lock.fill", text: L("NiceDock can’t read this folder. Allow access in Privacy & Security → Files & Folders."), height: 0)
                 .frame(maxWidth: 300)
             AppsPanelButton(symbol: "hand.raised", title: L("Privacy Settings…")) {
                 Open.url("x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders")

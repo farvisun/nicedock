@@ -454,12 +454,12 @@ enum ClockAlerts {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        let request = UNNotificationRequest(identifier: "cooldock.clock." + UUID().uuidString, content: content, trigger: nil)
+        let request = UNNotificationRequest(identifier: "nicedock.clock." + UUID().uuidString, content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request) { _ in }
     }
 }
 
-/// Shows banners even while CoolDock is the active app (the dock is often frontmost when a timer ends).
+/// Shows banners even while NiceDock is the active app (the dock is often frontmost when a timer ends).
 final class ClockNotificationPresenter: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
     static let shared = ClockNotificationPresenter()
 

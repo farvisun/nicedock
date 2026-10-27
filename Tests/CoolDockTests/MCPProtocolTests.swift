@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import CoolDock
 
-/// JSON-RPC 2.0 framing, MCP lifecycle methods and error codes of `CoolDock --mcp`.
+/// JSON-RPC 2.0 framing, MCP lifecycle methods and error codes of `NiceDock --mcp`.
 @Suite struct MCPProtocolTests {
     /// Server whose tools echo their arguments (or fail with a tool error for `remove_widget`).
     static func server() -> MCPServer {
@@ -31,7 +31,7 @@ import Testing
         let result = try #require(r["result"])
         #expect(result["protocolVersion"]?.stringValue == version)
         #expect(result["capabilities"]?["tools"] != nil)
-        #expect(result["serverInfo"]?["name"] == "cooldock")
+        #expect(result["serverInfo"]?["name"] == "nicedock")
         #expect(result["serverInfo"]?["version"]?.stringValue?.isEmpty == false)
         #expect(result["instructions"]?.stringValue?.contains("get_dock") == true)
         #expect(s.protocolVersion == version)

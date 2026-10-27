@@ -1,7 +1,7 @@
 # Connected providers — live verification without accounts
 
 On 2026-10-27 (01:36–01:49 UTC) every request a connected widget sends was replayed with `curl 8.7.1`
-against the real service: same URL, method, query, headers (`Accept`, the app's `User-Agent: CoolDock/1.0 (macOS)`)
+against the real service: same URL, method, query, headers (`Accept`, the app's `User-Agent: NiceDock/1.0 (macOS)`)
 and body, once with **no credential** and once with an **obviously fake one** (`sk_test_invalid`, `Bearer invalid`, …).
 No account was created and no credential from this machine was used.
 
@@ -321,7 +321,7 @@ messages reuse existing strings ("Check your token", "Rate limited"), so transla
 | --- | --- |
 | Endpoint | `GET https://api.z.ai/api/monitor/usage/model-usage?startTime=yyyy-MM-dd HH:mm:ss&endTime=…` (local wall-clock times; **China** region: `open.bigmodel.cn`), `Authorization: <key>` (no `Bearer`) |
 | Why this path | Z.ai's API reference and OpenAPI document no usage or billing endpoint. This is the endpoint Z.ai's own Coding Plan plugin calls (`zai-org/zai-coding-plugins`, `glm-plan-usage/…/query-usage.mjs`), with the same headers. It returns tokens per model per hour |
-| Official source (checked 27 Oct 2026) | npm `@z_ai/coding-helper@0.1.1` (maintainers `bigmodel`, `yf.h`, `tomsun28`, `carbon-agent`; integrity `sha512-oMYZBiyqns0SKLz8IhZFNg6GF+fgoohHl…`) ships `zai-coding-plugins/plugins/glm-plan-usage/skills/usage-query-skill/scripts/query-usage.mjs`, which requests `${baseDomain}/api/monitor/usage/model-usage` (plus `…/tool-usage` and `…/quota/limit`) for `api.z.ai` and `open.bigmodel.cn` with `method: 'GET'`, `Authorization: <token>` (no `Bearer`) and `?startTime=…&endTime=…` formatted `yyyy-MM-dd HH:mm:ss` in local time, the window ending at the current hour's `HH:59:59`. CoolDock's request matches on every point |
+| Official source (checked 27 Oct 2026) | npm `@z_ai/coding-helper@0.1.1` (maintainers `bigmodel`, `yf.h`, `tomsun28`, `carbon-agent`; integrity `sha512-oMYZBiyqns0SKLz8IhZFNg6GF+fgoohHl…`) ships `zai-coding-plugins/plugins/glm-plan-usage/skills/usage-query-skill/scripts/query-usage.mjs`, which requests `${baseDomain}/api/monitor/usage/model-usage` (plus `…/tool-usage` and `…/quota/limit`) for `api.z.ai` and `open.bigmodel.cn` with `method: 'GET'`, `Authorization: <token>` (no `Bearer`) and `?startTime=…&endTime=…` formatted `yyyy-MM-dd HH:mm:ss` in local time, the window ending at the current hour's `HH:59:59`. NiceDock's request matches on every point |
 | Verified live | Errors come back as **HTTP 200** envelopes: no key → `{"code":1001,"msg":"Authentication parameter not received in Header…","success":false}`. Fake key (raw, with `Bearer`, and on the China host) → `{"code":401,"msg":"token expired or incorrect","success":false}`. `ConnAIUsageAPI.zaiCheck` maps the documented codes (`docs.z.ai/api-reference/api-code`). → Check your token. **Route evidence:** a misspelled leaf under `/api/monitor/usage/` gets the same 401 (auth before routing), while an unknown prefix such as `/api/zz-nothing/here` answers `{"code":500,"msg":"404 NOT_FOUND"}`, so the `/api/monitor/usage/` service exists at the gateway; the exact leaf rests on the official package above |
 | Not documented | The success schema. The fixture is a shape fixture that follows a third-party client's test data (dates moved), so only the envelope and series structure are asserted. This is the least certain API source |
 | Fixtures | `live-auth/zai-{usage-nokey,usage-invalid,usage-invalid-bearer,bigmodel-invalid,control-badroute,control-badroute-nokey}`; shape: `zai/model-usage-shape` |
@@ -353,7 +353,7 @@ messages reuse existing strings ("Check your token", "Rate limited"), so transla
 
 ## Reproducing
 
-The curl commands follow the request lines in each `.txt` fixture (`curl -g --compressed -A 'CoolDock/1.0 (macOS)'
+The curl commands follow the request lines in each `.txt` fixture (`curl -g --compressed -A 'NiceDock/1.0 (macOS)'
 -H 'Accept: application/json' …`). curl's `Accept-Encoding: deflate, gzip` differs from URLSession's default
 (`gzip, deflate, br`), so the test ignores that header together with `Accept-Language` and `User-Agent`. The tests
 check `User-Agent` against `Net.session` separately. Run `swift test --filter LiveAuthTests` (this also runs

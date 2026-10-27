@@ -25,7 +25,7 @@ enum ReferenceScene {
     nonisolated(unsafe) static var variant: String?
 
     /// Content assets the reference frames were made with (album art, avatars, app icons), kept in the
-    /// source checkout at `docs/reference/assets`; the harness runs from `build/CoolDock.app`.
+    /// source checkout at `docs/reference/assets`; the harness runs from `build/NiceDock.app`.
     nonisolated static var assetsURL: URL {
         Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("docs/reference/assets")
     }

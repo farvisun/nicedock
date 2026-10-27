@@ -259,7 +259,7 @@ enum ConnCLI {
     static func run(_ exe: URL, _ args: [String], env extra: [String: String] = [:], timeout: TimeInterval) async throws -> Data {
         if ConnEnv.isRendering { throw ConnError(L("Offline")) }
         let fm = FileManager.default
-        let dir = fm.temporaryDirectory.appendingPathComponent("cooldock-cli-\(UUID().uuidString)", isDirectory: true)
+        let dir = fm.temporaryDirectory.appendingPathComponent("nicedock-cli-\(UUID().uuidString)", isDirectory: true)
         try fm.createDirectory(at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         for shim in ["open", "xdg-open"] {
             let url = dir.appendingPathComponent(shim)

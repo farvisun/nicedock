@@ -26,17 +26,17 @@ a light track with the knob on the leading side. In Persian the switches are mir
 | Access granted, Reserve Dock Space on, All Displays | ![](en-layout-windows-reserve-on.png) | ![](fa-layout-windows-reserve-on.png) |
 | Auto-hiding layout (Reveal at the Bottom) | ![](en-layout-windows-autohide.png) | ![](fa-layout-windows-autohide.png) |
 
-- **Hide on Window Hover** (on in all three) says what it now does: CoolDock fades only on the display where a window
+- **Hide on Window Hover** (on in all three) says what it now does: NiceDock fades only on the display where a window
   overlaps it, clicks reach that window, and resting the pointer on the Dock brings it back.
 - **No access**: Reserve Dock Space and Also After Dragging are disabled, and an orange row explains why with the
-  **Allow Accessibility…** button. CoolDock never asks on its own. The first click shows the system prompt, which also
-  adds CoolDock to Privacy & Security → Accessibility. Later clicks open that list. The pane re-checks trust when the
+  **Allow Accessibility…** button. NiceDock never asks on its own. The first click shows the system prompt, which also
+  adds NiceDock to Privacy & Security → Accessibility. Later clicks open that list. The pane re-checks trust when the
   app becomes active and when macOS posts `com.apple.accessibility.api`.
 - **Reserve on, All Displays**: Also After Dragging is enabled and off by default. The footer explains that macOS
   doesn't let apps change the usable screen area, so windows are moved through Accessibility. It also lists what is
   never touched (panels, dialogs, minimized and fullscreen windows) and adds "Each display keeps room for its own Dock".
 - **Auto-hiding layout**: the footer says the option isn't used there. Like the auto-hiding macOS Dock, a hidden
-  CoolDock reserves nothing.
+  NiceDock reserves nothing.
 
 ## Privacy & Permissions → Credential Storage
 
@@ -52,10 +52,10 @@ a light track with the knob on the leading side. In Persian the switches are mir
   footer gives the threat model: the file can't be read once it is copied off this Mac, but apps and people using your
   macOS account can decrypt it. The Keychain is the stronger option.
 - **Unreadable**: the AES-GCM tag check failed, so the row names the cause. **Reset File…** renames the unreadable file
-  (`credentials.cdvault.unreadable-<time>`), keeps it, and starts a fresh store. CoolDock never overwrites a file it
+  (`credentials.cdvault.unreadable-<time>`), keeps it, and starts a fresh store. NiceDock never overwrites a file it
   can't read.
 - Persian: the path stays left-to-right inside an LTR isolate, followed by "· ۳ مورد ذخیره‌شده". Lines that begin with
-  a Latin word (macOS, CoolDock, Keychain) start with an RLM so the paragraph stays right-to-left. `AES-256-GCM` is
+  a Latin word (macOS, NiceDock, Keychain) start with an RLM so the paragraph stays right-to-left. `AES-256-GCM` is
   isolated too, so its hyphens don't reorder.
 
 ## What the unit tests cover
@@ -66,7 +66,7 @@ a light track with the knob on the leading side. In Persian the switches are mir
   partly overlapping window moves up and keeps its size. The 6 pt gap counts as overlap. Windows that already fit,
   windows beside a centred Dock, and fullscreen windows are left alone. Nothing ever goes above the menu bar. Top,
   bottom and floating Docks (nearest edge) are covered. Two displays: each display keeps room only for its own Dock,
-  and a display without a CoolDock is untouched. A window spanning two displays follows the Dock it covers most. Min
+  and a display without a NiceDock is untouched. A window spanning two displays follows the Dock it covers most. Min
   size: the window moves up before it shrinks; when the minimum height is taller than the free space, the window keeps
   its top at the menu bar and is left there. There is a floor height, and the AppKit → Quartz conversion is checked for
   a display above the primary. Applying the result twice changes nothing, so there is no loop. Drag classification:

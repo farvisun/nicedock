@@ -287,7 +287,7 @@ struct LayoutPaneBehaviourTests {
             #expect(store.settings.scenario == .floating)
         }
         #expect(SystemDock.shared.autohides == autohide, "com.apple.dock autohide unchanged")
-        #expect(UserDefaults.standard.dictionary(forKey: "CoolDockDockBackup") == nil, "the Dock was never replaced")
+        #expect(UserDefaults.standard.dictionary(forKey: "NiceDockDockBackup") == nil, "the Dock was never replaced")
     }
 
     @Test func revealTimingSlidersAreStored() {
@@ -334,7 +334,7 @@ struct ScreensPaneBehaviourTests {
         #expect(targets { $0.screensMode = .attached; $0.displays[0].attached = false } == ["STUDIO"])
         #expect(targets { $0.screensMode = .attached; $0.moveDisplay("STUDIO", by: -1) } == ["STUDIO"], "Move Up changes the winner")
         #expect(targets { $0.screensMode = .attached; for i in $0.displays.indices { $0.displays[i].attached = false } }.isEmpty,
-                "nothing attached: CoolDock stays hidden")
+                "nothing attached: NiceDock stays hidden")
     }
 
     @Test func moveRenameAndForget() {
@@ -450,7 +450,7 @@ struct ProfilesAndWidgetsPaneBehaviourTests {
         #expect(evaluator.isVisible(w))
         w.visibility = .whileRunning
         #expect(evaluator.isVisible(w), "Finder is always running")
-        w.config["path"] = "/Applications/CoolDock Behaviour Test.app"
+        w.config["path"] = "/Applications/NiceDock Behaviour Test.app"
         #expect(!evaluator.isVisible(w))
         store.updateWidget(store.activeProfile.widgets[0].id) { $0.visibility = .whileRunning }
         #expect(store.activeProfile.widgets[0].visibility == .whileRunning)
@@ -492,7 +492,7 @@ struct ProfilesAndWidgetsPaneBehaviourTests {
             Behaviour.withPersistence { service.setRemember(true) }
             #expect(store.settings.appVolumes == ["com.apple.Safari": UtilAppVolumeLevel(volume: 0.5, muted: false)])
 
-            // Changed elsewhere (Reset CoolDock, the assistant): the running service follows.
+            // Changed elsewhere (Reset NiceDock, the assistant): the running service follows.
             store.settings.appVolumes = ["com.apple.Music": UtilAppVolumeLevel(volume: 0.2, muted: false)]
             #expect(service.level("com.apple.Music").volume == 0.2 && service.level("com.apple.Safari") == .unity)
         }
@@ -632,12 +632,12 @@ struct PrivacyPaneBehaviourTests {
         try Behaviour.restoringSettings { store in
             store.settings.calendarFeeds = nil
             // Port 9 on this Mac refuses at once: the immediate download fails quietly, nothing leaves the machine.
-            #expect(svc.add("https://localhost:9/cooldock-behaviour.ics") == nil)
-            #expect(svc.add("webcal://localhost:9/cooldock-behaviour.ics") == "This feed is already added.")
+            #expect(svc.add("https://localhost:9/nicedock-behaviour.ics") == nil)
+            #expect(svc.add("webcal://localhost:9/nicedock-behaviour.ics") == "This feed is already added.")
             #expect(svc.add("mailto:someone@example.com") == "Enter a webcal:// or https:// link to an .ics calendar.")
 
             let open = try #require(store.settings.calendarFeeds?.first)
-            #expect(open.url == "https://localhost:9/cooldock-behaviour.ics" && open.host == "localhost" && open.color == CalendarFeed.palette[0])
+            #expect(open.url == "https://localhost:9/nicedock-behaviour.ics" && open.host == "localhost" && open.color == CalendarFeed.palette[0])
             #expect(svc.hasFeeds)
 
             #expect(svc.add("https://localhost:9/team.ics?token=s3cr3t-behaviour") == nil)

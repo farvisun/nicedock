@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
-    <key>CFBundleExecutable</key><string>CoolDock</string>
+    <key>CFBundleExecutable</key><string>NiceDock</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
-    <key>CFBundleIdentifier</key><string>app.cooldock.CoolDock</string>
+    <key>CFBundleIdentifier</key><string>app.nicedock.NiceDock</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-    <key>CFBundleName</key><string>CoolDock</string>
-    <key>CFBundleDisplayName</key><string>CoolDock</string>
+    <key>CFBundleName</key><string>NiceDock</string>
+    <key>CFBundleDisplayName</key><string>NiceDock</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>1.0.0</string>
     <key>CFBundleVersion</key><string>1</string>
@@ -23,24 +23,24 @@
     <key>NSHighResolutionCapable</key><true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
     <key>NSPrincipalClass</key><string>NSApplication</string>
-    <key>NSHumanReadableCopyright</key><string>© 2026 CoolDock</string>
-    <key>NSAppleEventsUsageDescription</key><string>CoolDock controls Music, Spotify, Mail and Notes to show what is playing, unread mail and your latest note. When you choose them in an app’s menu, it also asks System Events to add login items and Safari or document apps to open a new window or document.</string>
-    <key>NSCalendarsFullAccessUsageDescription</key><string>CoolDock shows your upcoming events and meetings in the Dock.</string>
-    <key>NSCalendarsUsageDescription</key><string>CoolDock shows your upcoming events and meetings in the Dock.</string>
-    <key>NSRemindersFullAccessUsageDescription</key><string>CoolDock shows and completes your reminders in the Dock.</string>
-    <key>NSRemindersUsageDescription</key><string>CoolDock shows and completes your reminders in the Dock.</string>
-    <key>NSContactsUsageDescription</key><string>CoolDock shows your favorite contacts for quick calls and messages.</string>
-    <key>NSBluetoothAlwaysUsageDescription</key><string>CoolDock turns Bluetooth on or off from Quick Toggles and shows connected device batteries.</string>
-    <key>NSAudioCaptureUsageDescription</key><string>CoolDock sets the volume of each app separately. An app’s sound passes through CoolDock only while you lower its volume or mute it.</string>
-    <key>NSMicrophoneUsageDescription</key><string>CoolDock records voice memos when you ask it to.</string>
-    <key>NSLocationUsageDescription</key><string>CoolDock uses your approximate location for local weather.</string>
-    <key>NSLocationWhenInUseUsageDescription</key><string>CoolDock uses your approximate location for local weather.</string>
-    <key>NSPhotoLibraryUsageDescription</key><string>CoolDock shows your most recent photo.</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 NiceDock</string>
+    <key>NSAppleEventsUsageDescription</key><string>NiceDock controls Music, Spotify, Mail and Notes to show what is playing, unread mail and your latest note. When you choose them in an app’s menu, it also asks System Events to add login items and Safari or document apps to open a new window or document.</string>
+    <key>NSCalendarsFullAccessUsageDescription</key><string>NiceDock shows your upcoming events and meetings in the Dock.</string>
+    <key>NSCalendarsUsageDescription</key><string>NiceDock shows your upcoming events and meetings in the Dock.</string>
+    <key>NSRemindersFullAccessUsageDescription</key><string>NiceDock shows and completes your reminders in the Dock.</string>
+    <key>NSRemindersUsageDescription</key><string>NiceDock shows and completes your reminders in the Dock.</string>
+    <key>NSContactsUsageDescription</key><string>NiceDock shows your favorite contacts for quick calls and messages.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key><string>NiceDock turns Bluetooth on or off from Quick Toggles and shows connected device batteries.</string>
+    <key>NSAudioCaptureUsageDescription</key><string>NiceDock sets the volume of each app separately. An app’s sound passes through NiceDock only while you lower its volume or mute it.</string>
+    <key>NSMicrophoneUsageDescription</key><string>NiceDock records voice memos when you ask it to.</string>
+    <key>NSLocationUsageDescription</key><string>NiceDock uses your approximate location for local weather.</string>
+    <key>NSLocationWhenInUseUsageDescription</key><string>NiceDock uses your approximate location for local weather.</string>
+    <key>NSPhotoLibraryUsageDescription</key><string>NiceDock shows your most recent photo.</string>
     <key>UTExportedTypeDeclarations</key>
     <array>
         <dict>
-            <key>UTTypeIdentifier</key><string>app.cooldock.widget-kind</string>
-            <key>UTTypeDescription</key><string>CoolDock Widget</string>
+            <key>UTTypeIdentifier</key><string>app.nicedock.widget-kind</string>
+            <key>UTTypeDescription</key><string>NiceDock Widget</string>
             <key>UTTypeConformsTo</key><array><string>public.data</string></array>
         </dict>
     </array>

@@ -58,7 +58,7 @@ final class AppsDockBadges: DemandDriven {
     private(set) var labels: [String: String] = [:]
     @ObservationIgnored private var subscribers = Set<String>()
     @ObservationIgnored private var timer: DispatchSourceTimer?
-    @ObservationIgnored private let queue = DispatchQueue(label: "app.cooldock.dock-badges", qos: .utility)
+    @ObservationIgnored private let queue = DispatchQueue(label: "app.nicedock.dock-badges", qos: .utility)
     @ObservationIgnored private var seeded: [String: String]?
 
     func subscribe(_ id: String) {

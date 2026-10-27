@@ -1,7 +1,7 @@
 #if DEBUG
 import AppKit
 
-/// Dev aid: `CoolDock --menu-probe <app path> [--redact] [--perform "Title" | "Sub/Title"]… [--step s]`
+/// Dev aid: `NiceDock --menu-probe <app path> [--redact] [--perform "Title" | "Sub/Title"]… [--step s]`
 /// builds the real right-click menu of an app tile (the same `AppsAppMenu.build` the Dock uses), prints it as JSON,
 /// then fires the given items one by one and reports the app's state after each. Nothing is saved
 /// (persistence is off); `--redact` replaces personal titles (Open Recent files, browser profiles) with counts.

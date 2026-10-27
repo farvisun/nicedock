@@ -1,13 +1,13 @@
 # Settings and widget controls, clicked in the running app (27 Oct 2026, macOS 27.0.1)
 
 `--ui-probe` launches the real app and operates it the way VoiceOver, Voice Control or a UI-scripting tool would:
-through the Accessibility API, on CoolDock's own windows. It is not a test host. The normal `AppDelegate` launch runs
+through the Accessibility API, on NiceDock's own windows. It is not a test host. The normal `AppDelegate` launch runs
 (Dock window, menu bar item, hot keys, AI Assistant socket), then the probe presses, steps and types into the real
 Settings window and the real Dock.
 
 ```bash
 scripts/build-app.sh debug        # the probe is compiled into debug builds only (#if DEBUG)
-COOLDOCK_SUPPORT_DIR="$(mktemp -d)" build/CoolDock.app/Contents/MacOS/CoolDock --ui-probe --out /tmp/ui-probe.json
+COOLDOCK_SUPPORT_DIR="$(mktemp -d)" build/NiceDock.app/Contents/MacOS/NiceDock --ui-probe --out /tmp/ui-probe.json
 echo $?                           # 0 only when every check passed
 ```
 
@@ -28,7 +28,7 @@ echo $?                           # 0 only when every check passed
   with the process).
 - **Nothing leaves the app.** Copy buttons write to a private pasteboard, so the user's clipboard is never touched.
   URLs are captured, not opened. Timer and reminder alerts go to a sink, so there is no sound and no notification
-  permission prompt. Every change CoolDock would make to the macOS Dock is captured instead of made
+  permission prompt. Every change NiceDock would make to the macOS Dock is captured instead of made
   (`SystemDock.interceptor`). The probe also reads `com.apple.dock` `autohide` / `autohide-delay` at start and at exit,
   and fails if they differ.
 - **Never pressed.** These controls are only checked to exist and be enabled, because they have effects outside the
@@ -47,7 +47,7 @@ echo $?                           # 0 only when every check passed
 **3 consecutive passing runs on the final build**: 12/12 panes, 15/15 widgets, 103 checks each, 16.5 s, 15.8 s and
 16.5 s in the app (16–17 s wall clock). The report of the third run is [ui-probe.json](ui-probe.json). Four earlier
 runs also passed; they used the same code without the final watchdog and cache-folder cleanup. In every run the
-system Dock stayed at `autohide 0` with no `autohide-delay` key, no Dock change was attempted, no CoolDock process was
+system Dock stayed at `autohide 0` with no `autohide-delay` key, no Dock change was attempted, no NiceDock process was
 left, and `AXIsProcessTrusted()` was false (no Accessibility grant).
 
 ### Settings: 12 panes
@@ -68,7 +68,7 @@ is the app-name line.
 | Shortcuts | switches of "Hide and Show Dock" and "Switch Profile" | `toggleHotKey.enabled`, `profileHotKeysEnabled` true → false |
 | Language & Region | segment Time format → 24-hour; button "فارسی"; switch "استفاده از Estedad…" (operated in Persian); button "English" | `clockStyle` → h24. Persian: language fa, the sidebar moves to the right (AX frame), window title and header "زبان و منطقه", header font **Estedad-Bold** (read through AX), Estedad active. Estedad switch true → false → true. English: left-to-right again, title "Language & Region" |
 | Privacy & Permissions | switch "Enable AI Assistant" | `assistantEnabled` false → true; the dependent "Allow Changes" switch goes from disabled to enabled; Access shows "Read-only". The 8 permission rows are read, not pressed (on this Mac: Calendars, Reminders, Photos, Microphone Allowed; Contacts, Location, Accessibility "Allow…"; Automation "Review") |
-| Performance | System stats interval AXIncrement; switch "Pause widgets while CoolDock is hidden" | `systemSampleInterval` 2 → 3; `pauseWhenHidden` true → false. Clear Cache present (not pressed) |
+| Performance | System stats interval AXIncrement; switch "Pause widgets while NiceDock is hidden" | `systemSampleInterval` 2 → 3; `pauseWhenHidden` true → false. Clear Cache present (not pressed) |
 | About | button "Widgets…", then the browser's close button | Widget Browser window opens (`browserOpen` true, AX window "Widgets") and closes again. Version line "Version 1.0.0 (1)". Show Onboarding and Export Diagnostics… present (not pressed) |
 
 ### Widgets: 15 in the real Dock
@@ -101,9 +101,9 @@ A widget's elements are the ones carrying its name as Accessibility help (the Do
    because it was already showing. Fix: the row's press action selects its pane
    (`UI/Settings/SettingsWindow.swift`).
 2. **The Settings window title fell out of step with the pane.** Whenever Settings was shown again (after a language
-   change, ⌘, or About while open), `WindowHost` set "CoolDock Settings" *after* the new content, which overrode the
-   pane's `navigationTitle`. Accessibility, the Window menu and Mission Control then named the window "CoolDock
-   Settings" while it showed another pane. In Persian, the title read "تنظیمات CoolDock" over the "زبان و منطقه" pane.
+   change, ⌘, or About while open), `WindowHost` set "NiceDock Settings" *after* the new content, which overrode the
+   pane's `navigationTitle`. Accessibility, the Window menu and Mission Control then named the window "NiceDock
+   Settings" while it showed another pane. In Persian, the title read "تنظیمات NiceDock" over the "زبان و منطقه" pane.
    Fix: set the title before the content (`UI/WindowHost.swift`).
 3. **Converter: an amount confirmed with Return was not saved.** Return ended editing without calling `save()`, and
    the field's end-of-editing handler only fires on focus loss. The tile showed the new amount, but the widget kept the
@@ -140,7 +140,7 @@ The probe needed four seams, none of which changes behaviour for users:
 - **Own windows only.** A process needs no Accessibility permission to drive its own windows. The probe ran untrusted
   (`AXIsProcessTrusted()` false). Other apps' windows need the user's Accessibility grant in System Settings ▸
   Privacy & Security ▸ Accessibility, which a shell-launched process doesn't have on this Mac. The probe never
-  addresses another process. The same applies to CoolDock's own window features on other apps; see
+  addresses another process. The same applies to NiceDock's own window features on other apps; see
   [../apps/accessibility-live.md](../apps/accessibility-live.md).
 - **Not exercised.**
   - Pop-up buttons and `Menu`s (Temperature unit, Running apps, Calendar, Digits, the Converter's currency capsules,
@@ -150,6 +150,6 @@ The probe needed four seams, none of which changes behaviour for users:
 - **Gesture-only tiles outside the probe.** About 60 tap handlers remain in widgets that are not in the probe's profile:
   calendar, weather, system, apps, media and others. The same `accessibilityPress` modifier fixes each one.
 - **Left on disk by any run of the app bundle.** The probe leaves nothing in its support folder. macOS still writes
-  the URL cache (`~/Library/Caches/app.cooldock.CoolDock`, `~/Library/HTTPStorages/app.cooldock.CoolDock`) and the
-  Settings and Widgets window frames (`defaults read app.cooldock.CoolDock`). Remove them with
-  `defaults delete app.cooldock.CoolDock` and by deleting those two folders.
+  the URL cache (`~/Library/Caches/app.nicedock.NiceDock`, `~/Library/HTTPStorages/app.nicedock.NiceDock`) and the
+  Settings and Widgets window frames (`defaults read app.nicedock.NiceDock`). Remove them with
+  `defaults delete app.nicedock.NiceDock` and by deleting those two folders.

@@ -3,7 +3,7 @@ import Observation
 
 /// Serialized AppleScript execution off the main thread.
 enum Script {
-    private static let queue = DispatchQueue(label: "app.cooldock.applescript", qos: .userInitiated)
+    private static let queue = DispatchQueue(label: "app.nicedock.applescript", qos: .userInitiated)
 
     @discardableResult
     static func run(_ source: String) async -> NSAppleEventDescriptor? {
@@ -12,7 +12,7 @@ enum Script {
             queue.async {
                 var error: NSDictionary?
                 let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
-                if let error { NSLog("CoolDock AppleScript: \(error)") }
+                if let error { NSLog("NiceDock AppleScript: \(error)") }
                 cont.resume(returning: error == nil ? result : nil)
             }
         }

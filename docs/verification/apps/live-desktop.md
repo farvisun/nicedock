@@ -1,6 +1,6 @@
 # App menus on the real desktop (27 Oct 2026, macOS 27.0.1)
 
-`CoolDock --menu-probe <app> [--redact] [--perform "Item" | "Submenu/Item"]…` (debug builds) builds the same
+`NiceDock --menu-probe <app> [--redact] [--perform "Item" | "Submenu/Item"]…` (debug builds) builds the same
 right-click menu the Dock shows (`AppsAppMenu.build`) for a real app, prints it, fires items one by one and reports the
 app's state after each (running, hidden, active, on-screen windows via CGWindowList, kept in Dock). Nothing is saved;
 `--redact` replaces file and profile names with counts.
@@ -52,7 +52,7 @@ Show All Windows · Hide · Quit / ⌥ Force Quit
 
 | Item | Needs | Covered by |
 |---|---|---|
-| Window list, Dock badges, generic New Window (File ▸ New Window), Safari private / profile windows — on *other* apps | Accessibility permission for CoolDock, which only the user can grant in System Settings | The same code driven live against the test process's own windows and menus (no permission needed for itself; only the pid differs): [accessibility-live.md](accessibility-live.md). Badges: the reader degrades cleanly without the permission, the parser ran on a Dock-shaped tree. Plus AX title matching, badge formatting and menu-model unit tests; reference-scene renders in `en/`, `fa/` |
+| Window list, Dock badges, generic New Window (File ▸ New Window), Safari private / profile windows — on *other* apps | Accessibility permission for NiceDock, which only the user can grant in System Settings | The same code driven live against the test process's own windows and menus (no permission needed for itself; only the pid differs): [accessibility-live.md](accessibility-live.md). Badges: the reader degrades cleanly without the permission, the parser ran on a Dock-shaped tree. Plus AX title matching, badge formatting and menu-model unit tests; reference-scene renders in `en/`, `fa/` |
 | Open at Login | one-time Automation approval for System Events (a system prompt) | login-item path normalisation and parsing tests |
 | New Document (TextEdit, Pages…) | Automation approval for that app | menu presence above |
 | Show All Windows | runs Mission Control's App Exposé on screen | — |

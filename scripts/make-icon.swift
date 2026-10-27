@@ -1,4 +1,4 @@
-// Renders the CoolDock app icon into an .iconset (run by build-app.sh).
+// Renders the NiceDock app icon into an .iconset (run by build-app.sh).
 import AppKit
 
 let out = CommandLine.arguments[1]

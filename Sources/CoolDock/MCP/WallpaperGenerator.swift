@@ -127,7 +127,7 @@ struct WallpaperRequest: Equatable {
     var summary: String {
         let parts = [mood?.rawValue, colorName.map { $0.hasPrefix("#") ? $0.uppercased() : $0 }, season?.rawValue, time.map { $0.rawValue.replacingOccurrences(of: "_", with: " ") },
                      weather.map { $0.rawValue.replacingOccurrences(of: "_", with: " ") }].compactMap { $0 }
-        let head = parts.isEmpty ? "CoolDock" : parts.joined(separator: ", ")
+        let head = parts.isEmpty ? "NiceDock" : parts.joined(separator: ", ")
         return "\(head) — \(resolvedStyle.rawValue)\(variation > 0 ? " #\(variation)" : "")"
     }
 
@@ -136,7 +136,7 @@ struct WallpaperRequest: Equatable {
         let slug = parts.joined(separator: "-").replacingOccurrences(of: "_", with: "-")
         // The render version is part of the name so an improved painter never reuses an older file.
         let hash = Wallpaper.fnv1a("v\(Wallpaper.renderVersion)|" + canonical)
-        return "cooldock-\(slug)-\(String(format: "%08llx", hash & 0xFFFF_FFFF))"
+        return "nicedock-\(slug)-\(String(format: "%08llx", hash & 0xFFFF_FFFF))"
     }
 
     var parametersJSON: JSONValue {
@@ -1060,7 +1060,7 @@ enum WallpaperStudio {
     static func prune(_ directory: URL, keep: Int, except: URL) {
         let fm = FileManager.default
         guard let items = try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey]) else { return }
-        let generated = items.filter { $0.lastPathComponent.hasPrefix("cooldock-") && $0.pathExtension == "jpg" && $0.lastPathComponent != except.lastPathComponent }
+        let generated = items.filter { $0.lastPathComponent.hasPrefix("nicedock-") && $0.pathExtension == "jpg" && $0.lastPathComponent != except.lastPathComponent }
         let dated = generated.map { ($0, (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast) }
         for (url, _) in dated.sorted(by: { $0.1 > $1.1 }).dropFirst(max(0, keep - 1)) { try? fm.removeItem(at: url) }
     }

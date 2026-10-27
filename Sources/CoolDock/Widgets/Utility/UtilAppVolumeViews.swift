@@ -89,7 +89,7 @@ private struct UtilAppVolumeTileRow: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: m.u(8.5), weight: .semibold))
                         .foregroundStyle(p.accent(.cdOrange))
-                        .help(L("CoolDock couldn't change this app's volume."))
+                        .help(L("NiceDock couldn't change this app's volume."))
                 } else {
                     Text(verbatim: Fmt.percent(shown)).dock(8, .semibold, p.secondary, mono: true)
                 }
@@ -120,7 +120,7 @@ private struct UtilAppVolumeTileHint: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help(L("Turn on System Audio Recording for CoolDock in Privacy & Security to change app volumes."))
+        .help(L("Turn on System Audio Recording for NiceDock in Privacy & Security to change app volumes."))
     }
 }
 
@@ -224,7 +224,7 @@ private struct UtilAppVolumeRow: View {
                     Spacer(minLength: 6)
                     if service.failed.contains(app.id) {
                         Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 10, weight: .semibold)).foregroundStyle(p.accent(.cdOrange))
-                            .help(L("CoolDock couldn't change this app's volume."))
+                            .help(L("NiceDock couldn't change this app's volume."))
                     } else {
                         Text(verbatim: Fmt.percent(shown)).font(.dock(10.5, .semibold, mono: true)).foregroundStyle(p.secondary)
                     }
@@ -256,7 +256,7 @@ private struct UtilAppVolumePermissionHint: View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "hand.raised.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(p.accent(.cdOrange))
             VStack(alignment: .leading, spacing: 7) {
-                Text(L("Turn on System Audio Recording for CoolDock in Privacy & Security to change app volumes."))
+                Text(L("Turn on System Audio Recording for NiceDock in Privacy & Security to change app volumes."))
                     .font(.dock(11, .medium)).foregroundStyle(p.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Button { Open.url(UtilAudioCapturePermission.settingsURL) } label: {
@@ -318,7 +318,7 @@ struct UtilAppVolumeSettingsGroup: View {
 
     var body: some View {
         let n = service.changedCount
-        SettingsGroup(title: L("App Volume"), footer: L("An app plays through CoolDock only while its volume is below 100% or muted. macOS asks once for System Audio Recording.")) {
+        SettingsGroup(title: L("App Volume"), footer: L("An app plays through NiceDock only while its volume is below 100% or muted. macOS asks once for System Audio Recording.")) {
             ToggleRow(title: L("Remember volume per app"), subtitle: L("Restores an app's volume and mute the next time it plays."),
                       isOn: Binding(get: { service.remember }, set: { service.setRemember($0) }))
             SettingsRow(title: L("Reset all app volumes"),

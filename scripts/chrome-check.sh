@@ -11,7 +11,7 @@
 # (a plain tile); corners compare at 4% fuzz so plate (#0B0B0B) vs tile fill (#141414) is distinguished.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="$ROOT/build/CoolDock.app"
+APP="$ROOT/build/NiceDock.app"
 OUT="$ROOT/build/chrome-check"
 LANG_CODE=en
 RENDER=1
@@ -25,7 +25,7 @@ while [ $# -gt 0 ]; do
 done
 mkdir -p "$OUT/render"
 if [ $RENDER -eq 1 ]; then
-  "$APP/Contents/MacOS/CoolDock" --render "$OUT/render" all --wait 4 --lang "$LANG_CODE" --style darkGlass >/dev/null
+  "$APP/Contents/MacOS/NiceDock" --render "$OUT/render" all --wait 4 --lang "$LANG_CODE" --style darkGlass >/dev/null
 fi
 
 REF="$ROOT/docs/reference/downloads.png"

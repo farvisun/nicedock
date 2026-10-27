@@ -76,7 +76,7 @@ final class UtilAppVolumeService: DemandDriven {
     private(set) var awaitingPermission = false
     /// Apps whose tap could not be created this session (slider disabled).
     private(set) var failed: Set<String> = []
-    /// Apps whose tap is built (the app plays through CoolDock).
+    /// Apps whose tap is built (the app plays through NiceDock).
     private(set) var tapped: Set<String> = []
     private(set) var remember: Bool
 
@@ -203,7 +203,7 @@ final class UtilAppVolumeService: DemandDriven {
         storage.save(levels)
     }
 
-    /// Settings changed elsewhere (Reset CoolDock, another profile import): follow the stored levels.
+    /// Settings changed elsewhere (Reset NiceDock, another profile import): follow the stored levels.
     private func syncFromStorage() {
         if storage.remember != remember { remember = storage.remember }
         guard remember, saveWork == nil else { return }
@@ -321,7 +321,7 @@ final class UtilAppVolumeService: DemandDriven {
         for id in change.added {
             guard let p = Self.readProcess(id) else { continue }
             processes[id] = p
-            // CoolDock's own process (our aggregate IO) has no identity and needs no listener.
+            // NiceDock's own process (our aggregate IO) has no identity and needs no listener.
             guard let who = UtilAudioProcessInfo.identity(pid: p.pid, bundleID: p.bundleID) else { continue }
             identities[id] = who
             addRunningListener(id)
@@ -461,7 +461,7 @@ final class UtilAppVolumeService: DemandDriven {
             schedulePermissionChecks()
             return
         }
-        NSLog("CoolDock App Volume: no tap for \(key) (OSStatus \(status))")
+        NSLog("NiceDock App Volume: no tap for \(key) (OSStatus \(status))")
         taps[key] = nil
         snapshots[key] = nil
         tapped.remove(key)

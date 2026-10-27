@@ -1,38 +1,38 @@
 # AI Assistant (MCP)
 
 Claude, Codex, Cursor, VS Code and other [Model Context Protocol](https://modelcontextprotocol.io) clients can read and
-configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, style, colour, time of day,
+configure NiceDock, from dock style to widget settings, and paint a wallpaper by mood, style, colour, time of day,
 season or weather. The assistant starts read-only; it can change things only after you turn on **Allow Changes**.
 
 ## Turn it on
 
-CoolDock Settings → **Privacy & Permissions** → **AI Assistant**:
+NiceDock Settings → **Privacy & Permissions** → **AI Assistant**:
 
 | Switch | Default | Effect |
 | --- | --- | --- |
-| Enable AI Assistant | off | While off, every tool answers *"The AI Assistant is disabled in CoolDock Settings…"*. |
-| Allow Changes | off | While off the assistant is read-only: `get_dock`, `list_widget_kinds` and `preview_wallpaper` work; every other tool answers *"CoolDock is read-only; turn on Allow Changes in Settings → AI Assistant…"*. |
+| Enable AI Assistant | off | While off, every tool answers *"The AI Assistant is disabled in NiceDock Settings…"*. |
+| Allow Changes | off | While off the assistant is read-only: `get_dock`, `list_widget_kinds` and `preview_wallpaper` work; every other tool answers *"NiceDock is read-only; turn on Allow Changes in Settings → AI Assistant…"*. |
 
 Both switches are saved in `state.json` (`aiAssistantEnabled`, `aiAllowChanges`). Below them, **Connect an Assistant**
-shows ready-to-paste setup for each client with the path of *your* copy of CoolDock and a Copy button.
+shows ready-to-paste setup for each client with the path of *your* copy of NiceDock and a Copy button.
 
 ## Connect a client
 
-The server is the CoolDock binary itself, started by the client with `--mcp` (stdio, nothing listens on the network).
+The server is the NiceDock binary itself, started by the client with `--mcp` (stdio, nothing listens on the network).
 Use the path shown in Settings; for an app in `/Applications` it is:
 
 **Claude Code** (Terminal):
 
 ```bash
-claude mcp add cooldock -- "/Applications/CoolDock.app/Contents/MacOS/CoolDock" --mcp
-# add --scope user before `cooldock` to use it in every project
+claude mcp add nicedock -- "/Applications/NiceDock.app/Contents/MacOS/NiceDock" --mcp
+# add --scope user before `nicedock` to use it in every project
 ```
 
 **Codex** — `~/.codex/config.toml`:
 
 ```toml
-[mcp_servers.cooldock]
-command = "/Applications/CoolDock.app/Contents/MacOS/CoolDock"
+[mcp_servers.nicedock]
+command = "/Applications/NiceDock.app/Contents/MacOS/NiceDock"
 args = ["--mcp"]
 ```
 
@@ -41,8 +41,8 @@ args = ["--mcp"]
 ```json
 {
   "mcpServers": {
-    "cooldock": {
-      "command": "/Applications/CoolDock.app/Contents/MacOS/CoolDock",
+    "nicedock": {
+      "command": "/Applications/NiceDock.app/Contents/MacOS/NiceDock",
       "args": ["--mcp"]
     }
   }
@@ -54,9 +54,9 @@ args = ["--mcp"]
 ```json
 {
   "servers": {
-    "cooldock": {
+    "nicedock": {
       "type": "stdio",
-      "command": "/Applications/CoolDock.app/Contents/MacOS/CoolDock",
+      "command": "/Applications/NiceDock.app/Contents/MacOS/NiceDock",
       "args": ["--mcp"]
     }
   }
@@ -64,7 +64,7 @@ args = ["--mcp"]
 ```
 
 Then start a new session and ask, for example: *"Put a flip clock first in my Work profile"*, *"Make the dock white with
-rounder corners and move it to the top right"*, *"Switch CoolDock to Persian with the Solar Hijri calendar"* or *"Give me a
+rounder corners and move it to the top right"*, *"Switch NiceDock to Persian with the Solar Hijri calendar"* or *"Give me a
 cozy autumn evening wallpaper"*.
 
 ## Tools
@@ -89,7 +89,7 @@ cozy autumn evening wallpaper"*.
 Every argument is validated with the same rules as the Settings window (slider ranges and steps, choice values,
 `#RRGGBB` or colour names, app names resolved in `/Applications`). Errors name the problem and list the valid values,
 e.g. `Unknown widget kind 'laserClock'. Valid kinds: app, appFolder, …` or `timer.minutes must be between 1 and 240 min;
-got 999.` API tokens and contacts can't be set by an assistant — the user enters them in CoolDock.
+got 999.` API tokens and contacts can't be set by an assistant — the user enters them in NiceDock.
 
 ### Wallpapers
 
@@ -99,23 +99,23 @@ got 999.` API tokens and contacts can't be set by an assistant — the user ente
 fog, windy) and `variation` are all optional. Painting is procedural and local (Core Graphics: layered gradients,
 mesh-like colour blends, soft shapes, landscapes, weather effects and film grain against banding), at the main display's
 pixel size. The same parameters always give the same image; `variation` gives another take. Files are JPEGs in
-`~/Library/Application Support/CoolDock/Wallpapers/` (the 24 newest are kept). Samples:
+`~/Library/Application Support/NiceDock/Wallpapers/` (the 24 newest are kept). Samples:
 [verification/ai-assistant/wallpaper-samples.jpg](verification/ai-assistant/wallpaper-samples.jpg).
 
 ## How changes reach the Dock
 
 ```
-client ──stdio JSON-RPC──▶ CoolDock --mcp ──Unix socket──▶ running CoolDock ──▶ AppStore (animated, saved)
+client ──stdio JSON-RPC──▶ NiceDock --mcp ──Unix socket──▶ running NiceDock ──▶ AppStore (animated, saved)
                                    │ (no app answering)
                                    └──────────────▶ state.json (same validation, file lock) → loaded at next launch
 ```
 
-* `CoolDock --mcp` branches in `main.swift` before `NSApplication` exists: no window, no Dock icon, no permission prompt.
-* The running app listens on `~/Library/Application Support/CoolDock/assistant.sock` (mode 0600, peer uid checked). One
+* `NiceDock --mcp` branches in `main.swift` before `NSApplication` exists: no window, no Dock icon, no permission prompt.
+* The running app listens on `~/Library/Application Support/NiceDock/assistant.sock` (mode 0600, peer uid checked). One
   JSON line per request and reply. The app runs the tool on its live state on the main actor and applies the result through
   `AppStore` exactly like a change in Settings (spring animation, the usual save debounce, Keychain clean-up, widget
   refresh). The switches are checked by the app itself.
-* When nothing answers on the socket (CoolDock not running, or a stale socket after a crash), the MCP process runs the
+* When nothing answers on the socket (NiceDock not running, or a stale socket after a crash), the MCP process runs the
   same `DockTools` code on `state.json` under an exclusive lock and saves only when something changed. A missing state file
   means the assistant was never enabled; an unreadable one is never overwritten.
 * Wallpapers are painted in the MCP process so the Dock never stalls; `set_wallpaper` then calls

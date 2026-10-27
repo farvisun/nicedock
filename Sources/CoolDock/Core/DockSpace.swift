@@ -15,7 +15,7 @@ enum DockEdge: Equatable {
     case bottom, top
 }
 
-/// The room one display's CoolDock keeps free.
+/// The room one display's NiceDock keeps free.
 struct DockReservation: Equatable {
     var displayID: String
     /// Whole display.
@@ -136,7 +136,7 @@ private extension CGRect {
     }
 }
 
-/// Stops CoolDock from fighting an app that keeps putting its window back: at most `limit` adjustments of one window
+/// Stops NiceDock from fighting an app that keeps putting its window back: at most `limit` adjustments of one window
 /// per `window` seconds, then that window is left alone for `cooldown` seconds.
 struct AdjustmentLimiter {
     var limit = 3
@@ -195,7 +195,7 @@ struct WindowChangeBurst: Equatable {
     /// The user put the window where it is by hand.
     var isManual: Bool { dragSeen && !automatic }
 
-    /// Whether CoolDock may move the window out of the dock area.
+    /// Whether NiceDock may move the window out of the dock area.
     func shouldAdjust(afterDragging: Bool) -> Bool { !isManual || afterDragging }
 }
 

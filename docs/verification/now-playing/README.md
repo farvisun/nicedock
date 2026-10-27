@@ -3,11 +3,11 @@
 The Now Playing widgets follow whatever app owns the system's Now Playing session: Safari, Chrome, Firefox,
 Podcasts, VLC, IINA, TV, Music, Spotify and so on.
 
-Since macOS 15.4 the MediaRemote daemon only answers Apple-signed clients; a direct call from CoolDock gets an
-empty answer. CoolDock runs `/usr/bin/perl` (an Apple platform binary) with a small helper library
+Since macOS 15.4 the MediaRemote daemon only answers Apple-signed clients; a direct call from NiceDock gets an
+empty answer. NiceDock runs `/usr/bin/perl` (an Apple platform binary) with a small helper library
 (`Helpers/MediaRemote/CoolDockMediaRemote.m`, bundled as `Contents/Resources/MediaRemote`). The helper streams one
 JSON object per line on every change and takes `play`, `pause`, `toggle`, `next`, `previous`, `seek` on stdin. It
-exits when CoolDock closes the pipe, so it never outlives the app. When the helper can't run, the widgets fall back to
+exits when NiceDock closes the pipe, so it never outlives the app. When the helper can't run, the widgets fall back to
 the Music and Spotify notifications and AppleScript as before.
 
 ## Evidence (macOS 27.0.1)
@@ -22,10 +22,10 @@ the Music and Spotify notifications and AppleScript as before.
 | Helper cost | 4.7 MB footprint, 0.0 % CPU while idle; only runs while a Now Playing widget or "while playing" rule is in use |
 
 `{en,fa}-nowPlaying.png` and `{en,fa}-nowPlayingHero.png` are live `--render` frames (not reference-scene data)
-taken while a probe process that is neither Music nor Spotify published "CoolDock Probe Song" with artwork:
+taken while a probe process that is neither Music nor Spotify published "NiceDock Probe Song" with artwork:
 
 ```bash
 scripts/build-app.sh release
 # probe: any process that sets MPNowPlayingInfoCenter.default().nowPlayingInfo and playbackState = .playing
-COOLDOCK_OFFLINE=1 build/CoolDock.app/Contents/MacOS/CoolDock --render <dir> nowPlaying,nowPlayingHero --wait 4 --lang en|fa
+COOLDOCK_OFFLINE=1 build/NiceDock.app/Contents/MacOS/NiceDock --render <dir> nowPlaying,nowPlayingHero --wait 4 --lang en|fa
 ```

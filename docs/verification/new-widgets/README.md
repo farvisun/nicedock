@@ -6,8 +6,8 @@ Two widgets from cooldock.app's changelog that the clone was missing: **Habit Tr
 
 | Folder | Command | Shows |
 |---|---|---|
-| `scene-en/`, `scene-fa/` | `CoolDock --render <dir> habitTracker,habitTracker-empty,habitTracker-panel,habitTracker-weeks,habitTracker-editor,habitTracker-new,windowManager,windowManager-locked,windowManager-panel,windowManager-panel-locked --scene reference --lang en\|fa --style darkGlass` | Fixed data on Thursday 18 June 2026: four habits with history, two checked today. The window list has Safari, Notes, Terminal, Finder (one window minimized) and Music. `-panel`, `-weeks`, `-editor`, `-new` and `-panel-locked` show the panels in place of the tile. |
-| `live-en/`, `live-fa/` | `CoolDock --render <dir> habitTracker,windowManager --lang en\|fa` | The real first-run state: no habits yet ("Add a habit"), and Accessibility not granted to the unsigned build ("Allow Accessibility…"). |
+| `scene-en/`, `scene-fa/` | `NiceDock --render <dir> habitTracker,habitTracker-empty,habitTracker-panel,habitTracker-weeks,habitTracker-editor,habitTracker-new,windowManager,windowManager-locked,windowManager-panel,windowManager-panel-locked --scene reference --lang en\|fa --style darkGlass` | Fixed data on Thursday 18 June 2026: four habits with history, two checked today. The window list has Safari, Notes, Terminal, Finder (one window minimized) and Music. `-panel`, `-weeks`, `-editor`, `-new` and `-panel-locked` show the panels in place of the tile. |
+| `live-en/`, `live-fa/` | `NiceDock --render <dir> habitTracker,windowManager --lang en\|fa` | The real first-run state: no habits yet ("Add a habit"), and Accessibility not granted to the unsigned build ("Allow Accessibility…"). |
 | `sheet-tiles.png` | ImageMagick | All tiles side by side: English on the left, Persian on the right (scene, then live). |
 | `sheet-panels-en.png`, `sheet-panels-fa.png` | ImageMagick | Habits this week, habits over the last 12 weeks, the editor with one habit open, the empty panel, the window list, and the window list without Accessibility. |
 

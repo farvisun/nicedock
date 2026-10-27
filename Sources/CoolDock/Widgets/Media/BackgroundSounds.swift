@@ -109,7 +109,7 @@ final class MediaSoundEngine {
         do {
             try e.start()
         } catch {
-            NSLog("CoolDock sounds: \(error)")
+            NSLog("NiceDock sounds: \(error)")
             return false
         }
         engine = e

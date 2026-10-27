@@ -3,7 +3,7 @@ import AppKit
 import ApplicationServices
 import AVFoundation
 
-/// Dev aid: `CoolDock --ui-probe [--out <file.json>] [--dump <file.json>]` runs the real app (the normal
+/// Dev aid: `NiceDock --ui-probe [--out <file.json>] [--dump <file.json>]` runs the real app (the normal
 /// `AppDelegate` launch: Dock window, menu bar item, hot keys, the Settings window) and then operates it the way a
 /// screen reader or a UI-scripting tool would: through the Accessibility API on its own windows. It opens Settings,
 /// selects each of the 12 panes by pressing its sidebar row, operates a control in every pane (switches, sliders,
@@ -14,7 +14,7 @@ import AVFoundation
 ///
 /// Side effects stay in the process: persistence is off, the support and cache folders are `COOLDOCK_SUPPORT_DIR`
 /// (else a temporary folder), copy buttons write to a private pasteboard, URLs are captured instead of opened, timer
-/// alerts go to a sink (no sound, no notification permission), and every change CoolDock would make to the macOS Dock
+/// alerts go to a sink (no sound, no notification permission), and every change NiceDock would make to the macOS Dock
 /// is captured instead of made. (macOS still keeps the app's usual URL cache and window frames under its bundle id.) Controls with outside effects (Dock auto-hide, the "replace" layouts, Launch at Login, permission
 /// requests, Reset, Export Diagnostics, Clear Cache, System Settings, the screen colour sampler, recording, the system
 /// Character Viewer, Wi-Fi / Bluetooth / system toggles) are only checked for presence, never pressed.
@@ -34,7 +34,7 @@ enum UIProbe {
     private static var openedURLs: [String] = []
     private static var dockChanges: [String] = []
     private static var alerts: [String] = []
-    private static let pasteboard = NSPasteboard(name: NSPasteboard.Name("app.cooldock.ui-probe.\(UUID().uuidString)"))
+    private static let pasteboard = NSPasteboard(name: NSPasteboard.Name("app.nicedock.ui-probe.\(UUID().uuidString)"))
 
     static func prepareIfRequested() {
         let args = CommandLine.arguments
@@ -45,7 +45,7 @@ enum UIProbe {
         dumpPath = args.firstIndex(of: "--dump").flatMap { args.count > $0 + 1 ? args[$0 + 1] : nil }
         AppStore.persistenceEnabled = false
         if (ProcessInfo.processInfo.environment["COOLDOCK_SUPPORT_DIR"] ?? "").isEmpty {
-            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cooldock-uiprobe-\(UUID().uuidString)", isDirectory: true)
+            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("nicedock-uiprobe-\(UUID().uuidString)", isDirectory: true)
             AppPaths.overrideDirectory = dir
             tempSupport = dir
         }
@@ -203,7 +203,7 @@ enum UIProbe {
         let panes = cases.filter { $0.group == "pane" }
         let widgets = cases.filter { $0.group == "widget" }
         let report: [String: Any] = [
-            "probe": "CoolDock --ui-probe",
+            "probe": "NiceDock --ui-probe",
             "date": ISO8601DateFormatter().string(from: started),
             "seconds": (Date().timeIntervalSince(started) * 10).rounded() / 10,
             "accessibilityTrusted": AXIsProcessTrusted(),
@@ -357,7 +357,7 @@ extension UIProbe {
         c.elements.append("sidebar row " + summary(row))
         let pressed = ProbeAX.press(row)
         // About has no pane header; its first text is the app name.
-        let expectedHeader = pane == .about ? "CoolDock" : title
+        let expectedHeader = pane == .about ? "NiceDock" : title
         let ok = await wait(3) { settingsAX().flatMap(ProbeAX.title) == title && headerText() == expectedHeader }
         c.step("press sidebar row \"\(title)\"", ["windowTitle": beforeTitle ?? "", "header": beforeHeader ?? ""],
                ["windowTitle": settingsAX().flatMap(ProbeAX.title) ?? "", "header": headerText() ?? ""], pressed && ok)
@@ -445,8 +445,8 @@ extension UIProbe {
         let store = AppStore.shared
         await switchRow(c, L("Show menu bar icon")) { store.settings.showMenuBarIcon }
         for b in [L("Choose Folder…"), L("Export…"), L("Reset…")] { present(c, b) }
-        if let toggle = control(after: L("Launch CoolDock at login"), role: kAXCheckBoxRole) {
-            c.elements.append("\"Launch CoolDock at login\" " + summary(toggle) + " — present, not pressed")
+        if let toggle = control(after: L("Launch NiceDock at login"), role: kAXCheckBoxRole) {
+            c.elements.append("\"Launch NiceDock at login\" " + summary(toggle) + " — present, not pressed")
         }
     }
 
@@ -480,7 +480,7 @@ extension UIProbe {
 
     static func screens(_ c: Case) async {
         let store = AppStore.shared
-        await segment(c, L("Show CoolDock on"), choose: ScreensMode.all.title, { store.settings.screensMode.rawValue }, expect: ScreensMode.all.rawValue)
+        await segment(c, L("Show NiceDock on"), choose: ScreensMode.all.title, { store.settings.screensMode.rawValue }, expect: ScreensMode.all.rawValue)
     }
 
     static func dockPane(_ c: Case) async {
@@ -559,7 +559,7 @@ extension UIProbe {
     static func performance(_ c: Case) async {
         let store = AppStore.shared
         await sliderRow(c, L("System stats interval")) { store.settings.systemSampleInterval }
-        await switchRow(c, L("Pause widgets while CoolDock is hidden")) { store.settings.pauseWhenHidden }
+        await switchRow(c, L("Pause widgets while NiceDock is hidden")) { store.settings.pauseWhenHidden }
         present(c, L("Clear Cache"))
     }
 

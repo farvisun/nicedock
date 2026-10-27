@@ -3,7 +3,7 @@ import Testing
 @testable import CoolDock
 
 /// Real Yahoo Finance `/v8/finance/chart` and Binance `/api/v3` responses captured with curl on
-/// 2026-10-27 using the app's URLs (Yahoo with the app's own `CoolDock/1.0 (macOS)` user agent —
+/// 2026-10-27 using the app's URLs (Yahoo with the app's own `NiceDock/1.0 (macOS)` user agent —
 /// the Safari agent the app used to send got HTTP 429 from both Yahoo hosts).
 @Suite struct FinanceTests {
     static let symbols = ["AAPL", "MSFT", "NVDA", "BTC-USD", "ETH-USD"]

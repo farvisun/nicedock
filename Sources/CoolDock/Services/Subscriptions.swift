@@ -69,7 +69,7 @@ enum Net {
         let cfg = URLSessionConfiguration.default
         cfg.timeoutIntervalForRequest = 15
         cfg.urlCache = URLCache(memoryCapacity: 2_000_000, diskCapacity: 20_000_000)
-        cfg.httpAdditionalHeaders = ["User-Agent": "CoolDock/1.0 (macOS)"]
+        cfg.httpAdditionalHeaders = ["User-Agent": "NiceDock/1.0 (macOS)"]
         return URLSession(configuration: cfg)
     }()
 
@@ -106,7 +106,7 @@ enum Net {
         return try await session.data(for: req)
     }
 
-    /// Developer renders only: `COOLDOCK_OFFLINE=1 CoolDock --render …` never touches the network, so renders are
+    /// Developer renders only: `COOLDOCK_OFFLINE=1 NiceDock --render …` never touches the network, so renders are
     /// hermetic and a freshly built binary doesn't trigger firewall prompts.
     nonisolated static let offline = RenderHarness.isActive && ProcessInfo.processInfo.environment["COOLDOCK_OFFLINE"] == "1"
 

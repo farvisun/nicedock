@@ -108,11 +108,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let main = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: L("About CoolDock"), action: #selector(showAbout), keyEquivalent: "").target = self
+        appMenu.addItem(withTitle: L("About NiceDock"), action: #selector(showAbout), keyEquivalent: "").target = self
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: L("Settings…"), action: #selector(showSettings), keyEquivalent: ",").target = self
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: L("Quit CoolDock"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: L("Quit NiceDock"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         main.addItem(appItem)
 
@@ -148,7 +148,7 @@ enum LoginItem {
         do {
             if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            NSLog("CoolDock login item: \(error.localizedDescription)")
+            NSLog("NiceDock login item: \(error.localizedDescription)")
         }
     }
 

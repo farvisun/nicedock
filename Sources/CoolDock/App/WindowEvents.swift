@@ -6,8 +6,8 @@ import ApplicationServices
 /// One `AXObserver` per running regular app, registered on the app element, which receives the notifications of all the
 /// app's windows. Each window adds only its destruction (and whatever the app element refused): registering a window
 /// for what the app element already delivers made every move, resize and restore arrive twice. Observers exist
-/// only while a feature subscribes (Reserve Dock Space, Hide on Window Hover) *and* CoolDock is trusted for
-/// Accessibility; nothing is polled, so an idle desktop costs nothing. CoolDock never asks for the permission by itself:
+/// only while a feature subscribes (Reserve Dock Space, Hide on Window Hover) *and* NiceDock is trusted for
+/// Accessibility; nothing is polled, so an idle desktop costs nothing. NiceDock never asks for the permission by itself:
 /// the hub starts when the user grants it (the system posts `com.apple.accessibility.api` when trust changes).
 @MainActor
 final class WindowEventHub {
@@ -122,7 +122,7 @@ final class WindowEventHub {
     }
 
     /// Registers the observer for `pid`'s windows. `observe(_:)` decides which apps get one (only while the hub runs,
-    /// which needs Accessibility trust, and never CoolDock itself); the live tests attach the test process directly.
+    /// which needs Accessibility trust, and never NiceDock itself); the live tests attach the test process directly.
     @discardableResult
     func attach(_ pid: pid_t) -> Bool {
         guard apps[pid] == nil else { return true }
@@ -196,7 +196,7 @@ struct AXWindowKey: Hashable {
     func hash(into hasher: inout Hasher) { hasher.combine(CFHash(element)) }
 }
 
-/// Reads and writes the few window attributes CoolDock needs.
+/// Reads and writes the few window attributes NiceDock needs.
 enum AXWindowInfo {
     struct Snapshot {
         var frame: CGRect

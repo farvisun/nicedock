@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension UTType {
-    static let coolDockWidget = UTType(exportedAs: "app.cooldock.widget-kind")
+    static let coolDockWidget = UTType(exportedAs: "app.nicedock.widget-kind")
 }
 
 struct DockRootView: View {
@@ -383,8 +383,8 @@ struct DockContextMenu: View {
             Divider()
             Button(L("Reset Layout")) { DockController.shared.resetLayout() }
         }
-        Button(L("Hide CoolDock")) { DockController.shared.toggleVisibility() }
+        Button(L("Hide NiceDock")) { DockController.shared.toggleVisibility() }
         Divider()
-        Button(L("Quit CoolDock")) { NSApp.terminate(nil) }
+        Button(L("Quit NiceDock")) { NSApp.terminate(nil) }
     }
 }

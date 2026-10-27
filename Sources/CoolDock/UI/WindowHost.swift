@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Shared helper for CoolDock's regular windows (Settings, Widgets, Setup, Onboarding).
+/// Shared helper for NiceDock's regular windows (Settings, Widgets, Setup, Onboarding).
 @MainActor
 final class WindowHost: NSObject, NSWindowDelegate {
     private(set) var window: NSWindow?
@@ -48,8 +48,8 @@ final class WindowHost: NSObject, NSWindowDelegate {
             w.toolbarStyle = .unified
         }
         w.contentView = NSHostingView(rootView: AnyView(root))
-        w.setFrameAutosaveName("CoolDock.\(id)")
-        if !w.setFrameUsingName("CoolDock.\(id)") { w.center() }
+        w.setFrameAutosaveName("NiceDock.\(id)")
+        if !w.setFrameUsingName("NiceDock.\(id)") { w.center() }
         w.delegate = self
         window = w
         bringToFront(w)

@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Pixel-diffs widget renders against the reference frames in docs/reference.
 #
-#   scripts/pixel-diff.sh [--no-render] [--app path/to/CoolDock.app] [--out dir] [kind ...]
+#   scripts/pixel-diff.sh [--no-render] [--app path/to/NiceDock.app] [--out dir] [kind ...]
 #
 # Renders every reference widget with deterministic reference data (`--scene reference`),
 # compares each PNG with ImageMagick and writes <out>/report.md, <out>/report.html and
@@ -16,7 +16,7 @@
 #   rmse   normalised root-mean-square error (0 = identical)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="$ROOT/build/CoolDock.app"
+APP="$ROOT/build/NiceDock.app"
 OUT="$ROOT/build/pixel-report"
 FUZZ="${FUZZ:-8%}"
 STRICT="${STRICT:-3%}"
@@ -36,7 +36,7 @@ if [ ${#KINDS[@]} -eq 0 ]; then KINDS=($(ls "$REF" | sed -n 's/\.png$//p')); fi
 mkdir -p "$OUT/render" "$OUT/strips"
 
 if [ $RENDER -eq 1 ]; then
-  "$APP/Contents/MacOS/CoolDock" --render "$OUT/render" "${(j:,:)KINDS}" --scene reference --lang en --style darkGlass >/dev/null
+  "$APP/Contents/MacOS/NiceDock" --render "$OUT/render" "${(j:,:)KINDS}" --scene reference --lang en --style darkGlass >/dev/null
 fi
 
 TSV="$OUT/metrics.tsv"
@@ -77,9 +77,9 @@ md += [f'| {r[0]} | {r[1]} | {r[2]} | {r[3]} | {r[4]}% | {r[6]}% | {float(r[5]):
 open(f'{out}/report.md', 'w').write('\n'.join(md) + '\n')
 cards = ''.join(f'<div class=c><b>{html.escape(r[0])}</b> <span>{r[4]}% · strict {r[6]}% · RMSE {float(r[5]):.4f} · {r[1]}{"" if r[3]=="yes" else " ≠ " + r[2]}</span>'
                 f'<img src="strips/{html.escape(r[0])}.png"></div>' for r in rows)
-open(f'{out}/report.html', 'w').write(f'''<!doctype html><meta charset=utf-8><title>CoolDock pixel diff</title>
+open(f'{out}/report.html', 'w').write(f'''<!doctype html><meta charset=utf-8><title>NiceDock pixel diff</title>
 <style>body{{background:#1c1c1e;color:#eee;font:13px -apple-system;margin:24px}}.c{{margin:0 0 18px}}span{{color:#999;margin-left:8px}}
 img{{display:block;margin-top:6px;zoom:.5}}</style><h1>Pixel diff vs reference</h1><p>{summary}</p>
-<p>Each strip: reference | CoolDock render | differing pixels (pink) over the dimmed reference.</p>{cards}''')
+<p>Each strip: reference | NiceDock render | differing pixels (pink) over the dimmed reference.</p>{cards}''')
 print(summary)
 EOF

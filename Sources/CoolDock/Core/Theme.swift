@@ -40,7 +40,7 @@ enum DockFonts {
 }
 
 extension Font {
-    /// The CoolDock widget typeface. Uses SF Pro Rounded for Latin scripts and Estedad for Persian/Arabic.
+    /// The NiceDock widget typeface. Uses SF Pro Rounded for Latin scripts and Estedad for Persian/Arabic.
     static func dock(_ size: CGFloat, _ weight: Font.Weight = .semibold, design: Font.Design = .rounded, mono: Bool = false) -> Font {
         if Localizer.language.usesEstedad && AppStore.estedadEnabled {
             // Estedad has taller Arabic-script ascenders; trim slightly to sit on the same baseline grid.

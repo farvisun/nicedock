@@ -288,7 +288,7 @@ enum AppsAX {
         return press(item)
     }
 
-    /// "New Window" in the languages CoolDock ships (apps follow the system language): both words must appear.
+    /// "New Window" in the languages NiceDock ships (apps follow the system language): both words must appear.
     private static let windowWords: [(String, String)] = [
         ("new", "window"), ("neu", "fenster"), ("nouvelle", "fenêtre"), ("nueva", "ventana"), ("nuova", "finestra"),
         ("nova", "janela"), ("yeni", "pencere"), ("нов", "окно"), ("新建", "窗口"), ("新規", "ウインドウ"), ("新規", "ウィンドウ"),

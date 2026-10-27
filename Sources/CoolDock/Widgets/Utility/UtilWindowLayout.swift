@@ -78,7 +78,7 @@ enum UtilWinAction: String, CaseIterable, Identifiable {
 struct UtilWinScreen: Equatable {
     /// `NSScreen.frame`.
     var frame: CGRect
-    /// Area windows may use: `NSScreen.visibleFrame` (menu bar and macOS Dock removed) minus CoolDock's own dock.
+    /// Area windows may use: `NSScreen.visibleFrame` (menu bar and macOS Dock removed) minus NiceDock's own dock.
     var usable: CGRect
 }
 
@@ -90,7 +90,7 @@ enum UtilWinMath {
         CGRect(x: r.minX, y: primaryHeight - r.maxY, width: r.width, height: r.height)
     }
 
-    /// `visible` without the strip a docked CoolDock covers at its bottom or top edge.
+    /// `visible` without the strip a docked NiceDock covers at its bottom or top edge.
     static func usable(visible: CGRect, dock: CGRect?) -> CGRect {
         guard let dock, dock.width > 0, dock.height > 0, dock.intersects(visible) else { return visible }
         var r = visible
