@@ -94,6 +94,9 @@ struct NetworkTilesLiveTests {
             }
         }
         let mount = NSWindow(contentRect: NSRect(x: -20_000, y: -20_000, width: 4000, height: 200), styleMask: .borderless, backing: .buffered, defer: false)
+        // A window made in code is released by `close()` by default; with ARC's own release that over-releases it,
+        // which crashed the process at the next autorelease-pool pop (seen when run after AXLiveTests' run loop).
+        mount.isReleasedWhenClosed = false
         mount.contentView = NSHostingView(rootView: HStack(spacing: 6) { ForEach(instances) { WidgetHost(instance: $0) } }
             .environment(\.palette, store.palette).environment(\.metrics, store.metrics))
         mount.orderFrontRegardless()
