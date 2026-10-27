@@ -39,6 +39,11 @@ width) to inspect widget panels without UI scripting.
   no-key / fake-key answers through the widget's own request and error handling — see
   [docs/verification/providers.md](docs/verification/providers.md). `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
   LocalLogsTests` also checks AI-usage totals against this Mac's Claude Code / Codex logs.
+- **Calendar feeds** — the ICS reader (`Services/ICS.swift`) is tested with handcrafted RFC 5545 snippets and four
+  real feeds captured with curl (Google US holidays, iCloud US holidays, the LLVM community calendar, Make WordPress
+  meetings); every occurrence in an eight-week window matches an independent python-dateutil expansion
+  (`Tests/Scripts/ics_oracle.py`). Widget renders from real feeds, English and Persian:
+  `docs/verification/calendar-feed/`.
 - **Translations** — `python3 scripts/l10n.py check` (every language must report 0 missing).
 
 ## Using it
@@ -68,7 +73,8 @@ width) to inspect widget panels without UI scripting.
 | Connected | Polar, Stripe, Dodo Payments, Shopify ×3, Plausible, Simple Analytics, DataFast, Visitors Chart, Dub, Resend, GitHub, Supabase, X, TikTok, YouTube, AI Usage (Claude Code, Codex, Anthropic/OpenAI admin APIs) |
 
 Data sources: Open-Meteo (weather, no key), Frankfurter (currency), Yahoo Finance and Binance
-(quotes), EventKit, CoreAudio, CoreWLAN, IOKit, PhotoKit, Contacts and each provider's public API.
+(quotes), EventKit and ICS/webcal calendar feeds (Google, iCloud, Outlook, Fastmail, any .ics link), CoreAudio,
+CoreWLAN, IOKit, PhotoKit, Contacts and each provider's public API.
 
 ## Settings
 
@@ -77,7 +83,7 @@ radius, monochrome, reduce transparency) · Layout (seven scenarios: Swap at the
 Fixed ×6 positions, Reveal on Top, Replace the macOS Dock, Replace & Auto-Hide, Floating) ·
 Screens (one / attached / all displays, rename, identify) · Dock · Profiles (up to 8) · Widgets ·
 Shortcuts (recorders) · Language & Region (language, calendar, digits, 12/24 h, Estedad) ·
-Privacy & Permissions · Performance (live memory/CPU of CoolDock) · About.
+Privacy & Permissions (incl. Calendar Feeds) · Performance (live memory/CPU of CoolDock) · About.
 
 ## Architecture
 

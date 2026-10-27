@@ -412,7 +412,12 @@
 "Leave empty to use your current location." = "Leave empty to use your current location.";
 "min" = "min";
 "pt" = "pt";
+"Private link missing — add the feed again" = "Private link missing — add the feed again";
+"Link not found or no longer shared" = "Link not found or no longer shared";
+"Not an iCalendar feed" = "Not an iCalendar feed";
 "Untitled" = "Untitled";
+"Enter a webcal:// or https:// link to an .ics calendar." = "Enter a webcal:// or https:// link to an .ics calendar.";
+"This feed is already added." = "This feed is already added.";
 "Check your token" = "Check your token";
 "Not found" = "Not found";
 "Rate limited" = "Rate limited";
@@ -458,6 +463,17 @@
 "Open Widgets to add more — or drag a card straight into the Dock." = "Open Widgets to add more — or drag a card straight into the Dock.";
 "Hold ⌘ and drag to reorder. Press ⌃⌥⌘D to hide or show CoolDock." = "Hold ⌘ and drag to reorder. Press ⌃⌥⌘D to hide or show CoolDock.";
 "Hover the Dock to switch between profiles." = "Hover the Dock to switch between profiles.";
+"Calendar Feeds" = "Calendar Feeds";
+"Subscribe to iCalendar (.ics) links from Google Calendar, iCloud, Outlook or any webcal:// address. Calendar widgets show their events even without Calendar access. Private links are kept in your Keychain." = "Subscribe to iCalendar (.ics) links from Google Calendar, iCloud, Outlook or any webcal:// address. Calendar widgets show their events even without Calendar access. Private links are kept in your Keychain.";
+"webcal:// or https:// link" = "webcal:// or https:// link";
+"Add Feed" = "Add Feed";
+"Change color" = "Change color";
+"Remove" = "Remove";
+"Private link in Keychain" = "Private link in Keychain";
+"%d event" = "%d event";
+"%d events" = "%d events";
+"Updated %@" = "Updated %@";
+"Updating…" = "Updating…";
 "Startup behaviour, the menu bar icon, units and diagnostics." = "Startup behaviour, the menu bar icon, units and diagnostics.";
 "Startup" = "Startup";
 "Launch CoolDock at login" = "Launch CoolDock at login";
@@ -627,7 +643,6 @@
 "Add Widgets…" = "Add Widgets…";
 "This profile has no widgets yet." = "This profile has no widgets yet.";
 "Customize…" = "Customize…";
-"Remove" = "Remove";
 "CoolDock is local-first. It only asks for a permission when a widget needs it." = "CoolDock is local-first. It only asks for a permission when a widget needs it.";
 "Permissions" = "Permissions";
 "Calendars" = "Calendars";
@@ -745,7 +760,7 @@
 "Show All Running Apps" = "Show All Running Apps";
 "Collapse Running Apps" = "Collapse Running Apps";
 "Allow Calendar access" = "Allow Calendar access";
-"Click to connect" = "Click to connect";
+"Add calendar feed…" = "Add calendar feed…";
 "No more events" = "No more events";
 "Enjoy your day" = "Enjoy your day";
 "No upcoming events" = "No upcoming events";
@@ -775,6 +790,7 @@
 "No open issues" = "No open issues";
 "Loading…" = "Loading…";
 "Show Month…" = "Show Month…";
+"Calendar Feeds…" = "Calendar Feeds…";
 "Show All Reminders…" = "Show All Reminders…";
 "Show List…" = "Show List…";
 "Clear All Tasks" = "Clear All Tasks";
@@ -830,7 +846,6 @@
 "This month" = "This month";
 "Last 24 hours" = "Last 24 hours";
 "Last 13 weeks" = "Last 13 weeks";
-"Updated %@" = "Updated %@";
 "net revenue" = "net revenue";
 "total sales" = "total sales";
 "visitors" = "visitors";

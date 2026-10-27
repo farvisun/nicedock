@@ -72,8 +72,10 @@ enum SettingsWindow {
     private static let host = WindowHost(id: "settings")
     private static let nav = SettingsNavigation()
 
-    static func show(pane: SettingsPane? = nil) {
+    /// `anchor` scrolls to a section with that `.id` once the pane is shown.
+    static func show(pane: SettingsPane? = nil, anchor: String? = nil) {
         if let pane { nav.pane = pane }
+        nav.anchor = anchor
         Panels.shared.close()
         host.show(title: L("CoolDock Settings"), size: NSSize(width: 860, height: 640), minSize: NSSize(width: 760, height: 520), toolbar: true) {
             SettingsRoot(nav: nav).id(AppStore.shared.languageRevision)
@@ -91,6 +93,7 @@ enum SettingsWindow {
 final class SettingsNavigation {
     var pane: SettingsPane = .general
     var search = ""
+    var anchor: String?
 }
 
 struct SettingsRoot: View {
@@ -117,20 +120,32 @@ struct SettingsRoot: View {
             .searchable(text: $nav.search, placement: .sidebar, prompt: L("Search"))
             .navigationSplitViewColumnWidth(min: 210, ideal: 230, max: 280)
         } detail: {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    pane(nav.pane)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        pane(nav.pane)
+                    }
+                    .frame(maxWidth: 680, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, alignment: .top)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 22)
                 }
-                .frame(maxWidth: 680, alignment: .topLeading)
-                .frame(maxWidth: .infinity, alignment: .top)
-                .padding(.horizontal, 28)
-                .padding(.vertical, 22)
+                .onAppear { scrollToAnchor(proxy) }
+                .onChange(of: nav.anchor) { scrollToAnchor(proxy) }
             }
             .navigationTitle(nav.pane.title)
             .background(Color(nsColor: .windowBackgroundColor))
         }
         .onReceive(NotificationCenter.default.publisher(for: .coolDockLanguageChanged)) { _ in
             DispatchQueue.main.async { SettingsWindow.refreshIfOpen() }
+        }
+    }
+
+    private func scrollToAnchor(_ proxy: ScrollViewProxy) {
+        guard let anchor = nav.anchor else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(anchor, anchor: .top) }
+            nav.anchor = nil
         }
     }
 
@@ -169,7 +184,7 @@ enum SettingsSearchIndex {
         case .widgets: return [L("Visibility"), L("Customize")]
         case .shortcuts: return [L("Hotkey"), L("Keyboard")]
         case .language: return ["فارسی", "Persian", "Estedad", L("Calendar"), L("Digits"), L("24-hour")]
-        case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Accessibility")]
+        case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Accessibility"), L("Calendar Feeds"), "ICS", "webcal"]
         case .performance: return [L("Memory"), L("CPU"), L("Cache")]
         case .about: return [L("Version")]
         }

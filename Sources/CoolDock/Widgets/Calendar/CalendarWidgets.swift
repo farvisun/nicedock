@@ -25,6 +25,10 @@ enum CalendarWidgets {
         case .calendarToday, .agenda, .weekStrip, .nextMeeting:
             Button(L("Show Month…")) { Panels.shared.show(w.id) { CalMonthPanel() } }
             Button(L("Open Calendar")) { Open.bundle("com.apple.iCal") }
+            Button(L("Calendar Feeds…")) { CalFeedLink.add() }
+            if !CalendarService.shared.hasEventAccess {
+                Button(L("Allow Calendar access")) { CalAccess.request(reminders: false) }
+            }
             Divider()
         case .zoomMeeting:
             Button(L("Open Zoom")) { Open.bundle("us.zoom.xos") }

@@ -68,6 +68,9 @@ Helpers that are private to a family must be `private`/`fileprivate` or prefixed
 * Persist small widget state with `AppStore.shared.updateWidget(w.id) { $0.config["k"] = v }` — never
   more often than on user actions.
 * Secrets: `Secrets.get(w.id, "token")` (Keychain). Never store tokens in `config`.
+* Calendar data: read `CalData` (EventKit merged with the ICS/webcal feeds of Settings → Privacy & Permissions →
+  Calendar Feeds, see `Services/CalendarFeeds.swift` and the parser `Services/ICS.swift`). Gate on `CalData.hasEvents`
+  (Calendar access *or* a feed), never on EventKit access alone; Refresh calls `CalendarService.shared.refreshEvents()`.
 
 ## Interaction
 
@@ -86,3 +89,7 @@ magick /tmp/out/clockDigital.png docs/reference/clockDigital.png +append /tmp/co
 ```
 
 Renders are 2× with no padding, same size as the reference when the width matches.
+
+Developer renders only: `COOLDOCK_ICS_FILE=/a.ics:/b.ics` shows local ICS files in the calendar widgets (instead of
+the saved feeds) and `COOLDOCK_OFFLINE=1` keeps the render off the network. Both are ignored outside `--render` and
+in `--scene reference`. Example: `docs/verification/calendar-feed/README.md`.

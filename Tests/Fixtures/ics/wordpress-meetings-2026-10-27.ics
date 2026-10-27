@@ -1,0 +1,554 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Make WordPress//Meeting Events Calendar//EN
+METHOD:PUBLISH
+CALSCALE:GREGORIAN
+X-WR-TIMEZONE:UTC
+X-WR-CALNAME:Making WordPress Meetings
+BEGIN:VEVENT
+UID:8355
+DTSTAMP:20260911T150000Z
+DTSTART:20260911T150000Z
+DTEND:20260911T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress GatherPress Team:mailto:mail@example.com
+SUMMARY:GatherPress: GatherPress Huddle
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#gatherpress channel in Slack
+DESCRIPTION:For more information visit https://wordpress.slack.com/archives/gatherpress
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:6078
+DTSTAMP:20260528T150000Z
+DTSTART:20260528T150000Z
+DTEND:20260528T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Test Team:mailto:mail@example.com
+SUMMARY:Test: Patch Testing Session
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-test channel on Slack
+RRULE:FREQ=MONTHLY;BYDAY=4TH
+END:VEVENT
+BEGIN:VEVENT
+UID:6077
+DTSTAMP:20260521T150000Z
+DTSTART:20260521T150000Z
+DTEND:20260521T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Test Team:mailto:mail@example.com
+SUMMARY:Test: Test Team Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-test channel on Slack
+RRULE:FREQ=MONTHLY;BYDAY=3TH
+END:VEVENT
+BEGIN:VEVENT
+UID:6076
+DTSTAMP:20260514T150000Z
+DTSTART:20260514T150000Z
+DTEND:20260514T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Test Team:mailto:mail@example.com
+SUMMARY:Test: Patch Testing Session
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-test channel on Slack
+RRULE:FREQ=MONTHLY;BYDAY=2TH
+END:VEVENT
+BEGIN:VEVENT
+UID:6075
+DTSTAMP:20260507T150000Z
+DTSTART:20260507T150000Z
+DTEND:20260507T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Test Team:mailto:mail@example.com
+SUMMARY:Test: Test Team Voice Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-test channel on Slack
+RRULE:FREQ=MONTHLY;BYDAY=1TH
+END:VEVENT
+BEGIN:VEVENT
+UID:5735
+DTSTAMP:20260428T140000Z
+DTSTART:20260428T140000Z
+DTEND:20260428T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Training Team:mailto:mail@example.com
+SUMMARY:Training: Training Team  Office Hours
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#training channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#training\nFor more information visit https://make.wordpress.org/training/
+RRULE:FREQ=MONTHLY
+EXDATE:20261128T140000Z
+END:VEVENT
+BEGIN:VEVENT
+UID:5730
+DTSTAMP:20270330T140000Z
+DTSTART:20270330T140000Z
+DTEND:20270330T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Docs Team:mailto:mail@example.com
+SUMMARY:Docs: Documentation team discussion meeting (video call)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:5603
+DTSTAMP:20260204T160000Z
+DTSTART:20260204T160000Z
+DTEND:20260204T170000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Passwords Team:mailto:mail@example.com
+SUMMARY:Core Passwords: Two Factor Bi-Weekly Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-passwords channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-passwords\nFor more information visit https://github.com/WordPress/two-factor
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:5289
+DTSTAMP:20251204T150000Z
+DTSTART:20251204T150000Z
+DTEND:20251204T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Accessibility Team:mailto:mail@example.com
+SUMMARY:Accessibility: Accessibility Team Meeting
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#accessibility channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#accessibility\nFor more information visit https://make.wordpress.org/accessibility/
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:5263
+DTSTAMP:20250828T170000Z
+DTSTART:20250828T170000Z
+DTEND:20250828T180000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Team:mailto:mail@example.com
+SUMMARY:Core: New Core Contributors Bimonthly Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core\nFor more information visit https://make.wordpress.org/core/tag/new-contributors/
+RRULE:FREQ=MONTHLY;BYDAY=2TH,4TH
+END:VEVENT
+BEGIN:VEVENT
+UID:5244
+DTSTAMP:20250806T170000Z
+DTSTART:20250806T170000Z
+DTEND:20250806T180000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core AI Team:mailto:mail@example.com
+SUMMARY:Core AI: AI Contributor Weekly
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:core-ai
+DESCRIPTION:For more information visit https://meet.google.com/szy-ztag-sje
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:5179
+DTSTAMP:20250612T170000Z
+DTSTART:20250612T170000Z
+DTEND:20250612T180000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core AI Team:mailto:mail@example.com
+SUMMARY:Core AI: AI Team Office Hours (bi-weekly)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-ai channel on Slack
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:5154
+DTSTAMP:20250401T140000Z
+DTSTART:20250401T140000Z
+DTEND:20250401T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Docs Team:mailto:mail@example.com
+SUMMARY:Docs: Documentation team discussion meeting
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#docs channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#docs\nFor more information visit https://make.wordpress.org/docs/
+RRULE:FREQ=MONTHLY;BYDAY=1TU,3TU
+END:VEVENT
+BEGIN:VEVENT
+UID:4906
+DTSTAMP:20241011T140000Z
+DTSTART:20241011T140000Z
+DTEND:20241011T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Playground Team:mailto:mail@example.com
+SUMMARY:Playground: Playground Team Meeting
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#playground channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#playground\nFor more information visit https://wordpress.slack.com/archives/C04EWKGDJ0K
+RRULE:FREQ=MONTHLY;BYDAY=2FR,4FR
+END:VEVENT
+BEGIN:VEVENT
+UID:4768
+DTSTAMP:20240805T130000Z
+DTSTART:20240805T130000Z
+DTEND:20240805T140000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Themes Team:mailto:mail@example.com
+SUMMARY:Themes: Default theme scrub
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:4667
+DTSTAMP:20240410T180000Z
+DTSTART:20240410T180000Z
+DTEND:20240410T190000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Hosting Team:mailto:mail@example.com
+SUMMARY:Hosting: Hosting Team Meeting (AMER)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#hosting slack channel
+DESCRIPTION:For more information visit https://wordpress.slack.com/archives/C3D6T7F8Q
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:4666
+DTSTAMP:20250319T090000Z
+DTSTART:20250319T090000Z
+DTEND:20250319T100000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Hosting Team:mailto:mail@example.com
+SUMMARY:Hosting: Hosting Team Meeting (APAC/EMEA)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#hosting slack channel
+DESCRIPTION:For more information visit https://wordpress.slack.com/archives/C3D6T7F8Q
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:4608
+DTSTAMP:20240119T140000Z
+DTSTART:20240119T140000Z
+DTEND:20240119T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress DEIB working group Team:mailto:mail@example.com
+SUMMARY:DEIB working group: DEIB office hours
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:deib-working-group
+DESCRIPTION:For more information visit https://github.com/WordPress/DEIB-Issue-Tracker/discussions
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:4581
+DTSTAMP:20250204T070000Z
+DTSTART:20250204T070000Z
+DTEND:20250204T080000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Training Team:mailto:mail@example.com
+SUMMARY:Training: Training Team weekly meetings
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#training channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#training\nFor more information visit https://make.wordpress.org/training/
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:4469
+DTSTAMP:20231006T130000Z
+DTSTART:20231006T130000Z
+DTEND:20231006T140000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress DEIB Working Group Team:mailto:mail@example.com
+SUMMARY:DEIB Working Group: DEIB Meeting
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#deib-working-group channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#deib-working-group\nFor more information visit https://github.com/WordPress/DEIB-Issue-Tracker/discussions
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:4032
+DTSTAMP:20230509T140000Z
+DTSTART:20230509T140000Z
+DTEND:20230509T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Docs Team:mailto:mail@example.com
+SUMMARY:Docs: Documentation team planning meeting (video call)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#docs channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#docs\nFor more information visit https://make.wordpress.org/docs/
+RRULE:FREQ=MONTHLY;BYDAY=2TU
+END:VEVENT
+BEGIN:VEVENT
+UID:4031
+DTSTAMP:20230425T140000Z
+DTSTART:20230425T140000Z
+DTEND:20230425T150000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Docs Team:mailto:mail@example.com
+SUMMARY:Docs: Documentation team Contributor Day - 2 hours
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#docs channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#docs\nFor more information visit https://make.wordpress.org/docs/
+RRULE:FREQ=MONTHLY;BYDAY=4TU
+END:VEVENT
+BEGIN:VEVENT
+UID:3810
+DTSTAMP:20221201T150000Z
+DTSTART:20221201T150000Z
+DTEND:20221201T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress core Team:mailto:mail@example.com
+SUMMARY:core: Developer Blog Editorial Group
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-dev-blog channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-dev-blog\nFor more information visit https://developer.wordpress.org/news/
+RRULE:FREQ=MONTHLY;BYDAY=1TH
+END:VEVENT
+BEGIN:VEVENT
+UID:3646
+DTSTAMP:20220906T200000Z
+DTSTART:20220906T200000Z
+DTEND:20220906T210000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress core Team:mailto:mail@example.com
+SUMMARY:core: Core Privacy office-hour
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-privacy channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-privacy\nFor more information visit https://make.wordpress.org/core/tag/privacy/
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:3534
+DTSTAMP:20220815T180000Z
+DTSTART:20220815T180000Z
+DTEND:20220815T190000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Performance Team:mailto:mail@example.com
+SUMMARY:Core Performance: Performance Lab Release Party
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-performance channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-performance\nFor more information visit https://make.wordpress.org/meetings/
+RRULE:FREQ=MONTHLY;BYDAY=3MO
+END:VEVENT
+BEGIN:VEVENT
+UID:3533
+DTSTAMP:20250527T160000Z
+DTSTART:20250527T160000Z
+DTEND:20250527T170000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Performance Team:mailto:mail@example.com
+SUMMARY:Core Performance: Performance Bug Scrub
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-performance channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-performance\nFor more information visit https://make.wordpress.org/performance/
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:3311
+DTSTAMP:20220401T130000Z
+DTSTART:20220401T130000Z
+DTEND:20220401T140000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Photos Team:mailto:mail@example.com
+SUMMARY:Photos: Photo Directory Team Meeting
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#photos channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#photos\nFor more information visit https://make.wordpress.org/photos/tag/weekly-chat/
+RRULE:FREQ=MONTHLY;BYDAY=1FR
+END:VEVENT
+BEGIN:VEVENT
+UID:3214
+DTSTAMP:20211124T130000Z
+DTSTART:20211124T130000Z
+DTEND:20211124T140000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Polyglots Team:mailto:mail@example.com
+SUMMARY:Polyglots: Polyglots Team Chat (Europe)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#polyglots channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#polyglots\nFor more information visit https://make.wordpress.org/polyglots/category/weekly-chats/
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:3196
+DTSTAMP:20250114T160000Z
+DTSTART:20250114T160000Z
+DTEND:20250114T170000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Performance Team:mailto:mail@example.com
+SUMMARY:Core Performance: Performance Office Hours
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-performance channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-performance\nFor more information visit https://make.wordpress.org/performance/
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:3156
+DTSTAMP:20211103T070000Z
+DTSTART:20211103T070000Z
+DTEND:20211103T080000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Polyglots Team:mailto:mail@example.com
+SUMMARY:Polyglots: Polyglots Team Chat (Asia-Pacific)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#polyglots channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#polyglots\nFor more information visit https://make.wordpress.org/polyglots/category/weekly-chats/
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:2733
+DTSTAMP:20230308T180000Z
+DTSTART:20230308T180000Z
+DTEND:20230308T190000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Team:mailto:mail@example.com
+SUMMARY:Core: Core upgrade/install component
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-upgrade-install channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-upgrade-install\nFor more information visit https://make.wordpress.org/core/2020/03/05/auto-updates-kick-off-meeting-announcement/
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:2208
+DTSTAMP:20240123T160000Z
+DTSTART:20240123T160000Z
+DTEND:20240123T170000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Accessibility Team:mailto:mail@example.com
+SUMMARY:Accessibility: Accessibility Bug Scrub
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#accessibility channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#accessibility\nFor more information visit https://make.wordpress.org/accessibility/
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:2135
+DTSTAMP:20171212T180000Z
+DTSTART:20171212T180000Z
+DTEND:20171212T190000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Tide Team:mailto:mail@example.com
+SUMMARY:Tide: Tide Weekly Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#tide channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#tide\nFor more information visit https://make.wordpress.org/tide/tag/agenda
+RRULE:FREQ=WEEKLY;INTERVAL=2
+END:VEVENT
+BEGIN:VEVENT
+UID:1862
+DTSTAMP:20200311T160000Z
+DTSTART:20200311T160000Z
+DTEND:20200311T170000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Team:mailto:mail@example.com
+SUMMARY:Core: Media Team Weekly Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core-media channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core-media\nFor more information visit https://make.wordpress.org/core/components/media/
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:1712
+DTSTAMP:20150526T150000Z
+DTSTART:20150526T150000Z
+DTEND:20150526T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Themes Team:mailto:mail@example.com
+SUMMARY:Themes: Themes Team Biweekly Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#themes channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#themes\nFor more information visit https://make.wordpress.org/themes/tag/agenda/
+RRULE:FREQ=MONTHLY;BYDAY=2TU,4TU
+END:VEVENT
+BEGIN:VEVENT
+UID:1705
+DTSTAMP:20150528T150000Z
+DTSTART:20150528T150000Z
+DTEND:20150528T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress TV Team:mailto:mail@example.com
+SUMMARY:TV: WordPress.tv Team Weekly Chat
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#wptv channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#wptv\nFor more information visit https://make.wordpress.org/tv/
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:1679
+DTSTAMP:20260715T150000Z
+DTSTART:20260715T150000Z
+DTEND:20260715T160000Z
+CATEGORIES:WordPress
+ORGANIZER;CN=WordPress Core Team:mailto:mail@example.com
+SUMMARY:Core: Core Development Weekly Chat (1500 UTC)
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+LOCATION:#core channel on Slack
+DESCRIPTION:Slack channel link: https://wordpress.slack.com/messages/#core\nFor more information visit https://make.wordpress.org/core/tag/dev-chat+agenda
+RRULE:FREQ=WEEKLY
+END:VEVENT
+END:VCALENDAR

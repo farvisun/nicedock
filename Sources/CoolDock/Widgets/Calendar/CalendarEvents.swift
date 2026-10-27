@@ -21,7 +21,11 @@ struct CalTodayWidget: View {
                         rows
                     } else {
                         CalLine(dot: p.accent(.cdOrange), title: L("Allow Calendar access"), titleColor: p.secondary)
-                        CalLine(dot: nil, title: L("Click to connect"), titleColor: p.tertiary)
+                            .contentShape(Rectangle())
+                            .onTapGesture { CalAccess.request(reminders: false) }
+                        CalLine(dot: nil, title: L("Add calendar feed…"), titleColor: p.tertiary)
+                            .contentShape(Rectangle())
+                            .onTapGesture { CalFeedLink.add() }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -32,7 +36,7 @@ struct CalTodayWidget: View {
             if CalData.hasEvents { Panels.shared.toggle(w.id) { CalMonthPanel() } } else { CalAccess.request(reminders: false) }
         }
         .demand(CalendarDemand.events)
-        .onWidgetRefresh(w.id) { svc.reloadEvents() }
+        .onWidgetRefresh(w.id) { svc.refreshEvents() }
     }
 
     @ViewBuilder private var rows: some View {
@@ -98,7 +102,7 @@ struct CalAgendaWidget: View {
             if CalData.hasEvents { Panels.shared.toggle(w.id) { CalMonthPanel() } } else { CalAccess.request(reminders: false) }
         }
         .demand(CalendarDemand.events)
-        .onWidgetRefresh(w.id) { svc.reloadEvents() }
+        .onWidgetRefresh(w.id) { svc.refreshEvents() }
     }
 
     private func dateBlock(_ now: Date) -> some View {
@@ -150,7 +154,11 @@ struct CalAgendaWidget: View {
     private var access: some View {
         VStack(alignment: .leading, spacing: m.u(2)) {
             Text(L("Allow Calendar access")).dock(10, .bold, p.accent(.cdOrange))
-            Text(L("Click to connect")).dock(9, .semibold, p.secondary)
+                .contentShape(Rectangle())
+                .onTapGesture { CalAccess.request(reminders: false) }
+            Text(L("Add calendar feed…")).dock(9, .semibold, p.secondary)
+                .contentShape(Rectangle())
+                .onTapGesture { CalFeedLink.add() }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -196,7 +204,7 @@ struct CalWeekStripWidget: View {
         .demand(CalendarDemand.events)
         .task(id: city) { await WeatherService.shared.keepFresh(city) }
         .onWidgetRefresh(w.id) {
-            svc.reloadEvents()
+            svc.refreshEvents()
             Task { await WeatherService.shared.ensure(city, force: true) }
         }
     }
@@ -243,7 +251,11 @@ struct CalNextMeetingWidget: View {
                             }
                         } else if !CalData.hasEvents {
                             Text(L("Allow Calendar access")).dock(11, .bold)
-                            Text(L("Click to connect")).dock(9, .semibold, p.secondary)
+                                .contentShape(Rectangle())
+                                .onTapGesture { CalAccess.request(reminders: false) }
+                            Text(L("Add calendar feed…")).dock(9, .semibold, p.secondary)
+                                .contentShape(Rectangle())
+                                .onTapGesture { CalFeedLink.add() }
                         } else {
                             Text(L("No upcoming meetings")).dock(11, .bold)
                             Text(L("Your calendar is clear")).dock(9, .semibold, p.secondary)
@@ -259,7 +271,7 @@ struct CalNextMeetingWidget: View {
             if let e = CalData.nextMeeting { svc.open(e) } else { Panels.shared.toggle(w.id) { CalMonthPanel() } }
         }
         .demand(CalendarDemand.events)
-        .onWidgetRefresh(w.id) { svc.reloadEvents() }
+        .onWidgetRefresh(w.id) { svc.refreshEvents() }
     }
 
     private func joinButton(_ e: DockEvent) -> some View {
