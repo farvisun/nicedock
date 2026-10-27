@@ -163,6 +163,6 @@ final class NowPlayingService {
 
     private func command(_ cmd: String) {
         let p = player ?? .music
-        Task { await Script.run("tell application \"\(p.rawValue)\" to \(cmd)") }
+        Task { _ = await Script.run("tell application \"\(p.rawValue)\" to \(cmd)") }
     }
 }

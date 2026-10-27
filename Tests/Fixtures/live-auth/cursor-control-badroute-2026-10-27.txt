@@ -1,0 +1,18 @@
+# Live capture Tue, 27 Oct 2026 02:46:07 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> POST https://api.cursor.com/teams/filtered-usage-eventz
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+> Content-Type: application/json
+> Authorization: Basic Y3Jzcl9pbnZhbGlkOg==
+>
+> {"startDate":1792528200000,"endDate":1793069164000,"page":1,"pageSize":1000}
+< HTTP/2 404
+< date: Tue, 27 Oct 2026 02:46:07 GMT
+< content-type: application/json; charset=utf-8
+< vary: Origin
+< server: envoy
+<

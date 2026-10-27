@@ -400,7 +400,7 @@ enum AppsAppCommands {
             activateSoon(app)
         } else if let id = bundleID, AppsKnownApps.safari.contains(id) {
             Task {
-                await Script.run("tell application id \"\(Script.escape(id))\"\nmake new document\nactivate\nend tell")
+                _ = await Script.run("tell application id \"\(Script.escape(id))\"\nmake new document\nactivate\nend tell")
             }
         } else if !AppsAX.trusted {
             AppsAX.requestTrust()
@@ -452,7 +452,7 @@ enum AppsAppCommands {
     }
 
     static func newDocument(bundleID: String) {
-        Task { await Script.run("tell application id \"\(Script.escape(bundleID))\"\nmake new document\nactivate\nend tell") }
+        Task { _ = await Script.run("tell application id \"\(Script.escape(bundleID))\"\nmake new document\nactivate\nend tell") }
     }
 
     /// App Exposé for the app: activate it, then ask Mission Control for "application windows".

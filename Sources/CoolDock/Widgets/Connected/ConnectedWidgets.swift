@@ -464,15 +464,18 @@ private struct ConnAITile: View {
             let s = state.snap
             let width = w.kind.spec.width
             ConnCanvas {
-                T(s?.value.map(Fmt.compact) ?? dash)
+                T(s.map(ConnAIText.value) ?? dash)
                     .dock(20, .bold, s == nil ? p.tertiary : nil)
+                    .minimumScaleFactor(0.6)
                     .frame(maxWidth: m.u(width - 36), alignment: .leading)
                     .padding(.leading, m.u(6))
                     .connBaseline(m.u(25.5))
-                ConnCaption(text: "\(L("tokens")) · \(ConnService.range(w).caption)", stale: state.stale)
+                ConnCaption(text: ConnAIText.caption(w, s), stale: state.stale)
+                    .frame(maxWidth: m.u(width - 12), alignment: .leading)
                     .padding(.leading, m.u(6))
                     .connBaseline(m.u(41.5))
-                Text(costLine(s)).dock(8, .semibold, p.tertiary)
+                Text(ConnAIText.detail(s)).dock(8, .semibold, p.tertiary)
+                    .lineLimit(1)
                     .frame(maxWidth: m.u(width - 12), alignment: .leading)
                     .padding(.leading, m.u(5))
                     .connBaseline(m.u(53.5))
@@ -482,12 +485,5 @@ private struct ConnAITile: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
-    }
-
-    private func costLine(_ s: ConnSnapshot?) -> String {
-        guard let s else { return " " }
-        let cost = ConnFmt.money(s.metric(ConnKey.cost) ?? 0, s.currency ?? "USD", decimals: 2)
-        let input = Fmt.compact(s.metric(ConnKey.inputTokens) ?? 0)
-        return "\(s.estimate ? "≈ " : "")\(cost) · \(L("in %@", input))"
     }
 }

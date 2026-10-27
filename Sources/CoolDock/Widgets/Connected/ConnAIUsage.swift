@@ -113,6 +113,17 @@ actor ConnLocalUsage {
     func claudeCode(range: ConnRange) async throws -> ConnSnapshot { try await usage(.claude, range: range) }
     func codex(range: ConnRange) async throws -> ConnSnapshot { try await usage(.codex, range: range) }
 
+    /// OpenCode's SQLite store is queried with a time filter (cheap), so only the aggregate is cached.
+    func opencode(range: ConnRange) async throws -> ConnSnapshot {
+        let key = "opencode.\(range.rawValue)"
+        if let hit = results[key], Date().timeIntervalSince(hit.at) < 600 { return hit.snap }
+        let since = range.start()
+        let rows = try await Task.detached(priority: .utility) { try ConnOpenCode.scan(since: since) }.value
+        let snap = ConnOpenCode.aggregate(rows, range: range)
+        results[key] = (Date(), snap)
+        return snap
+    }
+
     private func usage(_ source: ConnLogSource, range: ConnRange) async throws -> ConnSnapshot {
         let key = "\(source.rawValue).\(range.rawValue)"
         if let hit = results[key], Date().timeIntervalSince(hit.at) < 600 { return hit.snap }

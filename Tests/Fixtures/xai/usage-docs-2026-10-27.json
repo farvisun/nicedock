@@ -1,0 +1,161 @@
+{
+  "timeSeries": [
+    {
+      "group": [
+        "Chat grok-4-0709"
+      ],
+      "groupLabels": [
+        "Chat grok-4-0709"
+      ],
+      "dataPoints": [
+        {
+          "timestamp": "2025-10-01T00:00:00Z",
+          "values": [
+            0.75973725
+          ]
+        },
+        {
+          "timestamp": "2025-10-02T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-03T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-04T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-05T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-06T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-07T00:00:00Z",
+          "values": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "group": [
+        "Chat grok-4-fast-non-reasoning"
+      ],
+      "groupLabels": [
+        "Chat grok-4-fast-non-reasoning"
+      ],
+      "dataPoints": [
+        {
+          "timestamp": "2025-10-01T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-02T00:00:00Z",
+          "values": [
+            0.0001037
+          ]
+        },
+        {
+          "timestamp": "2025-10-03T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-04T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-05T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-06T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-07T00:00:00Z",
+          "values": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "group": [
+        "grok-2-image-1212"
+      ],
+      "groupLabels": [
+        "grok-2-image-1212"
+      ],
+      "dataPoints": [
+        {
+          "timestamp": "2025-10-01T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-02T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-03T00:00:00Z",
+          "values": [
+            0.14
+          ]
+        },
+        {
+          "timestamp": "2025-10-04T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-05T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-06T00:00:00Z",
+          "values": [
+            0
+          ]
+        },
+        {
+          "timestamp": "2025-10-07T00:00:00Z",
+          "values": [
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "limitReached": false
+}

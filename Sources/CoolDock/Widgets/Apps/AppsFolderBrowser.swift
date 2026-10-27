@@ -433,7 +433,7 @@ private final class AppsPanelKeys {
         stop()
         guard !AppsEnv.rendering else { return }
         token = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            MainActor.assumeIsolated { event.window is PopPanel && handle(event) ? nil : event }
+            MainActor.assumeIsolated { event.window is PopPanel && handle(event) } ? nil : event
         }
     }
 

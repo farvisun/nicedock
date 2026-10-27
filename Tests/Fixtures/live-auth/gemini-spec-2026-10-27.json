@@ -1,0 +1,180 @@
+{
+ "source": "https://www.googleapis.com/discovery/v1/apis/monitoring/v3/rest",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://monitoring.googleapis.com/"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/v3/projects/{projectsId}/timeSeries",
+   "security": null,
+   "parameters": [
+    {
+     "name": "aggregation.alignmentPeriod",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "aggregation.crossSeriesReducer",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "REDUCE_NONE",
+      "REDUCE_MEAN",
+      "REDUCE_MIN",
+      "REDUCE_MAX",
+      "REDUCE_SUM",
+      "REDUCE_STDDEV",
+      "REDUCE_COUNT",
+      "REDUCE_COUNT_TRUE",
+      "REDUCE_COUNT_FALSE",
+      "REDUCE_FRACTION_TRUE",
+      "REDUCE_PERCENTILE_99",
+      "REDUCE_PERCENTILE_95",
+      "REDUCE_PERCENTILE_50",
+      "REDUCE_PERCENTILE_05"
+     ]
+    },
+    {
+     "name": "aggregation.groupByFields",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "aggregation.perSeriesAligner",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "ALIGN_NONE",
+      "ALIGN_DELTA",
+      "ALIGN_RATE",
+      "ALIGN_INTERPOLATE",
+      "ALIGN_NEXT_OLDER",
+      "ALIGN_MIN",
+      "ALIGN_MAX",
+      "ALIGN_MEAN",
+      "ALIGN_COUNT",
+      "ALIGN_SUM",
+      "ALIGN_STDDEV",
+      "ALIGN_COUNT_TRUE",
+      "ALIGN_COUNT_FALSE",
+      "ALIGN_FRACTION_TRUE",
+      "ALIGN_PERCENTILE_99",
+      "ALIGN_PERCENTILE_95",
+      "ALIGN_PERCENTILE_50",
+      "ALIGN_PERCENTILE_05",
+      "ALIGN_PERCENT_CHANGE"
+     ]
+    },
+    {
+     "name": "filter",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "interval.endTime",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "interval.startTime",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "name",
+     "in": "path",
+     "required": true
+    },
+    {
+     "name": "orderBy",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "pageSize",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "pageToken",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "secondaryAggregation.alignmentPeriod",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "secondaryAggregation.crossSeriesReducer",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "REDUCE_NONE",
+      "REDUCE_MEAN",
+      "REDUCE_MIN",
+      "REDUCE_MAX",
+      "REDUCE_SUM",
+      "REDUCE_STDDEV",
+      "REDUCE_COUNT",
+      "REDUCE_COUNT_TRUE",
+      "REDUCE_COUNT_FALSE",
+      "REDUCE_FRACTION_TRUE",
+      "REDUCE_PERCENTILE_99",
+      "REDUCE_PERCENTILE_95",
+      "REDUCE_PERCENTILE_50",
+      "REDUCE_PERCENTILE_05"
+     ]
+    },
+    {
+     "name": "secondaryAggregation.groupByFields",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "secondaryAggregation.perSeriesAligner",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "ALIGN_NONE",
+      "ALIGN_DELTA",
+      "ALIGN_RATE",
+      "ALIGN_INTERPOLATE",
+      "ALIGN_NEXT_OLDER",
+      "ALIGN_MIN",
+      "ALIGN_MAX",
+      "ALIGN_MEAN",
+      "ALIGN_COUNT",
+      "ALIGN_SUM",
+      "ALIGN_STDDEV",
+      "ALIGN_COUNT_TRUE",
+      "ALIGN_COUNT_FALSE",
+      "ALIGN_FRACTION_TRUE",
+      "ALIGN_PERCENTILE_99",
+      "ALIGN_PERCENTILE_95",
+      "ALIGN_PERCENTILE_50",
+      "ALIGN_PERCENTILE_05",
+      "ALIGN_PERCENT_CHANGE"
+     ]
+    },
+    {
+     "name": "view",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "FULL",
+      "HEADERS"
+     ]
+    }
+   ],
+   "scopes": [
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/monitoring",
+    "https://www.googleapis.com/auth/monitoring.read"
+   ]
+  }
+ ],
+ "revision": "20261015"
+}

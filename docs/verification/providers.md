@@ -48,6 +48,15 @@ later), **"Not found"**, **"Add your API token"** (no key configured; no request
 | YouTube | 403 / **400** `API_KEY_INVALID` | control path → 404; discovery document | Check your token | 400 showed "Request failed (400)" |
 | Anthropic Admin | 401 / 401 | `/v1/organizations/` family only (other prefixes 404 before auth) | Check your token | — |
 | OpenAI Admin | 401 / 401 | control path → 404; OpenAPI | Check your token | — |
+| Cursor Admin API | 401 / 401 "Invalid Team API Key" | control path → 404 "Route POST:/teams/filtered-usage-eventz not found" (with and without key) | Check your token | — |
+| GitHub Copilot (billing usage) | 401 "Requires authentication" / 401 "Bad credentials" (also `GET /user`) | control path → 404 with and without token; REST description | Check your token | — |
+| Gemini API (Cloud Monitoring) | 401 / 401 `ACCESS_TOKEN_TYPE_UNSUPPORTED`; API key → 401 "API keys are not supported by this API" | control path → 404; error names `MetricService.ListTimeSeries`; discovery document | Check your token | — |
+| Perplexity Analytics | 401 / 401 `invalid_api_key` | control path → 404 (with and without key); OpenAPI | Check your token | — |
+| xAI Management API | 401 / 401 (gRPC code 16) | control paths → 404 code 5 for both the validation and the usage route | Check your token | — |
+| Z.ai Coding Plan monitor | **HTTP 200** `success:false`, code 1001 / code 401 (global and China host) | none live (a misspelled path gets the same 401); path from Z.ai's own plugin source | Check your token | — (body codes mapped by `zaiCheck`) |
+
+OpenCode and Antigravity read data on this Mac and have no endpoint (see [AI usage: local sources](#ai-usage-local-sources)).
+The rows from Cursor on were captured later the same day (02:46–03:02 UTC), same method.
 
 Happy paths (real data) were captured only where a provider has a public mode that needs no account: Simple Analytics
 public sites, and the GitHub public contribution calendar and public events (re-checked live today: both 200; real
@@ -251,6 +260,81 @@ messages reuse existing strings ("Check your token", "Rate limited"), so transla
 | Fixtures | `live-auth/openai-{usage-nokey,usage-invalid,cost-invalid,control-badroute}`, `openai-spec`; docs: `openai/*-docs` |
 | Tests | `LiveAuthTests.openAI`; `OpenAIUsageTests` |
 
+### Cursor (Admin API)
+
+| | |
+| --- | --- |
+| Endpoint | `POST https://api.cursor.com/teams/filtered-usage-events`, Basic auth (key as user name), body `{startDate, endDate, page, pageSize: 1000, email?}` (ms timestamps), up to 10 pages while `pagination.hasNextPage` |
+| Why this path | Cursor documents no personal usage API: its APIs (Admin, Analytics, AI Code Tracking) are for Enterprise teams (`cursor.com/docs/api`). Cursor isn't installed on this Mac, and the `cursor-agent` CLI's local stores have no token counts. "Personal" usage = a team key plus the optional **Member Email** filter. Cost is `chargedCents`, the billed amount, so it isn't an estimate. Request-based events (no `tokenUsage`) make the tile count requests |
+| Verified live | No key and fake key: 401 `{"code":"error","message":"Invalid Team API Key"}`. Control `/teams/filtered-usage-eventz` → 404 "Route POST:/teams/filtered-usage-eventz not found" with and without a key, so Cursor routes before auth. → Check your token |
+| Doc-schema only | Usage events (verbatim examples of `cursor.com/docs/account/teams/admin-api`: token-based, request-based, service account). Needs an Enterprise team key |
+| Fixtures | `live-auth/cursor-{usage-nokey,usage-invalid,control-badroute,control-badroute-nokey}`; docs: `cursor/usage-events-*-docs` |
+| Tests | `LiveAuthAITests.cursor`; `CursorUsageTests` |
+
+### GitHub Copilot (billing usage)
+
+| | |
+| --- | --- |
+| Endpoint | `GET https://api.github.com/users/{username}/settings/billing/usage?year&month[&day]` (one call per calendar month the range touches; `day` for today), `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2026-03-10`, `Authorization: Bearer`. An empty user name is resolved with `GET /user` |
+| Why this path | GitHub's per-user billing usage report is the official per-account source for Copilot premium requests / AI credits (the Copilot metrics API is org/enterprise engagement data). Items whose product contains "Copilot" are kept: quantity, `netAmount` (billed) and `grossAmount` (list price). GitHub's docs: user-level reports need the account holder's **personal access token (classic)**; fine-grained tokens aren't supported. Only for accounts on the enhanced billing platform |
+| Verified live | No token: 401 "Requires authentication". Fake token: 401 "Bad credentials" (usage and `/user`). Control `/usagez` → 404 with and without a token, so GitHub routes before auth. REST description (`github/rest-api-description`): the path and its `username`/`year`/`month`/`day` parameters, and `GET /user`. → Check your token |
+| Doc-schema only | Usage items (the documented example plus Copilot items built from the documented schema). The 403 for accounts without the enhanced billing platform is untested |
+| Fixtures | `live-auth/copilot-{usage-nokey,usage-invalid,user-invalid,control-badroute,control-badroute-nokey}`, `copilot-spec`; docs: `copilot/billing-usage-*-docs` |
+| Tests | `LiveAuthAITests.copilot`; `CopilotUsageTests` |
+
+### Gemini API (Cloud Monitoring)
+
+| | |
+| --- | --- |
+| Endpoint | `GET https://monitoring.googleapis.com/v3/projects/{project}/timeSeries?filter=metric.type="serviceruntime.googleapis.com/api/request_count" AND resource.type="consumed_api" AND resource.labels.service="generativelanguage.googleapis.com"&interval.startTime&interval.endTime&aggregation.alignmentPeriod=3600s&aggregation.perSeriesAligner=ALIGN_DELTA&aggregation.crossSeriesReducer=REDUCE_SUM` (up to 5 pages), `Authorization: Bearer <OAuth access token>`: pasted, or from `gcloud auth print-access-token` when left empty |
+| Why this path | **Gemini API keys have no usage endpoint.** Google documents usage only in the AI Studio dashboard (`ai.google.dev/gemini-api/docs/billing`). The closest official data is the key's Google Cloud project's Generative Language API request count in Cloud Monitoring, the same numbers as Cloud Console → APIs & Services → Metrics. Requests only: there are no token counts or cost (those are in the Cloud Billing export, which needs BigQuery) |
+| Verified live | No token: 401 `CREDENTIALS_MISSING`. Fake `ya29.` token: 401 `ACCESS_TOKEN_TYPE_UNSUPPORTED`. A Gemini-style API key (`key=AIza…`): 401 "API keys are not supported by this API. Expected OAuth2 access token…", which is why the widget asks for OAuth. Every error names `google.monitoring.v3.MetricService.ListTimeSeries`. Control `/timeSeriez` → 404 (HTML) with and without a token. Discovery document: every parameter exists; `ALIGN_DELTA` and `REDUCE_SUM` are in their enums. → Check your token |
+| Doc-schema only | `TimeSeries` response (built from the documented schema). Needs a Google Cloud project with `monitoring.read` access |
+| Fixtures | `live-auth/gemini-{timeseries-nokey,timeseries-invalid,timeseries-apikey,control-badroute,control-badroute-nokey}`, `gemini-spec`; docs: `gemini/timeseries-docs` |
+| Tests | `LiveAuthAITests.gemini`; `GeminiUsageTests` |
+
+### Perplexity (Analytics API)
+
+| | |
+| --- | --- |
+| Endpoint | `GET https://api.perplexity.ai/v1/analytics/computer/usage?dataset=credit_usage&start_time&bucket_width=1d\|1h&limit=31\|24[&user_email][&page]`, plus `dataset=query_volume` (organization-wide, daily) for the query count when no member is set. `Authorization: Bearer` |
+| Why this path | The Sonar API has no usage endpoint (usage is in the API settings page only). The Analytics API, with an organization analytics key that an org admin generates, is Perplexity's official usage source. Only complete UTC buckets are returned, so the current hour/day shows up later |
+| Verified live | No key and fake key: 401 `invalid_api_key` (credits and query volume). Control `/usagez` → 404 with and without a key, so Perplexity routes before auth. OpenAPI (`docs.perplexity.ai/openapi.json`): names, the required `dataset`/`start_time`, and the `dataset`/`bucket_width` enums. The optional query-volume 401 leaves the credit total. → Check your token |
+| Doc-schema only | Credit buckets (verbatim example). Needs an Enterprise organization |
+| Fixtures | `live-auth/perplexity-{credits-nokey,credits-invalid,queries-invalid,control-badroute,control-badroute-nokey}`, `perplexity-spec`; docs: `perplexity/credit-usage-docs` |
+| Tests | `LiveAuthAITests.perplexity`; `PerplexityUsageTests` |
+
+### Grok (xAI Management API)
+
+| | |
+| --- | --- |
+| Endpoint | `GET https://management-api.x.ai/auth/management-keys/validation` (team id: `scopeId` of a team-scoped key, else `teamId`), then `POST https://management-api.x.ai/v1/billing/teams/{team}/usage` with `{"analyticsRequest":{"timeRange":{startTime, endTime, timezone}, "timeUnit": TIME_UNIT_DAY\|HOUR, "values":[{"name":"usd","aggregation":"AGGREGATION_SUM"}], "groupBy":[], "filters":[]}}`, `Authorization: Bearer <management key>` |
+| Why this path | xAI documents team usage and spend in the Management API (`docs.x.ai/developers/rest-api-reference/management/billing`). Inference API keys can't read billing. Amounts are billed USD |
+| Verified live | Validation, no key: 401 code 16 "No credentials presented". Fake key: 401 "Invalid bearer token. Please ensure you use a valid management key." (also in `www-authenticate`), and the same from the usage route (documented example team id). Controls `/validatioz` and `…/usagez` → 404 code 5 "Not Found", with and without a key, so xAI routes before auth. → Check your token |
+| Doc-schema only | Validation and usage responses (verbatim examples). A user-scoped key → "Use a team management key" |
+| Fixtures | `live-auth/xai-{validation-nokey,validation-invalid,usage-invalid,usage-control-badroute,control-badroute,control-badroute-nokey}`; docs: `xai/*-docs` |
+| Tests | `LiveAuthAITests.xai`; `XAIUsageTests` |
+
+### GLM / Z.ai (Coding Plan)
+
+| | |
+| --- | --- |
+| Endpoint | `GET https://api.z.ai/api/monitor/usage/model-usage?startTime=yyyy-MM-dd HH:mm:ss&endTime=…` (local wall-clock times; **China** region: `open.bigmodel.cn`), `Authorization: <key>` (no `Bearer`) |
+| Why this path | Z.ai's API reference and OpenAPI document no usage or billing endpoint. This is the endpoint Z.ai's own Coding Plan plugin calls (`zai-org/zai-coding-plugins`, `glm-plan-usage/…/query-usage.mjs`), with the same headers. It returns tokens per model per hour |
+| Verified live | Errors come back as **HTTP 200** envelopes: no key → `{"code":1001,"msg":"Authentication parameter not received in Header…","success":false}`. Fake key (raw, with `Bearer`, and on the China host) → `{"code":401,"msg":"token expired or incorrect","success":false}`. `ConnAIUsageAPI.zaiCheck` maps the documented codes (`docs.z.ai/api-reference/api-code`). → Check your token. **No live route evidence:** a misspelled path gets the same 401 (auth before routing), so the path rests on the official plugin source |
+| Not documented | The success schema. The fixture is a shape fixture that follows a third-party client's test data (dates moved), so only the envelope and series structure are asserted. This is the least certain API source |
+| Fixtures | `live-auth/zai-{usage-nokey,usage-invalid,usage-invalid-bearer,bigmodel-invalid,control-badroute,control-badroute-nokey}`; shape: `zai/model-usage-shape` |
+| Tests | `LiveAuthAITests.zai`; `ZaiUsageTests` |
+
+### AI usage: local sources
+
+| | OpenCode | Antigravity |
+| --- | --- | --- |
+| Data path | `~/.local/share/opencode/opencode.db` (also `$XDG_DATA_HOME/opencode`, channel `opencode-*.db`, `OPENCODE_DB`; `opencode.ai/docs/troubleshooting#storage`). Assistant rows of `session_message` (`type = 'assistant'`) and of the older `message` table (`role = 'assistant'`); `data` JSON `tokens{input, output, reasoning, cache{read, write}}`, `cost`. Migrated rows are in both tables and are merged by id. Pre-database installs: `storage/message/<session>/<id>.json`. Opened read-only (`SQLITE_OPEN_READONLY`, then `immutable=1`), rescanned at most every 10 min | No usage API, and the app isn't installed here. The Antigravity CLI documents a read-only `/usage` report (`antigravity.google/docs/cli/commands/usage`) and print mode with `--output-format json` (changelog). The widget runs `agy -p /usage --output-format json --print-timeout 60s`: no shell, minimal environment, failing `open`/`xdg-open`/`BROWSER` shims (a lapsed login can't open a browser), 90 s timeout, never while rendering. It shows the tightest quota bucket (remaining %, window, reset); the panel lists every bucket |
+| Verified | **Real data on this Mac.** The database has 2909 rows in both tables, 5 only in `message`, 37 only in `session_message`; the legacy JSON files had already been migrated. The fixture is 75 real rows reduced to ids, times, model ids, cost and token counts (no content, prompts, paths or titles; session ids replaced), plus 4 redacted legacy files. The expected numbers come from an independent Python tally of the same rows. `cost` is OpenCode's own figure (0 for free/subscription models), shown as an estimate | **Not verified.** No CLI on this Mac, and the JSON layout isn't documented: the fixture is a shape fixture after a third-party client's synthetic payload. Errors: CLI missing → "Antigravity CLI not found"; a non-SUCCESS status that mentions sign-in → "Sign in to Antigravity" |
+| Fixtures | `opencode/opencode-redacted-2026-10-27.sql`, `opencode/legacy/…` | `antigravity/usage-report-shape-2026-10-27.json` |
+| Tests | `OpenCodeUsageTests` (day, dedup of migrated rows, `message`-only row with cost, legacy files, no data, read-only) | `AntigravityUsageTests` (parse only; no CLI is run in tests) |
+
 ## Not verifiable without an account
 
 - Every keyed success response (all providers above except the Simple Analytics and GitHub public modes). These
@@ -261,11 +345,15 @@ messages reuse existing strings ("Check your token", "Rate limited"), so transla
 - Exact sub-path existence for Supabase, Resend and Anthropic (they authenticate before routing). The published
   OpenAPI documents stand in for Supabase and Resend. Anthropic has none, so its sub-paths rest on the documentation.
 - Which Shopify version serves a request, and permission-level errors (missing scopes, non-admin keys).
+- AI usage success responses for the keyed sources added on 2026-10-27. Each needs a paid team or organization
+  account: Cursor Enterprise, a Perplexity Enterprise org, an xAI team, GitHub's enhanced billing platform, a Google
+  Cloud project, or a Z.ai Coding Plan. Also the Z.ai sub-path and response schema (no live route evidence, no
+  published schema) and the Antigravity CLI output (not installed here).
 
 ## Reproducing
 
 The curl commands follow the request lines in each `.txt` fixture (`curl -g --compressed -A 'CoolDock/1.0 (macOS)'
 -H 'Accept: application/json' …`). curl's `Accept-Encoding: deflate, gzip` differs from URLSession's default
 (`gzip, deflate, br`), so the test ignores that header together with `Accept-Language` and `User-Agent`. The tests
-check `User-Agent` against `Net.session` separately. Run `swift test --filter LiveAuthTests`. The tests make no
-network calls.
+check `User-Agent` against `Net.session` separately. Run `swift test --filter LiveAuthTests` (this also runs
+`LiveAuthAITests`, the AI usage sources added later). The tests make no network calls.

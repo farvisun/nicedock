@@ -1,0 +1,37 @@
+{
+  "categories": [
+    "Model",
+    "Credit Source"
+  ],
+  "data": [
+    {
+      "start_time": 1746057600,
+      "end_time": 1746144000,
+      "count": 350,
+      "by_categories": {
+        "Model": [
+          {
+            "category": "claude-opus-5-5",
+            "count": 210
+          },
+          {
+            "category": "claude-sonnet-5-5",
+            "count": 120
+          }
+        ],
+        "Credit Source": [
+          {
+            "category": "paid",
+            "count": 250
+          },
+          {
+            "category": "promo",
+            "count": 80
+          }
+        ]
+      }
+    }
+  ],
+  "has_more": false,
+  "next_page": null
+}

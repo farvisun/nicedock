@@ -1,0 +1,15 @@
+{
+  "usageItems": [
+    {
+      "date": "2026-10-27",
+      "product": "Copilot AI Credits",
+      "sku": "AI Credit",
+      "quantity": 100,
+      "unitType": "ai-credits",
+      "pricePerUnit": 0.01,
+      "grossAmount": 1.0,
+      "discountAmount": 0.0,
+      "netAmount": 1.0
+    }
+  ]
+}

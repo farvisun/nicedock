@@ -1,0 +1,23 @@
+{
+  "id": "msg_c6319ce4d001mm9usJZ9MM8IP1",
+  "sessionID": "ses_redacted_legacy",
+  "role": "assistant",
+  "time": {
+    "created": 1771189161549,
+    "completed": 1771189168683
+  },
+  "modelID": "kimi-k2.5-free",
+  "providerID": "opencode",
+  "cost": 0,
+  "tokens": {
+    "total": 10895,
+    "input": 10626,
+    "output": 269,
+    "reasoning": 0,
+    "cache": {
+      "read": 0,
+      "write": 0
+    }
+  },
+  "finish": "tool-calls"
+}

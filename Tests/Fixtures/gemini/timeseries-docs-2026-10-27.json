@@ -1,0 +1,48 @@
+{
+  "timeSeries": [
+    {
+      "metric": {
+        "type": "serviceruntime.googleapis.com/api/request_count"
+      },
+      "resource": {
+        "type": "consumed_api",
+        "labels": {
+          "project_id": "my-project-123"
+        }
+      },
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "points": [
+        {
+          "interval": {
+            "startTime": "2026-10-26T10:00:00Z",
+            "endTime": "2026-10-26T11:00:00Z"
+          },
+          "value": {
+            "int64Value": "120"
+          }
+        },
+        {
+          "interval": {
+            "startTime": "2026-10-25T10:00:00Z",
+            "endTime": "2026-10-25T11:00:00Z"
+          },
+          "value": {
+            "int64Value": "37"
+          }
+        },
+        {
+          "interval": {
+            "startTime": "2026-10-10T10:00:00Z",
+            "endTime": "2026-10-10T11:00:00Z"
+          },
+          "value": {
+            "int64Value": "5"
+          }
+        }
+      ]
+    }
+  ],
+  "unit": "1",
+  "nextPageToken": "page-2"
+}

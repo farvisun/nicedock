@@ -67,12 +67,60 @@ enum ConnSample {
             s.metrics[ConnKey.inputTokens] = 892_000; s.metrics[ConnKey.outputTokens] = 308_000
             s.metrics[ConnKey.cost] = 42.80; s.metrics[ConnKey.calls] = 1_284
             s.series = rising
+            aiSample(ConnAIProvider(w), &s, wavy: wavy)
         default:
             return nil
         }
         return s
     }
 
+    /// Per-provider shapes for the AI tile (Claude Code / Codex / admin APIs keep the reference sample above).
+    private static func aiSample(_ provider: ConnAIProvider, _ s: inout ConnSnapshot, wavy: [Double]) {
+        func unit(_ u: ConnAIUnit) { s.text[ConnKey.unit] = u.rawValue }
+        switch provider {
+        case .cursor:
+            s.value = 3_420_000; s.estimate = false
+            s.metrics = [ConnKey.inputTokens: 2_910_000, ConnKey.outputTokens: 510_000, ConnKey.cacheRead: 2_380_000,
+                         ConnKey.cacheWrite: 120_000, ConnKey.cost: 18.62, ConnKey.calls: 412]
+            s.series = wavy
+        case .opencode:
+            s.value = 2_150_000; s.estimate = true  // OpenCode's own list-price figure
+            s.metrics = [ConnKey.inputTokens: 2_030_000, ConnKey.outputTokens: 120_000, ConnKey.cacheRead: 1_870_000,
+                         ConnKey.cacheWrite: 9_000, ConnKey.cost: 3.55, ConnKey.calls: 296]
+            s.series = wavy
+        case .copilot:
+            s.value = 214; s.estimate = false; unit(.requests)
+            s.metrics = [ConnKey.calls: 214, ConnKey.cost: 3.36, ConnKey.grossCost: 8.56]
+            s.series = wavy.map { $0 / 30 }
+        case .gemini:
+            s.value = 18_420; unit(.requests)
+            s.metrics = [ConnKey.calls: 18_420]
+            s.series = wavy
+        case .perplexity:
+            s.value = 12_850; unit(.credits)
+            s.metrics = [ConnKey.calls: 1_930]
+            s.series = wavy
+        case .xai:
+            s.value = 27.45; s.estimate = false; unit(.usd)
+            s.metrics = [ConnKey.cost: 27.45]
+            s.series = wavy.map { $0 / 40 }
+        case .zai:
+            s.value = 41_700_000; unit(.tokens)
+            s.metrics = [:]
+            s.text[ConnKey.name] = "glm-5.3"
+            s.series = wavy
+        case .antigravity:
+            s.value = 0.72; unit(.quota)
+            s.metrics = ["quota.0": 0.72, "quota.1": 0.91, "quota.2": 0.95, "quota.3": 1]
+            s.text[ConnKey.name] = "Gemini Models"; s.text[ConnKey.window] = "5h"
+            s.text["quota.0"] = "Gemini Models · 5h"; s.text["quota.1"] = "Gemini Models · weekly"
+            s.text["quota.2"] = "Claude and GPT models · 5h"; s.text["quota.3"] = "Claude and GPT models · weekly"
+            s.text[ConnKey.reset] = ConnDate.isoUTC(Date().addingTimeInterval(3 * 3600 + 1200))
+            s.series = []; s.seriesStep = 0; s.seriesStart = nil
+        case .claudeCode, .codex, .anthropic, .openai:
+            break
+        }
+    }
 }
 
 #if DEBUG

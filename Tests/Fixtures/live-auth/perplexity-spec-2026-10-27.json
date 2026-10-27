@@ -1,0 +1,66 @@
+{
+ "source": "https://docs.perplexity.ai/openapi.json",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://api.perplexity.ai"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/v1/analytics/computer/usage",
+   "security": "[{\"HTTPBearer\": []}]",
+   "parameters": [
+    {
+     "name": "dataset",
+     "in": "query",
+     "required": true,
+     "enum": [
+      "credit_usage",
+      "connectors",
+      "artifacts",
+      "skills",
+      "spaces",
+      "workflows",
+      "task_durations",
+      "query_volume",
+      "daily_active_users"
+     ]
+    },
+    {
+     "name": "start_time",
+     "in": "query",
+     "required": true
+    },
+    {
+     "name": "end_time",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "bucket_width",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "1d",
+      "1h"
+     ]
+    },
+    {
+     "name": "limit",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "page",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "user_email",
+     "in": "query",
+     "required": false
+    }
+   ]
+  }
+ ]
+}

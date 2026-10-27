@@ -48,10 +48,10 @@ final class CalendarService {
     @ObservationIgnored private var reminderSubscribers = 0
     @ObservationIgnored private var minuteTimer: Timer?
 
-    var hasEventAccess: Bool { eventsAccess == .fullAccess || eventsAccess == .authorized }
+    var hasEventAccess: Bool { eventsAccess == .fullAccess }
     /// Something to show events from: Calendar access or at least one enabled calendar feed.
     var hasEventSource: Bool { hasEventAccess || CalendarFeedService.shared.hasFeeds }
-    var hasReminderAccess: Bool { remindersAccess == .fullAccess || remindersAccess == .authorized }
+    var hasReminderAccess: Bool { remindersAccess == .fullAccess }
 
     init() {
         observer = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: store, queue: .main) { _ in

@@ -442,16 +442,51 @@ enum WidgetCatalog {
         // MARK: AI
         case .aiUsage:
             return WidgetSpec(category: .ai, title: "AI Usage", summary: "Token usage for Claude Code, Codex and APIs.", symbol: "sparkles", width: 194,
-                              fields: [ConfigField(key: "provider", title: "Provider", type: .choice([
-                                  ConfigOption(value: "claudeCode", title: "Claude Code (local)"),
-                                  ConfigOption(value: "codex", title: "Codex (local)"),
-                                  ConfigOption(value: "anthropic", title: "Anthropic API (admin key)"),
-                                  ConfigOption(value: "openai", title: "OpenAI API (admin key)")])),
-                                       tokenField("Only for API providers"),
-                                       ConfigField(key: "range", title: "Range", type: .choice(rangeChoices))],
-                              defaults: ["provider": "claudeCode", "range": "7d"])
+                              fields: aiUsageFields, defaults: ["provider": "claudeCode", "range": "7d", "region": "global"])
         }
     }
+
+    /// Provider picker, then only the fields the chosen provider needs (one token field per provider so the
+    /// placeholder and help name the right kind of key).
+    static let aiUsageFields: [ConfigField] = {
+        func on(_ providers: String...) -> (key: String, values: Set<String>) { ("provider", Set(providers)) }
+        func token(title: String, placeholder: String, help: String = "Stored in your macOS Keychain.", for providers: String...) -> ConfigField {
+            ConfigField(key: "token", title: title, type: .secret(placeholder: placeholder), help: help, shownWhen: ("provider", Set(providers)))
+        }
+        let ranged = Set(["claudeCode", "codex", "opencode", "anthropic", "openai", "cursor", "copilot", "gemini", "perplexity", "xai", "zai"])
+        return [
+            ConfigField(key: "provider", title: "Provider", type: .choice([
+                ConfigOption(value: "claudeCode", title: "Claude Code (local)"),
+                ConfigOption(value: "codex", title: "Codex (local)"),
+                ConfigOption(value: "opencode", title: "OpenCode (local)"),
+                ConfigOption(value: "antigravity", title: "Antigravity (agy CLI quota)"),
+                ConfigOption(value: "anthropic", title: "Anthropic API (admin key)"),
+                ConfigOption(value: "openai", title: "OpenAI API (admin key)"),
+                ConfigOption(value: "cursor", title: "Cursor (Admin API key)"),
+                ConfigOption(value: "copilot", title: "GitHub Copilot (billing)"),
+                ConfigOption(value: "gemini", title: "Gemini API (Cloud Monitoring)"),
+                ConfigOption(value: "perplexity", title: "Perplexity (Analytics API)"),
+                ConfigOption(value: "xai", title: "Grok / xAI (management key)"),
+                ConfigOption(value: "zai", title: "GLM / Z.ai (Coding Plan)")])),
+            token(title: "Admin API Key", placeholder: "sk-ant-admin01-… / sk-admin-…", for: "anthropic", "openai"),
+            token(title: "Admin API Key", placeholder: "crsr_…", for: "cursor"),
+            ConfigField(key: "email", title: "Member Email", type: .text(placeholder: "you@company.com"),
+                        help: "Optional: only this member's usage.", shownWhen: on("cursor", "perplexity")),
+            token(title: "Personal Access Token (classic)", placeholder: "ghp_…", help: "Token of the account that pays for Copilot. Stored in your macOS Keychain.", for: "copilot"),
+            ConfigField(key: "user", title: "Username", type: .text(placeholder: "octocat"),
+                        help: "Leave empty to use the token's account.", shownWhen: on("copilot")),
+            ConfigField(key: "project", title: "Google Cloud Project ID", type: .text(placeholder: "my-project-123"),
+                        help: "The project of your Gemini API key.", shownWhen: on("gemini")),
+            token(title: "OAuth Access Token", placeholder: "ya29.…", help: "Leave empty to use your gcloud login. Gemini API keys can't read usage.", for: "gemini"),
+            token(title: "Analytics API Key", placeholder: "••••••••", for: "perplexity"),
+            token(title: "Management Key", placeholder: "xai-…", help: "xAI Console → Settings → Management Keys. Stored in your macOS Keychain.", for: "xai"),
+            token(title: "API Key", placeholder: "••••••••.••••••••", for: "zai"),
+            ConfigField(key: "region", title: "Region", type: .choice([
+                ConfigOption(value: "global", title: "Global (api.z.ai)"),
+                ConfigOption(value: "china", title: "China (open.bigmodel.cn)")]), shownWhen: on("zai")),
+            ConfigField(key: "range", title: "Range", type: .choice(rangeChoices), shownWhen: ("provider", ranged))
+        ]
+    }()
 
     static let shopifyFields: [ConfigField] = [
         ConfigField(key: "shop", title: "Store Domain", type: .text(placeholder: "store.myshopify.com")),

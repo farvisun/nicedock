@@ -105,13 +105,14 @@ final class Panels {
             MainActor.assumeIsolated { Panels.shared.close() }
         }) { monitors.append(m) }
         if let m = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown], handler: { event in
-            MainActor.assumeIsolated {
-                if event.type == .keyDown, event.keyCode == 53 { Panels.shared.close(); return nil }
+            let consumed = MainActor.assumeIsolated { () -> Bool in
+                if event.type == .keyDown, event.keyCode == 53 { Panels.shared.close(); return true }
                 if event.type == .leftMouseDown, let w = event.window, w !== Panels.shared.panel, !(w is DockPanel) {
                     Panels.shared.close()
                 }
-                return event
+                return false
             }
+            return consumed ? nil : event
         }) { monitors.append(m) }
     }
 }

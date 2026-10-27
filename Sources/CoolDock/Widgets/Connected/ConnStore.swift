@@ -37,6 +37,8 @@ enum ConnKey {
     static let inputTokens = "in", outputTokens = "out", cacheWrite = "cacheWrite", cacheRead = "cacheRead", cost = "cost", calls = "calls"
     static let revenue = "revenue", pageviews = "pageviews", sessions = "sessions"
     static let status = "status", name = "name", region = "region", sourceNote = "note"
+    /// AI usage: headline unit (`ConnAIUnit`), list-price value of a billed amount, quota reset time.
+    static let unit = "unit", grossCost = "grossCost", reset = "reset", window = "window"
 }
 
 // MARK: - Store
@@ -173,13 +175,7 @@ enum ConnService {
         case .socialX: return "X"
         case .socialTikTok: return "TikTok"
         case .socialYouTube: return "YouTube"
-        case .aiUsage:
-            switch w.string("provider") {
-            case "codex": return "Codex"
-            case "anthropic": return "Anthropic"
-            case "openai": return "OpenAI"
-            default: return "Claude Code"
-            }
+        case .aiUsage: return ConnAIProvider(w).name
         default: return w.kind.spec.localizedTitle
         }
     }
@@ -201,12 +197,7 @@ enum ConnService {
         case .socialX: return .x
         case .socialTikTok: return .tiktok
         case .socialYouTube: return .youtube
-        case .aiUsage:
-            switch w.string("provider") {
-            case "codex": return .codex
-            case "openai": return .openai
-            default: return .claude
-            }
+        case .aiUsage: return ConnAIProvider(w).brand
         default: return .github
         }
     }
@@ -223,7 +214,7 @@ enum ConnService {
     }
 
     static func usesLocalLogs(_ w: WidgetInstance) -> Bool {
-        w.kind == .aiUsage && !["anthropic", "openai"].contains(w.string("provider"))
+        w.kind == .aiUsage && ConnAIProvider(w).isLocal
     }
 
     static func isConfigured(_ w: WidgetInstance, token: String?) -> Bool {
@@ -241,7 +232,12 @@ enum ConnService {
         case .supabase: return hasToken && has("project")
         case .socialX: return hasToken && has("user")
         case .socialYouTube: return hasToken && has("channel")
-        case .aiUsage: return usesLocalLogs(w) || hasToken
+        case .aiUsage:
+            switch ConnAIProvider(w) {
+            // Gemini can borrow the gcloud login; it always needs the project.
+            case .gemini: return has("project")
+            default: return usesLocalLogs(w) || hasToken
+            }
         default: return hasToken
         }
     }
@@ -296,11 +292,11 @@ enum ConnService {
             let ch = clean("channel")
             s = ch.hasPrefix("UC") ? "https://www.youtube.com/channel/\(ch)" : "https://www.youtube.com/\(ch.hasPrefix("@") ? ch : "@" + ch)"
         case .aiUsage:
-            switch w.string("provider") {
-            case "codex": s = "https://chatgpt.com/codex/settings/usage"
-            case "anthropic": s = "https://console.anthropic.com/usage"
-            case "openai": s = "https://platform.openai.com/usage"
-            default: s = "https://claude.ai/settings/usage"
+            let provider = ConnAIProvider(w)
+            if provider == .gemini, let project = clean("project").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), !project.isEmpty {
+                s = "https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com/metrics?project=\(project)"
+            } else {
+                s = provider.dashboard
             }
         default: return nil
         }
@@ -356,11 +352,24 @@ enum ConnProviders {
         case .socialTikTok: return try await ConnSocial.tiktok(token: need())
         case .socialYouTube: return try await ConnSocial.youtube(channel: w.string("channel"), key: need())
         case .aiUsage:
-            switch w.string("provider") {
-            case "codex": return try await ConnLocalUsage.shared.codex(range: range)
-            case "anthropic": return try await ConnAIUsageAPI.anthropic(key: need(), range: range)
-            case "openai": return try await ConnAIUsageAPI.openai(key: need(), range: range)
-            default: return try await ConnLocalUsage.shared.claudeCode(range: range)
+            switch ConnAIProvider(w) {
+            case .claudeCode: return try await ConnLocalUsage.shared.claudeCode(range: range)
+            case .codex: return try await ConnLocalUsage.shared.codex(range: range)
+            case .opencode: return try await ConnLocalUsage.shared.opencode(range: range)
+            case .antigravity: return try await ConnAntigravity.fetch()
+            case .anthropic: return try await ConnAIUsageAPI.anthropic(key: need(), range: range)
+            case .openai: return try await ConnAIUsageAPI.openai(key: need(), range: range)
+            case .cursor: return try await ConnAIUsageAPI.cursor(key: need(), email: w.string("email"), range: range)
+            case .copilot: return try await ConnAIUsageAPI.copilot(token: need(), user: w.string("user"), range: range)
+            case .gemini:
+                let project = w.string("project")
+                guard !project.trimmingCharacters(in: .whitespaces).isEmpty else { throw ConnError(L("Add your API token")) }
+                let oauth: String
+                if let token, !token.isEmpty { oauth = token } else { oauth = try await ConnCLI.gcloudToken() }
+                return try await ConnAIUsageAPI.gemini(project: project, token: oauth, range: range)
+            case .perplexity: return try await ConnAIUsageAPI.perplexity(key: need(), email: w.string("email"), range: range)
+            case .xai: return try await ConnAIUsageAPI.xai(key: need(), range: range)
+            case .zai: return try await ConnAIUsageAPI.zai(key: need(), region: w.string("region"), range: range)
             }
         default: throw ConnError(L("Not supported"))
         }

@@ -1,0 +1,71 @@
+{
+  "totalUsageEventsCount": 113,
+  "pagination": {
+    "numPages": 5,
+    "currentPage": 1,
+    "pageSize": 25,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "usageEvents": [
+    {
+      "timestamp": "1750979225854",
+      "userEmail": "developer@company.com",
+      "conversationId": "8f2e4a1b-6c3d-4e5f-9a7b-2d1c8e6f4a3b",
+      "model": "claude-4.5-sonnet",
+      "kind": "Usage-based",
+      "maxMode": true,
+      "requestsCosts": 5,
+      "isTokenBasedCall": true,
+      "isChargeable": true,
+      "isHeadless": false,
+      "tokenUsage": {
+        "inputTokens": 126,
+        "outputTokens": 450,
+        "cacheWriteTokens": 6112,
+        "cacheReadTokens": 11964,
+        "totalCents": 20.18232
+      },
+      "chargedCents": 21.36232,
+      "cursorTokenFee": 1.18
+    },
+    {
+      "timestamp": "1750979173824",
+      "userEmail": "developer@company.com",
+      "conversationId": "8f2e4a1b-6c3d-4e5f-9a7b-2d1c8e6f4a3b",
+      "model": "claude-4.5-sonnet",
+      "kind": "Usage-based",
+      "maxMode": true,
+      "requestsCosts": 10,
+      "isTokenBasedCall": true,
+      "isChargeable": true,
+      "isHeadless": false,
+      "tokenUsage": {
+        "inputTokens": 5805,
+        "outputTokens": 311,
+        "cacheWriteTokens": 11964,
+        "cacheReadTokens": 0,
+        "totalCents": 40.167,
+        "discountPercentOff": 10
+      },
+      "chargedCents": 37.33,
+      "cursorTokenFee": 1.18
+    },
+    {
+      "timestamp": "1750978339901",
+      "userEmail": "admin@company.com",
+      "model": "claude-4-sonnet-thinking",
+      "kind": "Included in Business",
+      "maxMode": true,
+      "requestsCosts": 1.4,
+      "isTokenBasedCall": false,
+      "isChargeable": false,
+      "isHeadless": false,
+      "chargedCents": 8
+    }
+  ],
+  "period": {
+    "startDate": 1748411762359,
+    "endDate": 1751003762359
+  }
+}

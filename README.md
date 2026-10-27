@@ -2,11 +2,11 @@
 
 A native macOS **second Dock with live widgets** — a from-scratch Swift/SwiftUI recreation of the
 tools shown on [cooldock.app](https://cooldock.app): music, todos, events, weather, search, system
-stats, quick actions and 100 widgets in one beautiful dock beside the macOS Dock.
+stats, quick actions and 110 widgets in one beautiful dock beside the macOS Dock.
 
 * Native Swift 6 toolchain, SwiftUI + AppKit, macOS 14 Sonoma or later
-* ~3 MB app bundle, ~30 MB memory, ~0 % CPU when idle
-* 11 languages, full right-to-left support, Persian with the **Estedad** typeface,
+* ~9 MB app bundle, ~32 MB memory, ~0 % CPU when idle
+* 10 languages, full right-to-left support, Persian with the **Estedad** typeface,
   Solar Hijri calendar and Persian digits
 * Local-first: credentials live in the macOS Keychain, no account, no telemetry
 * **AI Assistant**: Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock
@@ -35,11 +35,11 @@ width) to inspect widget panels without UI scripting.
 - **Pixel diff** — `scripts/pixel-diff.sh` renders every frame in `docs/reference` with deterministic
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
   8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
-  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.55 %, every frame ≥ 98.5 %; `scripts/chrome-check.sh` holds the 27 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
-- **Data providers** — `swift test` runs 105 tests that feed real captured responses (Open-Meteo, Yahoo
-  Finance, Binance, GitHub contributions, Simple Analytics) and documentation-schema fixtures (Stripe,
-  Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear, Anthropic,
-  OpenAI) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
+  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.55 %, every frame ≥ 98.5 %; `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
+- **Data providers** — `swift test` runs 342 tests; the provider suites feed real captured responses (Open-Meteo, Yahoo
+  Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
+  fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,
+  Anthropic, OpenAI, Cursor, GitHub Copilot, Gemini API, Perplexity, xAI, Z.ai) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
   no-key / fake-key answers through the widget's own request and error handling — see
   [docs/verification/providers.md](docs/verification/providers.md). `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
   LocalLogsTests` also checks AI-usage totals against this Mac's Claude Code / Codex logs.
@@ -63,6 +63,7 @@ width) to inspect widget panels without UI scripting.
 | Switch profiles | Hover the Dock and pick a tab, swipe across it, or **⌃⌥⌘0…7** |
 | Hide / show | **⌃⌥⌘D** (configurable) |
 | Settings | Menu bar icon → **Settings…**, right-click the Dock, or **⌘,** |
+| App menus | Right-click an app: its windows, New Window / private window / browser profiles, Open Recent, Options ▸ Keep in Dock, Open at Login, Show in Finder; hold **⌥** for Force Quit |
 | Lost the Dock? | Menu bar icon → **Layout → Reset Layout** |
 
 ## Widgets
@@ -71,13 +72,13 @@ width) to inspect widget panels without UI scripting.
 | --- | --- |
 | Apps & files | App, App Folder, Applications, Trash, Folder, Downloads, Recent Files, File Shelf, AirDrop, Dropbox, Find Files, App Switcher, Running Apps |
 | Clocks & focus | Clock, Clock with Seconds, Time & Date, Time Card, Date, Day & Date, Date/Time/Weather, Flip Clock, Analog (dark/light), World Clock, Pixel Clock, Timer, Stopwatch, Pomodoro, Drink Water, Posture |
-| Calendar & tasks | Today's Events, Agenda, Week, Next Meeting, Zoom Meeting, Day/Month/Year Progress, Progress Ring, Reminders, Todo, Linear |
+| Calendar & tasks | Today's Events, Agenda, Week, Next Meeting, Zoom Meeting, Day/Month/Year Progress, Progress Ring, Reminders, Todo, Habit Tracker, Linear |
 | Weather | Weather, Weather & Forecast, Details, Daily, Today & Forecast, Conditions, Hourly, Sunrise & Sunset, Wind |
 | System & controls | Battery, CPU, Memory, Storage, Temperature, CPU History, Network, Devices Battery, Audio, Quick Toggles, Clipboard, Screenshots, Recent Screenshots, Voice Memo, Emoji |
-| Utilities | Color Picker, Converter, Calculator, Bookmarks, Search Web, Separator, Space |
+| Utilities | Color Picker, Converter, Calculator, Bookmarks, Search Web, Window Manager, Separator, Space |
 | Media & people | Now Playing (Music/Spotify), Now Playing Large, Background Sounds, YouTube Video, Recent Photo, Wallpaper, Mail, Latest Mail, Notes, Quick Contacts, Contact Card |
 | Markets | Stock, Stock Chart, Watchlist, Crypto, Crypto Chart, Crypto Watchlist |
-| Connected | Polar, Stripe, Dodo Payments, Shopify ×3, Plausible, Simple Analytics, DataFast, Visitors Chart, Dub, Resend, GitHub, Supabase, X, TikTok, YouTube, AI Usage (Claude Code, Codex, Anthropic/OpenAI admin APIs) |
+| Connected | Polar, Stripe, Dodo Payments, Shopify ×3, Plausible, Simple Analytics, DataFast, Visitors Chart, Dub, Resend, GitHub, Supabase, X, TikTok, YouTube, AI Usage (Claude Code, Codex, OpenCode, Antigravity, Cursor, GitHub Copilot, Gemini API, Perplexity, Grok, GLM / Z.ai, Anthropic/OpenAI admin APIs) |
 
 Data sources: Open-Meteo (weather, no key), Frankfurter (currency), Yahoo Finance and Binance
 (quotes), EventKit and ICS/webcal calendar feeds (Google, iCloud, Outlook, Fastmail, any .ics link), CoreAudio,
