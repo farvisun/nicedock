@@ -1,0 +1,68 @@
+name: Release
+
+# Builds NiceDock.app on a macOS runner and publishes it as a GitHub release when a version tag is pushed.
+#   git tag v1.0.1 && git push origin v1.0.1
+# The tag must match CFBundleShortVersionString in Resources/Info.plist. Release notes come from
+# docs/releases/<tag>.md when that file exists.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          xcrun --show-sdk-version
+
+      - name: Check version
+        run: |
+          plist=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)
+          if [ "v$plist" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match Info.plist version $plist"
+            exit 1
+          fi
+
+      - name: Build
+        run: scripts/build-app.sh release
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          cd build
+          ditto -c -k --sequesterRsrc --keepParent NiceDock.app NiceDock.zip
+          rm -rf dmg && mkdir dmg && cp -R NiceDock.app dmg/ && ln -s /Applications dmg/Applications
+          hdiutil create -volname NiceDock -srcfolder dmg -ov -format UDZO NiceDock.dmg
+          shasum -a 256 NiceDock.dmg NiceDock.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes="docs/releases/$GITHUB_REF_NAME.md"
+          if [ -f "$notes" ]; then cp "$notes" build/notes.md; else echo "NiceDock ${GITHUB_REF_NAME#v}" > build/notes.md; fi
+          {
+            echo
+            echo '### SHA-256'
+            echo '```'
+            cat build/SHA256SUMS.txt
+            echo '```'
+          } >> build/notes.md
+          gh release create "$GITHUB_REF_NAME" build/NiceDock.dmg build/NiceDock.zip build/SHA256SUMS.txt \
+            --title "NiceDock ${GITHUB_REF_NAME#v}" --notes-file build/notes.md --verify-tag

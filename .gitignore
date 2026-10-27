@@ -7,3 +7,11 @@ DerivedData/
 .DS_Store
 .claude/
 __pycache__/
+
+# Kept on the developer's Mac, never published: the inspiring site's reference frames and crops of them,
+# captures showing a commercial album cover, and live screenshots of the developer's own desktop.
+docs/reference/
+docs/verification/pixel-residue/*.png
+docs/verification/now-playing/*.png
+docs/verification/widgets-live/en-*.png
+docs/verification/widgets-live/fa-*.png

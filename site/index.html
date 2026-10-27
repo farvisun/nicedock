@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NiceDock — a second Dock with live widgets for macOS</title>
+<meta name="description" content="NiceDock sits beside the macOS Dock and brings 111 native widgets — weather, calendar, markets, system stats, timers and more — into one glassy strip. Free, native Swift, 10 languages including Persian.">
+<meta name="theme-color" content="#0b0c0f">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NiceDock — a second Dock with live widgets for macOS">
+<meta property="og:description" content="111 native widgets beside the macOS Dock. Free, native Swift, light on memory, fluent in 10 languages.">
+<meta property="og:image" content="https://farvisun.github.io/nicedock/assets/og.jpg">
+<meta property="og:url" content="https://farvisun.github.io/nicedock/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+@font-face {
+  font-family: "Estedad";
+  src: url("assets/fonts/Estedad.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
+}
+:root {
+  --bg: #0b0c0f;
+  --bg-2: #121318;
+  --card: #16181e;
+  --line: rgba(255, 255, 255, .08);
+  --text: #f5f5f7;
+  --muted: #a1a1aa;
+  --accent: #7ed39b;
+  --accent-2: #3d8f63;
+  --radius: 22px;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 17px/1.55 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+html[lang="fa"] body, html[lang="fa"] h1, html[lang="fa"] h2, html[lang="fa"] h3 { font-family: "Estedad", var(--sans); }
+a { color: inherit; }
+img { display: block; }
+.wrap { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+
+/* Nav */
+.nav { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px);
+  background: rgba(11, 12, 15, .72); border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; gap: 28px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; text-decoration: none; letter-spacing: -.01em; }
+.brand img { width: 28px; height: 28px; }
+.nav-links { display: flex; gap: 22px; margin-inline-start: auto; }
+.nav-links a { text-decoration: none; color: var(--muted); font-size: 15px; }
+.nav-links a:hover { color: var(--text); }
+.lang-btn { border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 14px;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.lang-btn:hover { background: rgba(255, 255, 255, .06); }
+html[lang="en"] .lang-btn { font-family: "Estedad", var(--sans); }
+.gh { display: inline-flex; color: var(--muted); }
+.gh:hover { color: var(--text); }
+
+/* Hero */
+.hero { padding: 72px 0 40px; text-align: center; overflow: hidden; }
+.eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; color: var(--accent);
+  border: 1px solid rgba(126, 211, 155, .28); background: rgba(126, 211, 155, .08); padding: 6px 14px; border-radius: 999px; }
+h1 { font: 700 clamp(40px, 6.4vw, 76px)/1.04 var(--display); letter-spacing: -.035em; margin: 22px auto 18px; max-width: 14ch; }
+html[lang="fa"] h1 { letter-spacing: 0; line-height: 1.3; max-width: 16ch; }
+.lede { color: var(--muted); font-size: clamp(17px, 2vw, 20px); max-width: 44em; margin: 0 auto; }
+.ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 32px 0 14px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 14px; font-weight: 600;
+  text-decoration: none; font-size: 16px; transition: transform .15s ease, background .15s ease; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--text); color: #0b0c0f; }
+.btn-primary:hover { background: #fff; }
+.btn-ghost { border: 1px solid var(--line); background: rgba(255, 255, 255, .03); }
+.btn-ghost:hover { background: rgba(255, 255, 255, .07); }
+.meta { color: var(--muted); font-size: 14px; }
+.meta a { color: var(--muted); }
+
+/* Desktop scene */
+.scene { position: relative; margin: 56px auto 0; width: min(1160px, calc(100% - 24px)); aspect-ratio: 16 / 6.8; min-height: 300px;
+  border-radius: 26px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: 0 40px 120px -30px rgba(61, 143, 99, .45), 0 0 0 1px rgba(0, 0, 0, .4);
+  background:
+    radial-gradient(60% 55% at 50% 14%, rgba(255, 249, 222, .95), rgba(255, 249, 222, 0) 70%),
+    linear-gradient(180deg, #f3eedb 0%, #d9e2c2 34%, #9cbf84 55%, #5f8f57 72%, #2f5a37 100%); }
+.scene svg.hills { position: absolute; inset: auto 0 0 0; width: 100%; height: 62%; }
+.menubar { position: absolute; inset: 0 0 auto 0; height: 30px; display: flex; align-items: center; gap: 18px; padding: 0 16px;
+  font-size: 13px; color: rgba(20, 30, 20, .85); background: rgba(255, 255, 255, .28); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); direction: ltr; }
+.menubar b { font-weight: 650; }
+.menubar .right { margin-left: auto; display: flex; gap: 14px; align-items: center; white-space: nowrap; }
+.menubar img { width: 16px; height: 16px; }
+.dock-holder { position: absolute; left: 50%; bottom: 4.5%; transform-origin: center bottom; }
+.dock { display: flex; gap: 6px; padding: 8px; border-radius: 26px;
+  background: rgba(18, 20, 18, .55); backdrop-filter: blur(26px) saturate(150%); -webkit-backdrop-filter: blur(26px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 18px 50px -12px rgba(0, 0, 0, .55); }
+.tile { height: 62px; width: auto; border-radius: 15px; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden; margin: 64px auto 0; }
+.stat { background: var(--bg-2); padding: 22px 18px; text-align: center; }
+.stat b { display: block; font: 700 28px/1.2 var(--display); letter-spacing: -.02em; }
+.stat span { color: var(--muted); font-size: 14px; }
+
+/* Sections */
+section { padding: 96px 0 0; }
+.section-head { text-align: center; max-width: 720px; margin: 0 auto 42px; }
+h2 { font: 700 clamp(30px, 4.2vw, 48px)/1.1 var(--display); letter-spacing: -.03em; margin: 0 0 14px; }
+html[lang="fa"] h2 { letter-spacing: 0; line-height: 1.35; }
+.section-head p { color: var(--muted); margin: 0; font-size: 18px; }
+
+/* Marquee gallery */
+.marquee { overflow: hidden; direction: ltr; padding: 6px 0;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.track { display: flex; gap: 10px; width: max-content; animation: slide 70s linear infinite; }
+.marquee.reverse .track { animation-direction: reverse; animation-duration: 80s; }
+.marquee:hover .track { animation-play-state: paused; }
+.track .tile { height: 72px; border-radius: 17px; }
+@keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.cats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 34px; }
+.cats span { font-size: 14px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+
+/* Features */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
+.card h3 { margin: 14px 0 8px; font: 650 19px/1.3 var(--display); letter-spacing: -.01em; }
+.card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+.icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+  background: rgba(126, 211, 155, .12); color: var(--accent); }
+.icon svg { width: 22px; height: 22px; }
+kbd { font: 600 13px var(--sans); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; color: var(--text); }
+
+/* Languages */
+.split { display: grid; grid-template-columns: 1fr 1.15fr; gap: 40px; align-items: center; }
+.split h2 { text-align: start; }
+.split p { color: var(--muted); }
+.langs { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0; }
+.langs span { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: 15px; }
+.langs .fa { font-family: "Estedad", var(--sans); }
+.shot { width: 100%; height: auto; border-radius: 14px; filter: drop-shadow(0 30px 60px rgba(0, 0, 0, .5)); }
+.pair { display: grid; gap: 8px; margin-top: 18px; justify-content: start; }
+.pair div { display: flex; gap: 8px; }
+.pair .tile { height: 56px; }
+
+/* Install */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
+.step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; position: relative; }
+.step::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 34px; height: 34px;
+  border-radius: 50%; background: var(--text); color: #0b0c0f; font-weight: 700; margin-bottom: 14px; }
+html[lang="fa"] .step::before { content: counter(step, persian); }
+.step h3 { margin: 0 0 8px; font: 650 18px/1.3 var(--display); }
+.step p { margin: 0; color: var(--muted); font-size: 15.5px; }
+.term { margin: 22px auto 0; max-width: 720px; text-align: center; color: var(--muted); font-size: 15px; }
+code { font: 14px ui-monospace, "SF Mono", Menlo, monospace; background: var(--card); border: 1px solid var(--line);
+  border-radius: 8px; padding: 3px 8px; color: var(--text); direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.final { text-align: center; padding: 110px 0 40px; }
+.final img { width: 96px; height: 96px; margin: 0 auto 18px; }
+
+footer { border-top: 1px solid var(--line); margin-top: 80px; padding: 30px 0 46px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; gap: 20px; justify-content: space-between; flex-wrap: wrap; }
+footer a { color: var(--muted); }
+
+@media (max-width: 900px) {
+  .grid, .steps { grid-template-columns: 1fr 1fr; }
+  .split { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .nav-links { display: none; }
+  .nav .lang-btn { margin-inline-start: auto; }
+}
+@media (max-width: 600px) {
+  .grid, .steps { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .scene { aspect-ratio: 4 / 3; min-height: 0; }
+  .menubar > span, .menubar .right span:first-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track { animation: none; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="assets/icon.png" alt="" width="28" height="28">NiceDock</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#widgets" data-i18n="nav.widgets">Widgets</a>
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#languages" data-i18n="nav.languages">Languages</a>
+      <a href="#install" data-i18n="nav.install">Install</a>
+    </nav>
+    <button class="lang-btn" id="lang-btn" type="button" aria-label="Switch language">فارسی</button>
+    <a class="gh" href="https://github.com/farvisun/nicedock" aria-label="GitHub">
+      <svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="wrap">
+      <span class="eyebrow" data-i18n="hero.eyebrow">Free · Native Swift · macOS 14 or later</span>
+      <h1 data-i18n="hero.title">A second Dock, alive with widgets.</h1>
+      <p class="lede" data-i18n="hero.lede">NiceDock sits beside the macOS Dock and brings 111 native widgets — weather, calendar, markets, system stats, timers, todos and more — into one glassy strip. Built in Swift, light on memory, fluent in ten languages.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="https://github.com/farvisun/nicedock/releases/latest/download/NiceDock.dmg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
+          <span data-i18n="cta.download">Download for Mac</span>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/farvisun/nicedock" data-i18n="cta.github">View on GitHub</a>
+      </div>
+      <p class="meta"><span data-i18n="cta.meta">Version 1.0.0 · Apple silicon · 9 MB</span> · <a href="https://github.com/farvisun/nicedock/releases/latest/download/NiceDock.zip" data-i18n="cta.zip">ZIP</a> · <a href="https://github.com/farvisun/nicedock/releases" data-i18n="cta.notes">Release notes</a></p>
+    </div>
+
+    <div class="scene" role="img" aria-label="NiceDock on a macOS desktop">
+      <svg class="hills" viewBox="0 0 1200 500" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="h1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fb878"/><stop offset="1" stop-color="#4c7a48"/></linearGradient>
+          <linearGradient id="h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d8d55"/><stop offset="1" stop-color="#2c5233"/></linearGradient>
+          <linearGradient id="h3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b6a40"/><stop offset="1" stop-color="#1b3523"/></linearGradient>
+        </defs>
+        <path d="M0 210 C 180 130 330 150 480 190 S 820 120 960 150 S 1140 210 1200 190 V500 H0Z" fill="url(#h1)" opacity=".9"/>
+        <path d="M0 300 C 160 240 360 250 520 290 S 860 230 1020 260 S 1160 300 1200 290 V500 H0Z" fill="url(#h2)"/>
+        <path d="M0 400 C 220 340 420 360 640 390 S 980 350 1200 380 V500 H0Z" fill="url(#h3)"/>
+      </svg>
+      <div class="menubar"><img src="assets/icon.png" alt=""><b>NiceDock</b><span>File</span><span>Edit</span><span>Window</span>
+        <div class="right"><span>100%</span><span>Thu 18 Jun 12:34</span></div></div>
+      <div class="dock-holder" id="dock-holder">
+        <div class="dock" id="hero-dock"></div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="stats">
+        <div class="stat"><b data-i18n="s1.v">111</b><span data-i18n="s1.l">widgets</span></div>
+        <div class="stat"><b data-i18n="s2.v">10</b><span data-i18n="s2.l">languages</span></div>
+        <div class="stat"><b data-i18n="s3.v">≈27 MB</b><span data-i18n="s3.l">memory</span></div>
+        <div class="stat"><b data-i18n="s4.v">≈0.2%</b><span data-i18n="s4.l">of one core at rest</span></div>
+        <div class="stat"><b data-i18n="s5.v">9 MB</b><span data-i18n="s5.l">download</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="widgets">
+    <div class="wrap section-head">
+      <h2 data-i18n="w.title">Everything at a glance</h2>
+      <p data-i18n="w.lede">Clocks and focus timers, calendars and reminders, live weather, stocks and crypto, CPU, memory and battery, quick toggles, files and media — plus connected services like Stripe, GitHub, Plausible and your AI usage.</p>
+    </div>
+    <div class="marquee"><div class="track" id="row-1"></div></div>
+    <div class="marquee reverse"><div class="track" id="row-2"></div></div>
+    <div class="wrap cats" id="cats"></div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-i18n="f.title">Made for your Mac</h2>
+        <p data-i18n="f.lede">Native SwiftUI and AppKit, designed to feel like part of macOS.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 16h10"/></svg></div>
+          <h3 data-i18n="f1.t">Seven layouts</h3>
+          <p data-i18n="f1.d">Swap places with the macOS Dock at the bottom edge, reveal on hover, pin to any corner, replace the Dock entirely or float anywhere.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div>
+          <h3 data-i18n="f2.t">Profiles</h3>
+          <p data-i18n-html="f2.d">Up to eight docks for work, home or focus. Swipe between them or press <kbd>⌃⌥⌘</kbd> <kbd>0–7</kbd>.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+          <h3 data-i18n="f3.t">Local-first and private</h3>
+          <p data-i18n="f3.d">No account, no telemetry. Tokens for connected widgets stay in your Keychain, and a permission is asked for only when a widget needs it.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+          <h3 data-i18n="f4.t">Light and fast</h3>
+          <p data-i18n="f4.d">Services run only while a visible widget needs them, and a hidden dock unmounts its widgets. About 27 MB of memory and a fraction of a percent of one core at rest.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9.4l-4.2 1.8L12 16l-1.8-4.8L6 9.4l4.2-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div>
+          <h3 data-i18n="f5.t">Ready for AI assistants</h3>
+          <p data-i18n="f5.d">Claude, Codex, Cursor and other MCP clients can read and arrange your dock, and paint wallpapers by mood or weather. Read-only until you allow changes.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></div>
+          <h3 data-i18n="f6.t">A complete Settings window</h3>
+          <p data-i18n="f6.d">Twelve panes: appearance with a live preview, six dock styles including Liquid Glass, layouts, screens, shortcuts, permissions and performance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="languages">
+    <div class="wrap split">
+      <div>
+        <h2 data-i18n="l.title">Speaks your language</h2>
+        <p data-i18n="l.lede">Switch languages instantly, without relaunching. Persian and Arabic turn the whole interface right-to-left, with the Estedad typeface, the Solar Hijri calendar and native digits.</p>
+        <div class="langs">
+          <span>English</span><span class="fa">فارسی</span><span class="fa">العربية</span><span>Deutsch</span><span>Français</span>
+          <span>Español</span><span>Türkçe</span><span>Русский</span><span>简体中文</span><span>日本語</span>
+        </div>
+        <div class="pair" id="pair"></div>
+      </div>
+      <img class="shot" id="settings-shot" src="assets/settings-language-en.webp" width="860" height="640"
+           alt="NiceDock Settings, Language &amp; Region pane" loading="lazy">
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 data-i18n="i.title">Install in a minute</h2>
+        <p data-i18n="i.lede">Free download. macOS 14 Sonoma or later on Apple silicon.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3 data-i18n="i1.t">Download</h3><p data-i18n="i1.d">Open NiceDock.dmg and drag NiceDock into Applications.</p></div>
+        <div class="step"><h3 data-i18n="i2.t">Allow it once</h3><p data-i18n="i2.d">NiceDock isn't notarized by Apple yet, so macOS stops the first launch. Open System Settings › Privacy &amp; Security and click Open Anyway.</p></div>
+        <div class="step"><h3 data-i18n="i3.t">Make it yours</h3><p data-i18n="i3.d">Pick a layout, then right-click the dock › Widgets… to add, customize and reorder widgets.</p></div>
+      </div>
+      <p class="term"><span data-i18n="i.term">Prefer the Terminal? After moving it to Applications:</span><br><code>xattr -dr com.apple.quarantine /Applications/NiceDock.app</code></p>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <img src="assets/icon.png" alt="" width="96" height="96" loading="lazy">
+      <h2 data-i18n="end.title">Give your Dock a second life.</h2>
+      <div class="ctas">
+        <a class="btn btn-primary" href="https://github.com/farvisun/nicedock/releases/latest/download/NiceDock.dmg" data-i18n="cta.download">Download for Mac</a>
+        <a class="btn btn-ghost" href="https://github.com/farvisun/nicedock" data-i18n="cta.github">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n="foot.made">NiceDock · Built natively with Swift and SwiftUI.</span>
+    <span><span data-i18n="foot.credit">Design inspired by CoolDock (cooldock.app); not affiliated. Persian typeface Estedad by Amin Abedi,</span> <a href="assets/fonts/Estedad-OFL.txt">SIL OFL</a>.</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // Widget renders: [file, width in points]. Same names exist in assets/widgets/en and assets/widgets/fa.
+  const W = {
+    agenda: 225, aiUsage: 194, analogDark: 81, batteryRing: 70, calendarToday: 225, cpuGraph: 150, cpuRing: 70,
+    cryptoChart: 149, cryptoQuote: 173, dayDate: 101, forecastDays: 188, forecastHourly: 266, habitTracker: 192,
+    memoryRing: 70, pomodoro: 175, stockChart: 149, stockWatchlist: 224, storageRing: 70, sunriseSunset: 226,
+    timeHero: 92, timer: 155, todo: 196, weekStrip: 220, wind: 194, worldClock: 120, yearProgress: 130
+  };
+  const HERO = ["weekStrip", "cryptoQuote", "cpuRing", "batteryRing", "pomodoro", "forecastDays", "worldClock"];
+  const ROW1 = ["agenda", "forecastHourly", "stockWatchlist", "memoryRing", "habitTracker", "sunriseSunset", "analogDark", "aiUsage", "cpuGraph", "timeHero"];
+  const ROW2 = ["calendarToday", "wind", "todo", "storageRing", "cryptoChart", "yearProgress", "dayDate", "timer", "stockChart", "pomodoro", "weekStrip"];
+  const PAIR = ["timeHero", "batteryRing", "cryptoQuote"];
+
+  const FA = {
+    "nav.widgets": "ویجت‌ها", "nav.features": "امکانات", "nav.languages": "زبان‌ها", "nav.install": "نصب",
+    "hero.eyebrow": "رایگان · بومی با Swift · macOS 14 و جدیدتر",
+    "hero.title": "داک دوم مک شما، زنده با ویجت‌ها.",
+    "hero.lede": "NiceDock کنار داک macOS می‌نشیند و ۱۱۱ ویجت بومی — آب‌وهوا، تقویم، بازارها، وضعیت سیستم، تایمر، فهرست کارها و بیشتر — را در یک نوار شیشه‌ای کنار هم می‌آورد. با Swift ساخته شده، حافظهٔ کمی مصرف می‌کند و به ده زبان صحبت می‌کند.",
+    "cta.download": "دانلود برای مک", "cta.github": "مشاهده در GitHub",
+    "cta.meta": "نسخهٔ ۱.۰.۰ · تراشهٔ Apple · ۹ مگابایت", "cta.zip": "ZIP", "cta.notes": "یادداشت‌های انتشار",
+    "s1.v": "۱۱۱", "s1.l": "ویجت", "s2.v": "۱۰", "s2.l": "زبان", "s3.v": "≈۲۷ مگابایت", "s3.l": "حافظه",
+    "s4.v": "≈۰٫۲٪", "s4.l": "از یک هستهٔ پردازنده در حالت آرام", "s5.v": "۹ مگابایت", "s5.l": "حجم دانلود",
+    "w.title": "همه‌چیز در یک نگاه",
+    "w.lede": "ساعت و تایمر تمرکز، تقویم و یادآورها، آب‌وهوای زنده، سهام و رمزارز، پردازنده و حافظه و باتری، کلیدهای سریع، فایل‌ها و رسانه — و سرویس‌های متصل مثل Stripe، GitHub، Plausible و میزان مصرف هوش مصنوعی شما.",
+    "f.title": "ساخته‌شده برای مک شما", "f.lede": "SwiftUI و AppKit بومی، طراحی‌شده تا بخشی از خود macOS به نظر برسد.",
+    "f1.t": "هفت چیدمان", "f1.d": "در لبهٔ پایین جایش را با داک macOS عوض کند، با رسیدن نشانگر ظاهر شود، در هر گوشه ثابت بماند، کاملاً جای داک را بگیرد یا هر جا خواستید شناور باشد.",
+    "f2.t": "پروفایل‌ها", "f2.d": "تا هشت داک برای کار، خانه یا تمرکز. با کشیدن انگشت بینشان جابه‌جا شوید یا <kbd>⌃⌥⌘</kbd> <kbd>0–7</kbd> را بزنید.",
+    "f3.t": "محلی و خصوصی", "f3.d": "بدون حساب کاربری و بدون ردیابی. توکن ویجت‌های متصل در Keychain خودتان می‌ماند و هر مجوز فقط وقتی خواسته می‌شود که ویجتی به آن نیاز داشته باشد.",
+    "f4.t": "سبک و سریع", "f4.d": "سرویس‌ها فقط وقتی کار می‌کنند که ویجتی روی صفحه به آن‌ها نیاز دارد و داکِ پنهان ویجت‌هایش را آزاد می‌کند. حدود ۲۷ مگابایت حافظه و کسری از یک درصدِ یک هستهٔ پردازنده در حالت آرام.",
+    "f5.t": "آماده برای دستیارهای هوش مصنوعی", "f5.d": "Claude، Codex، Cursor و دیگر کلاینت‌های MCP می‌توانند داک شما را بخوانند و بچینند و با حال‌وهوا یا وضع هوا والپیپر بسازند. تا اجازهٔ تغییر ندهید، فقط خواندنی است.",
+    "f6.t": "پنجرهٔ تنظیمات کامل", "f6.d": "دوازده بخش: ظاهر با پیش‌نمایش زنده، شش سبک داک از جمله Liquid Glass، چیدمان، نمایشگرها، میان‌برها، مجوزها و کارایی.",
+    "l.title": "به زبان شما",
+    "l.lede": "زبان را در لحظه و بدون اجرای دوباره عوض کنید. با فارسی و عربی کل رابط راست‌به‌چپ می‌شود؛ با قلم استعداد، تقویم هجری خورشیدی و ارقام فارسی.",
+    "i.title": "نصب در یک دقیقه", "i.lede": "دانلود رایگان. macOS 14 (Sonoma) یا جدیدتر روی تراشهٔ Apple.",
+    "i1.t": "دانلود", "i1.d": "فایل NiceDock.dmg را باز کنید و NiceDock را به پوشهٔ Applications بکشید.",
+    "i2.t": "یک بار اجازه دهید", "i2.d": "NiceDock هنوز توسط اپل تأیید (notarize) نشده، پس macOS اجرای اول را متوقف می‌کند. به System Settings › Privacy & Security بروید و Open Anyway را بزنید.",
+    "i3.t": "مال خودتان کنید", "i3.d": "یک چیدمان انتخاب کنید، بعد روی داک راست‌کلیک کنید و از Widgets… ویجت‌ها را اضافه، شخصی‌سازی و مرتب کنید.",
+    "i.term": "ترمینال را ترجیح می‌دهید؟ بعد از انتقال به Applications:",
+    "end.title": "به داک خود جانی دوباره بدهید.",
+    "foot.made": "NiceDock · ساخته‌شده به‌صورت بومی با Swift و SwiftUI.",
+    "foot.credit": "طراحی با الهام از CoolDock (cooldock.app)؛ بدون وابستگی به آن. قلم فارسی استعداد اثر امین عابدی،"
+  };
+  const CATS = {
+    en: ["Apps & files", "Clocks & focus", "Calendar & tasks", "Weather", "System & controls", "Utilities", "Media & people", "Markets", "Connected services", "AI usage"],
+    fa: ["اپ‌ها و فایل‌ها", "ساعت و تمرکز", "تقویم و کارها", "آب‌وهوا", "سیستم و کنترل‌ها", "ابزارها", "رسانه و افراد", "بازارها", "سرویس‌های متصل", "مصرف هوش مصنوعی"]
+  };
+
+  const EN = {};
+  document.querySelectorAll("[data-i18n],[data-i18n-html]").forEach(el => {
+    const html = el.hasAttribute("data-i18n-html");
+    EN[el.dataset.i18n || el.dataset.i18nHtml] = html ? el.innerHTML : el.textContent;
+  });
+
+  const tile = (name, lang, eager) => {
+    const img = document.createElement("img");
+    img.className = "tile"; img.alt = name.replace(/([A-Z])/g, " $1").toLowerCase();
+    img.width = W[name]; img.height = 62; img.decoding = "async";
+    if (!eager) img.loading = "lazy";
+    img.dataset.w = name; img.src = `assets/widgets/${lang}/${name}.png`;
+    return img;
+  };
+  const fill = (el, names, lang, twice, eager) => {
+    el.replaceChildren();
+    const list = twice ? names.concat(names) : names;
+    list.forEach((n, i) => {
+      const t = tile(n, lang, eager);
+      if (twice && i >= names.length) t.setAttribute("aria-hidden", "true");
+      el.appendChild(t);
+    });
+  };
+
+  const fitDock = () => {
+    const holder = document.getElementById("dock-holder");
+    const scene = holder.parentElement;
+    const dock = document.getElementById("hero-dock");
+    const s = Math.min(1, (scene.clientWidth - 24) / dock.scrollWidth);
+    holder.style.transform = `translateX(-50%) scale(${s})`;
+  };
+
+  const apply = lang => {
+    const fa = lang === "fa";
+    document.documentElement.lang = lang;
+    document.documentElement.dir = fa ? "rtl" : "ltr";
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = fa ? (FA[el.dataset.i18n] ?? EN[el.dataset.i18n]) : EN[el.dataset.i18n]; });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = fa ? (FA[el.dataset.i18nHtml] ?? EN[el.dataset.i18nHtml]) : EN[el.dataset.i18nHtml]; });
+    document.getElementById("lang-btn").textContent = fa ? "English" : "فارسی";
+    document.getElementById("settings-shot").src = `assets/settings-language-${lang}.webp`;
+    fill(document.getElementById("hero-dock"), HERO, lang, false, true);
+    fill(document.getElementById("row-1"), ROW1, lang, true);
+    fill(document.getElementById("row-2"), ROW2, lang, true);
+    const pair = document.getElementById("pair");
+    const row = l => { const d = document.createElement("div"); d.dir = l === "fa" ? "rtl" : "ltr"; d.append(...PAIR.map(n => tile(n, l))); return d; };
+    pair.replaceChildren(row("en"), row("fa"));
+    document.getElementById("cats").replaceChildren(...CATS[lang].map(c => Object.assign(document.createElement("span"), { textContent: c })));
+    document.title = fa ? "NiceDock — داک دوم با ویجت‌های زنده برای macOS" : "NiceDock — a second Dock with live widgets for macOS";
+    try { localStorage.setItem("nicedock-lang", lang); } catch (e) {}
+    requestAnimationFrame(fitDock);
+  };
+
+  let saved = null;
+  try { saved = localStorage.getItem("nicedock-lang"); } catch (e) {}
+  const initial = new URLSearchParams(location.search).get("lang") || saved || ((navigator.language || "").startsWith("fa") ? "fa" : "en");
+  apply(initial === "fa" ? "fa" : "en");
+  document.getElementById("lang-btn").addEventListener("click", () => apply(document.documentElement.lang === "fa" ? "en" : "fa"));
+  addEventListener("resize", fitDock);
+  document.getElementById("hero-dock").addEventListener("load", fitDock, true);
+})();
+</script>
+</body>
+</html>

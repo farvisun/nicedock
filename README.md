@@ -1,28 +1,44 @@
-# CoolDock
+# NiceDock
 
-A native macOS **second Dock with live widgets** — a from-scratch Swift/SwiftUI recreation of the
-tools shown on [cooldock.app](https://cooldock.app): music, todos, events, weather, search, system
-stats, quick actions and 111 widgets in one beautiful dock beside the macOS Dock.
+A native macOS **second Dock with live widgets**: music, todos, events, weather, search, system
+stats, quick actions and 111 widgets in one dock beside the macOS Dock. Written from scratch in
+Swift/SwiftUI; the design is inspired by [CoolDock](https://cooldock.app), and NiceDock is not affiliated with it.
+
+**Website:** [farvisun.github.io/nicedock](https://farvisun.github.io/nicedock/) ·
+**Download:** [latest release](https://github.com/farvisun/nicedock/releases/latest)
 
 * Native Swift 6 toolchain, SwiftUI + AppKit, macOS 14 Sonoma or later
-* ~9 MB app bundle, ~32 MB memory (+4 MB for the Now Playing helper while a music widget is shown, +1.7 MB while an app is below 100 % volume), about 0.2–0.5 % of one core when idle with the default layout (the first minute after launch also scans local AI tool logs once)
+* ~9 MB app bundle, ~27–32 MB memory (+4 MB for the Now Playing helper while a music widget is shown, +1.7 MB while an app is below 100 % volume), about 0.2–0.5 % of one core when idle with the default layout (the first minute after launch also scans local AI tool logs once)
 * 10 languages, full right-to-left support, Persian with the **Estedad** typeface,
   Solar Hijri calendar and Persian digits
 * Local-first: credentials live in the macOS Keychain, no account, no telemetry
-* **AI Assistant**: Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock
-  (`CoolDock --mcp`) and paint wallpapers by mood, season or weather — off by default, read-only until you allow
+* **AI Assistant**: Claude, Codex, Cursor, VS Code and other MCP clients can read and configure NiceDock
+  (`NiceDock --mcp`) and paint wallpapers by mood, season or weather — off by default, read-only until you allow
   changes in Settings → Privacy & Permissions. Setup and tools: [docs/ai-assistant.md](docs/ai-assistant.md)
+
+## Install
+
+1. Download **NiceDock.dmg** from the [latest release](https://github.com/farvisun/nicedock/releases/latest)
+   (Apple silicon, macOS 14 or later) and drag NiceDock into Applications.
+2. NiceDock is ad-hoc signed, not notarized by Apple, so macOS stops the first launch. Open
+   **System Settings › Privacy & Security** and click **Open Anyway**, or run
+   `xattr -dr com.apple.quarantine /Applications/NiceDock.app` once.
+3. Pick a layout in the welcome window, then right-click the dock › **Widgets…** to add more.
+
+Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed;
+each release lists the SHA-256 of its files. The website is `site/` (static, no external requests) and is deployed to
+GitHub Pages by [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
 ## Build & run
 
 ```bash
-scripts/build-app.sh release --run     # builds build/CoolDock.app and launches it
+scripts/build-app.sh release --run     # builds build/NiceDock.app and launches it
 scripts/build-app.sh debug             # faster debug build
 swift build                            # compile only
 ```
 
 The script compiles with SwiftPM, assembles the `.app` bundle (Info.plist, fonts, translations,
-generated icon) and ad-hoc signs it. Drag `build/CoolDock.app` to `/Applications` to keep it.
+generated icon) and ad-hoc signs it. Drag `build/NiceDock.app` to `/Applications` to keep it.
 
 Developer launch flags: `--lang <code>`, `--settings <pane>`, `--widgets`, `--onboarding`, `--mcp` (stdio MCP server,
 no UI; `COOLDOCK_SUPPORT_DIR` points it at another state folder), and the offscreen widget
@@ -33,7 +49,8 @@ app tile's right-click menu against the real app.
 
 ## Verification
 
-- **Pixel diff** — `scripts/pixel-diff.sh` renders every frame in `docs/reference` with deterministic
+- **Pixel diff** — the reference frames (`docs/reference`, screenshots of the design that inspired NiceDock) are not
+  published in this repository; with a local copy, `scripts/pixel-diff.sh` renders every frame with deterministic
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, match at 8 % and 3 % colour fuzz
   (ImageMagick's AE metric: 100 % minus the out-of-fuzz colour error, each differing pixel weighted by how far it is
   off), RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
@@ -56,7 +73,7 @@ app tile's right-click menu against the real app.
   (`Tests/Scripts/ics_oracle.py`). Widget renders from real feeds, English and Persian:
   `docs/verification/calendar-feed/`.
 - **AI Assistant** — `swift test` covers the MCP server (JSON-RPC framing, tool schemas, disabled/read-only gating,
-  validation, the state.json path, the app socket bridge, wallpaper determinism) and spawns `CoolDock --mcp` end to end
+  validation, the state.json path, the app socket bridge, wallpaper determinism) and spawns `NiceDock --mcp` end to end
   with a temporary home; transcript in [docs/verification/ai-assistant.md](docs/verification/ai-assistant.md).
 - **Translations** — `python3 scripts/l10n.py check` (every language must report 0 missing).
 
@@ -98,7 +115,7 @@ radius, monochrome, reduce transparency) · Layout (seven scenarios: Swap at the
 Fixed ×6 positions, Reveal on Top, Replace the macOS Dock, Replace & Auto-Hide, Floating) ·
 Screens (one / attached / all displays, rename, identify) · Dock · Profiles (up to 8) · Widgets (incl. App Volume) ·
 Shortcuts (recorders) · Language & Region (language, calendar, digits, 12/24 h, Estedad) ·
-Privacy & Permissions (incl. Calendar Feeds and the AI Assistant) · Performance (live memory/CPU of CoolDock) · About.
+Privacy & Permissions (incl. Calendar Feeds and the AI Assistant) · Performance (live memory/CPU of NiceDock) · About.
 
 ## Architecture
 
