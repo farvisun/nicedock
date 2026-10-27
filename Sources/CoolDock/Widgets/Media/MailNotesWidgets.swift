@@ -96,6 +96,7 @@ final class MediaMailService {
 
     /// What tiles display: live data, sample data for demo renders, or nil when Mail is closed.
     var display: MediaMailSnapshot? {
+        if ReferenceScene.isActive { return MediaScene.mail }
         if MediaEnv.demo { return MediaMailSnapshot(unread: 12, today: 3, sender: "Alex Morgan", subject: "Project kickoff timeline") }
         return running ? snapshot : nil
     }
@@ -103,42 +104,41 @@ final class MediaMailService {
 
 // MARK: - Mail tiles
 
-/// Mail app-style icon: blue gradient squircle with a white envelope (brand surface).
+/// Mail app-style icon: blue gradient squircle with a frosted glass envelope (brand surface).
 struct MediaMailIcon: View {
     @Environment(\.metrics) private var m
     var size: CGFloat = 36
 
     var body: some View {
         let s = m.u(size)
-        ZStack {
-            RoundedRectangle(cornerRadius: s * 0.225, style: .continuous)
-                .fill(LinearGradient(colors: [Color(hex: "#5CC4F7"), Color(hex: "#1B6EFB")], startPoint: .top, endPoint: .bottom))
-            Canvas { ctx, size in
-                let w = size.width, h = size.height
-                let body = CGRect(x: w * 0.12, y: h * 0.25, width: w * 0.76, height: h * 0.5)
-                let rr = Path(roundedRect: body, cornerRadius: w * 0.05, style: .continuous)
-                ctx.fill(rr, with: .linearGradient(Gradient(colors: [Color(hex: "#FFFFFF"), Color(hex: "#D7E6FB")]),
-                                                   startPoint: CGPoint(x: 0, y: body.minY), endPoint: CGPoint(x: 0, y: body.maxY)))
-                // lower folds
-                var folds = Path()
-                folds.move(to: CGPoint(x: body.minX + w * 0.01, y: body.maxY - h * 0.01))
-                folds.addLine(to: CGPoint(x: body.midX, y: body.minY + body.height * 0.5))
-                folds.addLine(to: CGPoint(x: body.maxX - w * 0.01, y: body.maxY - h * 0.01))
-                ctx.stroke(folds, with: .color(Color(hex: "#B9D2F5")), lineWidth: max(0.5, w * 0.012))
-                // top flap with a soft shadow
-                var flap = Path()
-                flap.move(to: CGPoint(x: body.minX + w * 0.015, y: body.minY + h * 0.012))
-                flap.addLine(to: CGPoint(x: body.midX, y: body.minY + body.height * 0.6))
-                flap.addLine(to: CGPoint(x: body.maxX - w * 0.015, y: body.minY + h * 0.012))
-                flap.closeSubpath()
-                var shadowCtx = ctx
-                shadowCtx.addFilter(.shadow(color: Color(hex: "#1B4E9B").opacity(0.35), radius: w * 0.025, y: w * 0.012))
-                shadowCtx.fill(flap, with: .linearGradient(Gradient(colors: [Color(hex: "#FFFFFF"), Color(hex: "#EEF4FD")]),
-                                                           startPoint: CGPoint(x: 0, y: body.minY), endPoint: CGPoint(x: 0, y: body.midY)))
-            }
+        Canvas { ctx, sz in
+            let w = sz.width, h = sz.height
+            let tile = Path(roundedRect: CGRect(origin: .zero, size: sz), cornerRadius: w * 0.225, style: .continuous)
+            ctx.fill(tile, with: .linearGradient(Gradient(colors: [Color(hex: "#5CC4F7"), Color(hex: "#1B6EFB")]),
+                                                 startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
+            // Frosted body with a soft drop shadow, lighter fold lines, opaque white top flap.
+            let body = CGRect(x: w * 0.126, y: h * 0.249, width: w * 0.75, height: h * 0.5)
+            let bodyPath = Path(roundedRect: body, cornerRadius: w * 0.05, style: .continuous)
+            var shadowCtx = ctx
+            shadowCtx.addFilter(.shadow(color: Color(hex: "#0A3C9B").opacity(0.3), radius: w * 0.03, y: w * 0.02))
+            shadowCtx.fill(bodyPath, with: .linearGradient(Gradient(colors: [.white.opacity(0.9), .white.opacity(0.5)]),
+                                                           startPoint: CGPoint(x: 0, y: body.minY), endPoint: CGPoint(x: 0, y: body.maxY)))
+            var inner = ctx
+            inner.clip(to: bodyPath)
+            var folds = Path()
+            folds.move(to: CGPoint(x: body.minX, y: body.maxY))
+            folds.addLine(to: CGPoint(x: body.midX, y: body.minY + body.height * 0.4))
+            folds.addLine(to: CGPoint(x: body.maxX, y: body.maxY))
+            inner.stroke(folds, with: .color(.white.opacity(0.5)), lineWidth: w * 0.03)
+            var flap = Path()
+            flap.move(to: CGPoint(x: body.minX, y: body.minY))
+            flap.addLine(to: CGPoint(x: body.midX, y: body.minY + body.height * 0.66))
+            flap.addLine(to: CGPoint(x: body.maxX, y: body.minY))
+            flap.closeSubpath()
+            inner.fill(flap, with: .color(.white))
+            inner.stroke(flap, with: .color(.white), style: StrokeStyle(lineWidth: w * 0.04, lineJoin: .round))
         }
         .frame(width: s, height: s)
-        .compositingGroup()
     }
 }
 
@@ -150,13 +150,13 @@ struct MediaMailTile: View {
     var body: some View {
         let svc = MediaMailService.shared
         let snap = svc.display
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 13.5)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 1, leading: 16, bottom: 0, trailing: 13)) {
             HStack(spacing: 0) {
                 MediaMailIcon(size: 36)
-                VStack(alignment: .leading, spacing: m.u(2)) {
+                VStack(alignment: .leading, spacing: m.u(1)) {
                     if let snap {
-                        T(Fmt.int(snap.unread)).dock(21, .bold)
-                        HStack(spacing: m.u(6)) {
+                        T(Fmt.int(snap.unread)).dock(21.75, .bold, mono: true)
+                        HStack(spacing: m.u(4)) {
                             Text(L("Unread"))
                             if snap.today > 0 {
                                 Text(verbatim: "·")
@@ -166,6 +166,7 @@ struct MediaMailTile: View {
                         .font(.dock(m.u(9), .semibold))
                         .foregroundStyle(p.secondary)
                         .lineLimit(1)
+                        .padding(.leading, m.u(-0.75))
                     } else {
                         Text(L("Mail")).dock(19, .bold)
                         Text(L("Open Mail")).dock(9, .semibold, p.secondary)
@@ -190,27 +191,29 @@ struct MediaMailLatestTile: View {
     var body: some View {
         let svc = MediaMailService.shared
         let snap = svc.display
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 17, bottom: 0, trailing: 13)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 1, leading: 17, bottom: 0, trailing: 13)) {
             HStack(spacing: 0) {
                 MediaMailIcon(size: 36)
                 VStack(alignment: .leading, spacing: m.u(2)) {
                     if let snap, snap.unread > 0 {
-                        Text(snap.sender.isEmpty ? L("New mail") : L("%@ sent", snap.sender)).dock(9, .semibold, p.secondary)
+                        Text(snap.sender.isEmpty ? L("New mail") : L("%@ sent", snap.sender)).dock(9, .medium, p.secondary)
                         Text(snap.subject.isEmpty ? L("(No Subject)") : snap.subject).dock(13, .bold)
+                            .padding(.top, m.u(1))
                         if snap.unread > 1 {
-                            Text(L("+%@ more unread", Fmt.int(snap.unread - 1))).dock(9, .semibold, p.secondary)
-                                .padding(.top, m.u(1.5))
+                            Text(L("+%@ more unread", Fmt.int(snap.unread - 1))).dock(9, .medium, p.secondary)
+                                .padding(.top, m.u(1))
                         }
                     } else if snap != nil {
-                        Text(L("Inbox")).dock(9, .semibold, p.secondary)
+                        Text(L("Inbox")).dock(9, .medium, p.secondary)
                         Text(L("No unread mail")).dock(13, .bold)
-                        Text(L("All caught up")).dock(9, .semibold, p.secondary)
+                        Text(L("All caught up")).dock(9, .medium, p.secondary)
                     } else {
                         Text(L("Mail")).dock(13, .bold)
-                        Text(L("Open Mail")).dock(9, .semibold, p.secondary)
+                        Text(L("Open Mail")).dock(9, .medium, p.secondary)
                     }
                 }
-                .padding(.leading, m.u(12.5))
+                .offset(y: m.u(-0.25))
+                .padding(.leading, m.u(12))
                 Spacer(minLength: m.u(6))
                 MediaComposeButton { Open.url("mailto:") }
             }
@@ -338,6 +341,7 @@ final class MediaNotesService {
     }
 
     var display: MediaNoteSnapshot? {
+        if ReferenceScene.isActive { return MediaScene.note }
         if MediaEnv.demo { return MediaNoteSnapshot(title: "Meeting notes", body: "Discuss launch timeline and assign owners for each workstream.", count: 8) }
         return running ? snapshot : nil
     }
@@ -356,21 +360,21 @@ struct MediaNotesIcon: View {
             let w = sz.width, h = sz.height
             let shape = Path(roundedRect: CGRect(origin: .zero, size: sz), cornerRadius: w * 0.225, style: .continuous)
             ctx.clip(to: shape)
-            ctx.fill(Path(CGRect(origin: .zero, size: sz)), with: .linearGradient(Gradient(colors: [Color(hex: "#FBFBFB"), Color(hex: "#EBEBEB")]),
+            ctx.fill(Path(CGRect(origin: .zero, size: sz)), with: .linearGradient(Gradient(colors: [Color(hex: "#FBFBFA"), Color(hex: "#EAEAEA")]),
                                                                                     startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
-            let band = h * 0.27
+            let band = h * 0.255
             ctx.fill(Path(CGRect(x: 0, y: 0, width: w, height: band)),
-                     with: .linearGradient(Gradient(colors: [Color(hex: "#FFD84A"), Color(hex: "#FFC925")]), startPoint: .zero, endPoint: CGPoint(x: 0, y: band)))
+                     with: .linearGradient(Gradient(colors: [Color(hex: "#FFD933"), Color(hex: "#FFD62F")]), startPoint: .zero, endPoint: CGPoint(x: 0, y: band)))
             // perforation dots
-            let dots = 13
+            let dots = 15
             let r = max(0.35, w * 0.012)
             for i in 0..<dots {
                 let x = w * 0.09 + (w * 0.82) * CGFloat(i) / CGFloat(dots - 1)
-                ctx.fill(Path(ellipseIn: CGRect(x: x - r, y: band + h * 0.035 - r, width: r * 2, height: r * 2)), with: .color(Color(hex: "#C9C9C9")))
+                ctx.fill(Path(ellipseIn: CGRect(x: x - r, y: band + h * 0.03 - r, width: r * 2, height: r * 2)), with: .color(Color(hex: "#CFC9B6")))
             }
             // ruled lines
-            for y in [0.5, 0.72] {
-                ctx.fill(Path(CGRect(x: w * 0.13, y: h * y, width: w * 0.74, height: max(0.5, h * 0.022))), with: .color(Color(hex: "#C8C8C8")))
+            for y in [0.488, 0.74] {
+                ctx.fill(Path(CGRect(x: w * 0.13, y: h * y, width: w * 0.74, height: max(0.5, h * 0.022))), with: .color(Color(hex: "#CDCDCD")))
             }
         }
         .frame(width: s, height: s)
@@ -385,12 +389,13 @@ struct MediaNotesTile: View {
     var body: some View {
         let svc = MediaNotesService.shared
         let snap = svc.display
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 13)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 1, leading: 16, bottom: 0, trailing: 13)) {
             HStack(spacing: 0) {
                 MediaNotesIcon(size: 36)
                 VStack(alignment: .leading, spacing: m.u(2)) {
                     if let snap, !snap.title.isEmpty {
                         Text(snap.title).dock(11, .bold)
+                            .padding(.leading, m.u(-0.5))
                         if !snap.body.isEmpty {
                             Text(snap.body)
                                 .font(.dock(m.u(9), .semibold))

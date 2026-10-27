@@ -145,7 +145,7 @@ struct MediaComposeButton: View {
     var action: () -> Void
 
     var body: some View {
-        CircleButton(symbol: "square.and.pencil", size: 38, fill: p.controlStrong, iconScale: 0.4, action: action)
+        CircleButton(symbol: "square.and.pencil", size: 38, fill: p.controlStrong.opacity(0.9), iconScale: 0.4, action: action)
             .help(L("New"))
     }
 }

@@ -11,6 +11,11 @@ private struct MediaTrack {
     var position: (Date) -> Double
 
     @MainActor static var current: MediaTrack? {
+        if ReferenceScene.isActive {
+            guard let t = MediaScene.track else { return nil }
+            return MediaTrack(title: t.name, artist: t.artist, artwork: t.artwork, isPlaying: t.isPlaying, duration: t.duration,
+                              position: { _ in t.position })
+        }
         if MediaEnv.demo {
             return MediaTrack(title: "First Person Shooter (feat. J. Cole)", artist: "Drake", artwork: nil,
                               isPlaying: false, duration: 247, position: { _ in 3 })
@@ -30,23 +35,26 @@ struct MediaNowPlayingTile: View {
     @Environment(\.palette) private var p
 
     var body: some View {
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 6.5, bottom: 0, trailing: 5.5)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 5.85, bottom: 0, trailing: 5.6)) {
             if let track = MediaTrack.current {
                 HStack(spacing: 0) {
-                    MediaArtwork(image: track.artwork, size: 49, radius: 6.5)
+                    MediaArtwork(image: track.artwork, size: 49.2, radius: 6.5)
                         .onTapGesture { NowPlayingService.shared.openPlayer() }
                     VStack(alignment: .leading, spacing: 0) {
-                        MediaMarquee(text: track.title, size: 12, weight: .bold)
-                        Text(track.artist).dock(11, .semibold, p.secondary)
+                        MediaMarquee(text: track.title, size: 11, weight: .bold,
+                                     frozenScroll: ReferenceScene.isActive ? MediaScene.track?.titleScroll : nil)
+                        Text(track.artist).dock(9.5, .medium, p.secondary)
+                            .padding(.leading, m.u(-0.5))
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, m.u(2.25))
                         progress(track)
-                            .padding(.top, m.u(1.5))
+                            .padding(.top, m.u(2.5))
                     }
                     .frame(width: m.u(85))
-                    .offset(y: m.u(-0.75))
-                    .padding(.leading, m.u(8))
+                    .offset(y: m.u(-0.625))
+                    .padding(.leading, m.u(8.45))
                     Spacer(minLength: 0)
-                    MediaTransport(isPlaying: track.isPlaying, small: 20, large: 30, spacing: 5)
+                    MediaTransport(isPlaying: track.isPlaying, small: 19.5, large: 29.5, spacing: 5.1, smallIcon: 7.8, largeIcon: 12.3)
                 }
             } else {
                 MediaNothingPlaying(artSize: 49)
@@ -152,15 +160,20 @@ private struct MediaTransport: View {
     var small: CGFloat
     var large: CGFloat
     var spacing: CGFloat
+    /// Glyph point sizes; default to a fixed share of the circle.
+    var smallIcon: CGFloat? = nil
+    var largeIcon: CGFloat? = nil
 
     var body: some View {
         let np = NowPlayingService.shared
+        let icon = p.primary.opacity(0.9)
         HStack(spacing: m.u(spacing)) {
-            CircleButton(symbol: "backward.fill", size: small, fill: p.control.opacity(0.7), iconScale: 0.39) { np.previous() }
+            CircleButton(symbol: "backward.fill", size: small, fill: p.control.opacity(0.7), foreground: icon, iconScale: smallIcon.map { $0 / small } ?? 0.39) { np.previous() }
                 .help(L("Previous Track"))
-            CircleButton(symbol: isPlaying ? "pause.fill" : "play.fill", size: large, iconScale: 0.41) { np.playPause() }
+            CircleButton(symbol: isPlaying ? "pause.fill" : "play.fill", size: large, fill: p.controlStrong.opacity(0.64), foreground: icon,
+                         iconScale: largeIcon.map { $0 / large } ?? 0.41) { np.playPause() }
                 .help(isPlaying ? L("Pause") : L("Play"))
-            CircleButton(symbol: "forward.fill", size: small, fill: p.control.opacity(0.7), iconScale: 0.39) { np.next() }
+            CircleButton(symbol: "forward.fill", size: small, fill: p.control.opacity(0.7), foreground: icon, iconScale: smallIcon.map { $0 / small } ?? 0.39) { np.next() }
                 .help(L("Next Track"))
         }
         .environment(\.layoutDirection, .leftToRight)
@@ -179,7 +192,7 @@ private struct MediaProgressBar: View {
             let f = CGFloat(max(0, min(1, fraction.isFinite ? fraction : 0)))
             ZStack(alignment: .leading) {
                 Capsule().fill(p.track)
-                Capsule().fill(p.primary).frame(width: max(h, g.size.width * f))
+                Capsule().fill(p.primary.opacity(0.7)).frame(width: max(h, g.size.width * f))
             }
         }
         .frame(height: h)
@@ -194,6 +207,8 @@ private struct MediaMarquee: View {
     var text: String
     var size: CGFloat
     var weight: Font.Weight
+    /// Fixed scroll position (pt) for deterministic renders; nil = live hover marquee.
+    var frozenScroll: CGFloat? = nil
     @State private var hovering = false
     @State private var textWidth: CGFloat = 0
     @State private var boxWidth: CGFloat = 0
@@ -206,14 +221,14 @@ private struct MediaMarquee: View {
         // Lay out in the title's own direction so an overflowing title always shows its beginning
         // (an English title inside a Persian UI starts at the left).
         let textDirection: LayoutDirection = Self.isRTL(text) ? .rightToLeft : .leftToRight
-        let alignment: Alignment = overflow > 1 || textDirection == uiDirection ? .leading : .trailing
+        let alignment: Alignment = overflow > 1 || frozenScroll != nil || textDirection == uiDirection ? .leading : .trailing
         Text(text)
             .font(.dock(m.u(size), weight))
             .foregroundStyle(p.primary)
             .lineLimit(1)
             .fixedSize()
             .background(GeometryReader { g in Color.clear.preference(key: MediaWidthKey.self, value: g.size.width) })
-            .offset(x: scrolling ? -overflow : 0)
+            .offset(x: frozenScroll.map { -m.u($0) } ?? (scrolling ? -overflow : 0))
             .animation(scrolling ? .linear(duration: Double(overflow / m.u(22))).delay(0.5).repeatForever(autoreverses: true)
                                  : .easeOut(duration: 0.2), value: scrolling)
             .frame(minWidth: 0, maxWidth: .infinity, alignment: alignment)

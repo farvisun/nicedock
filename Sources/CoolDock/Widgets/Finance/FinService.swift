@@ -70,6 +70,15 @@ final class FinService {
     func quote(_ k: FinKey) -> FinQuote? { quotes[k.id] }
     func error(_ k: FinKey) -> String? { errors[k.id] }
 
+    /// Reference scene only (`--scene reference`): fixed quotes in memory. Nothing is fetched or written to disk there.
+    func seedScene(_ seeded: [(FinKey, FinQuote)]) {
+        guard ReferenceScene.isActive else { return }
+        for (k, q) in seeded {
+            quotes[k.id] = q
+            errors[k.id] = nil
+        }
+    }
+
     /// Refresh loop for a visible tile; lives inside `.task(id:)` so it stops with the view.
     func keepFresh(_ keys: [FinKey], chart: Bool) async {
         guard let market = keys.first?.market else { return }
@@ -80,7 +89,7 @@ final class FinService {
     }
 
     func ensure(_ k: FinKey, chart: Bool, force: Bool = false) async {
-        guard !k.symbol.isEmpty, !inFlight.contains(k.id) else { return }
+        guard !ReferenceScene.isActive, !k.symbol.isEmpty, !inFlight.contains(k.id) else { return }
         let fresh = k.market.interval - 10
         if !force, let q = quotes[k.id], Date().timeIntervalSince(q.fetched) < fresh,
            !chart || Date().timeIntervalSince(chartFetched[k.id] ?? .distantPast) < fresh || (k.market == .stock && !q.points.isEmpty) {
