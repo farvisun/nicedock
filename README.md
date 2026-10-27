@@ -26,6 +26,19 @@ renderer `--render <dir> <kinds|all|category:name> [--wait s] [--lang fa] [--sty
 Debug builds also accept `--profile <index>` and `--tap <0…1>` (clicks the dock at that fraction of its
 width) to inspect widget panels without UI scripting.
 
+## Verification
+
+- **Pixel diff** — `scripts/pixel-diff.sh` renders every frame in `docs/reference` with deterministic
+  reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
+  8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
+  `report.md`, `metrics.tsv`. Current result: 73/73 frames exact size, mean match 99.5 %, every frame ≥ 98.5 %.
+- **Data providers** — `swift test` runs 85 tests that feed real captured responses (Open-Meteo, Yahoo
+  Finance, Binance, GitHub contributions, Simple Analytics) and documentation-schema fixtures (Stripe,
+  Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear, Anthropic,
+  OpenAI) through the same parsers the widgets use. `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
+  LocalLogsTests` also checks AI-usage totals against this Mac's Claude Code / Codex logs.
+- **Translations** — `python3 scripts/l10n.py check` (every language must report 0 missing).
+
 ## Using it
 
 | Action | How |
