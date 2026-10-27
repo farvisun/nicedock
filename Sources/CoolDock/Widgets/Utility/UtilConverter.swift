@@ -157,8 +157,10 @@ struct UtilConverterView: View {
     private var result: String {
         guard let rate = currentRate else { return failed ? "—" : "…" }
         let v = amount * rate
-        // The reference frame shows the amount in a euro locale ("436,03").
-        if ReferenceScene.isActive { return v.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "de_DE"))) }
+        // The (English) reference frame shows the amount in a euro locale ("436,03"); other languages keep their digits.
+        if ReferenceScene.isActive && Localizer.language == .en {
+            return v.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "de_DE")))
+        }
         return Fmt.number(v, decimals: abs(v) >= 100_000 ? 0 : 2)
     }
 
