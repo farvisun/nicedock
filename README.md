@@ -28,7 +28,8 @@ Developer launch flags: `--lang <code>`, `--settings <pane>`, `--widgets`, `--on
 no UI; `COOLDOCK_SUPPORT_DIR` points it at another state folder), and the offscreen widget
 renderer `--render <dir> <kinds|all|category:name> [--wait s] [--lang fa] [--style darkGlass]`.
 Debug builds also accept `--profile <index>` and `--tap <0…1>` (clicks the dock at that fraction of its
-width) to inspect widget panels without UI scripting.
+width) to inspect widget panels without UI scripting, and `--menu-probe <app> [--perform "Item"]…` to build and fire an
+app tile's right-click menu against the real app.
 
 ## Verification
 
@@ -36,7 +37,7 @@ width) to inspect widget panels without UI scripting.
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, share of pixels within
   8 % and 3 % colour fuzz, RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
   `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.55 %, every frame ≥ 98.5 %; `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
-- **Data providers** — `swift test` runs 347 tests (they pass in any time zone, UTC−11 to UTC+14); the provider suites feed real captured responses (Open-Meteo, Yahoo
+- **Data providers** — `swift test` runs 350 tests (they pass in any time zone, UTC−11 to UTC+14); the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
   fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,
   Anthropic, OpenAI, Cursor, GitHub Copilot, Gemini API, Perplexity, xAI, Z.ai) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real

@@ -1,5 +1,7 @@
 import AppKit
+import CoreServices
 import Foundation
+import UniformTypeIdentifiers
 
 // App-specific knowledge for the app menus: Chromium profiles and launch arguments, mail and document apps,
 // and the per-app recent documents macOS keeps for the Dock. Everything here is pure or read-only and cached.
@@ -246,12 +248,98 @@ enum AppsRecentDocs {
     private static let cache = AppsParsedFileCache<[Entry]>()
 
     /// Up to `limit` recent documents of the app that still exist, with Finder display names. Cached per file.
+    /// Recent macOS versions keep the Dock's lists behind Full Disk Access; without it the list comes from Spotlight
+    /// (see `spotlightEntries`), computed in the background so opening a menu never waits on a query.
     static func entries(bundleID: String, limit: Int = 10, in folder: URL = folder) -> [Entry] {
-        guard let file = file(bundleID: bundleID, in: folder) else { return [] }
+        guard let file = file(bundleID: bundleID, in: folder) else {
+            return folder == Self.folder && !ReferenceScene.isActive ? AppsRecentSpotlight.shared.entries(bundleID: bundleID, limit: limit) : []
+        }
         let all = cache.value(at: file) { data in
             decode(data).map { Entry(url: $0.url, name: FileManager.default.displayName(atPath: $0.url.path)) }
         } ?? []
         var seen = Set<String>()
         return Array(all.filter { FileManager.default.fileExists(atPath: $0.url.path) && seen.insert($0.url.path).inserted }.prefix(limit))
+    }
+
+    /// Document types `app` opens by default (what a double-click in Finder would open it with).
+    static func defaultTypes(of app: URL) -> [UTType] {
+        guard let info = Bundle(url: app)?.infoDictionary, let docs = info["CFBundleDocumentTypes"] as? [[String: Any]] else { return [] }
+        var types: [UTType] = []
+        for d in docs {
+            types += (d["LSItemContentTypes"] as? [String] ?? []).compactMap { UTType($0) }
+            types += (d["CFBundleTypeExtensions"] as? [String] ?? []).filter { $0 != "*" }.compactMap { UTType(filenameExtension: $0) }
+        }
+        let me = app.standardizedFileURL
+        var seen = Set<String>()
+        return types.filter { t in
+            seen.insert(t.identifier).inserted && NSWorkspace.shared.urlForApplication(toOpen: t)?.standardizedFileURL == me
+        }
+    }
+
+    /// Spotlight query for files used since `days` ago whose type is one of `types`.
+    static func query(_ types: [UTType], days: Int = 60) -> String {
+        let clause = types.prefix(24).map { "kMDItemContentTypeTree == \"\($0.identifier)\"" }.joined(separator: " || ")
+        return "kMDItemLastUsedDate >= $time.today(-\(days)) && (\(clause))"
+    }
+
+    /// Paths that are not documents a person opened: app support data, caches, hidden and trashed files.
+    static func isUserDocument(_ path: String, home: String = NSHomeDirectory()) -> Bool {
+        if path.hasPrefix(home + "/Library/") || path.hasPrefix(home + "/.Trash/") || path.hasPrefix("/System/") || path.hasPrefix("/Library/") { return false }
+        if path.split(separator: "/").contains(where: { $0.hasPrefix(".") }) { return false }
+        return !path.contains(".app/")
+    }
+}
+
+/// Spotlight-backed recent documents per app (no permission needed): files used recently that open in that app by
+/// default, newest first. Results are cached for a minute and refreshed off the main thread.
+final class AppsRecentSpotlight: @unchecked Sendable {
+    static let shared = AppsRecentSpotlight()
+    private let lock = NSLock()
+    private var store: [String: (at: Date, entries: [AppsRecentDocs.Entry])] = [:]
+    private var running = Set<String>()
+
+    /// Cached entries now; schedules a refresh when missing or older than a minute.
+    func entries(bundleID: String, limit: Int) -> [AppsRecentDocs.Entry] {
+        lock.lock()
+        let hit = store[bundleID]
+        let stale = hit.map { Date().timeIntervalSince($0.at) > 60 } ?? true
+        let start = stale && running.insert(bundleID).inserted
+        lock.unlock()
+        if start {
+            DispatchQueue.global(qos: .utility).async {
+                let fresh = Self.search(bundleID: bundleID, limit: 10)
+                self.lock.lock()
+                self.store[bundleID] = (Date(), fresh)
+                self.running.remove(bundleID)
+                self.lock.unlock()
+            }
+        }
+        return Array((hit?.entries ?? []).prefix(limit))
+    }
+
+    /// Synchronous Spotlight search (call off the main thread).
+    static func search(bundleID: String, limit: Int) -> [AppsRecentDocs.Entry] {
+        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return [] }
+        let types = AppsRecentDocs.defaultTypes(of: app)
+        guard !types.isEmpty, let q = MDQueryCreate(kCFAllocatorDefault, AppsRecentDocs.query(types) as CFString, nil, nil) else { return [] }
+        MDQuerySetMaxCount(q, 500)
+        guard MDQueryExecute(q, CFOptionFlags(kMDQuerySynchronous.rawValue)) else { return [] }
+        var found: [(path: String, used: Date)] = []
+        for i in 0..<MDQueryGetResultCount(q) {
+            guard let raw = MDQueryGetResultAtIndex(q, i) else { continue }
+            let item = Unmanaged<MDItem>.fromOpaque(raw).takeUnretainedValue()
+            guard let path = MDItemCopyAttribute(item, kMDItemPath) as? String, AppsRecentDocs.isUserDocument(path) else { continue }
+            let used = MDItemCopyAttribute(item, kMDItemLastUsedDate) as? Date ?? .distantPast
+            found.append((path, used))
+        }
+        let me = app.standardizedFileURL
+        var out: [AppsRecentDocs.Entry] = []
+        for f in found.sorted(by: { $0.used > $1.used }) where out.count < limit {
+            let url = URL(fileURLWithPath: f.path)
+            // Exact check per file: a subtype can have a different default app.
+            guard NSWorkspace.shared.urlForApplication(toOpen: url)?.standardizedFileURL == me else { continue }
+            out.append(.init(url: url, name: FileManager.default.displayName(atPath: f.path)))
+        }
+        return out
     }
 }

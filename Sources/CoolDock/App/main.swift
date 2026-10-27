@@ -8,6 +8,9 @@ if CommandLine.arguments.contains("--mcp") {
 MainActor.assumeIsolated {
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)
+    #if DEBUG
+    if MenuProbe.runIfRequested() { app.run() }
+    #endif
     if RenderHarness.runIfRequested() {
         app.run()
     } else {
