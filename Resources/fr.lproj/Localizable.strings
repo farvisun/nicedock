@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "Mo";
 "unit.short.GB" = "Go";
 "unit.short.TB" = "To";
+"Contact Card" = "Fiche de contact";
+"Person" = "Personne";
+"Call, FaceTime or message one person." = "Appeler une personne, lui écrire ou lancer un appel FaceTime.";
+"Choose one contact." = "Choisissez un seul contact.";
+"Choose a contact" = "Choisir un contact";
+"FaceTime Audio" = "FaceTime audio";

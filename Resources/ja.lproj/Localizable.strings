@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "MB";
 "unit.short.GB" = "GB";
 "unit.short.TB" = "TB";
+"Contact Card" = "連絡先カード";
+"Person" = "連絡先";
+"Call, FaceTime or message one person." = "1人の相手に電話、メッセージ、FaceTime。";
+"Choose one contact." = "連絡先を1件選択。";
+"Choose a contact" = "連絡先を選択";
+"FaceTime Audio" = "FaceTimeオーディオ";

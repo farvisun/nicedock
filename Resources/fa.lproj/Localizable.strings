@@ -1071,3 +1071,9 @@
 "unit.short.MB" = "م.ب";
 "unit.short.GB" = "گ.ب";
 "unit.short.TB" = "ت.ب";
+"Contact Card" = "کارت مخاطب";
+"Person" = "شخص";
+"Call, FaceTime or message one person." = "تماس، FaceTime یا پیام به یک نفر.";
+"Choose one contact." = "یک مخاطب انتخاب کنید.";
+"Choose a contact" = "انتخاب مخاطب";
+"FaceTime Audio" = "FaceTime صوتی";

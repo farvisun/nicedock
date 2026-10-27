@@ -17,6 +17,7 @@ enum MediaWidgets {
         case .mailLatest: MediaMailLatestTile(w: w)
         case .notes: MediaNotesTile(w: w)
         case .quickContacts: MediaContactsTile(w: w)
+        case .contactCard: MediaContactCardTile(w: w)
         default: Tile(width: w.kind.spec.width) { Text(w.kind.spec.localizedTitle).dock(11) }
         }
     }
@@ -71,6 +72,8 @@ enum MediaWidgets {
         case .quickContacts:
             Button(L("Open Contacts")) { Open.bundle("com.apple.AddressBook") }
             Divider()
+        case .contactCard:
+            MediaContactCardTile.menu(w)
         default:
             EmptyView()
         }

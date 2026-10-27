@@ -61,7 +61,7 @@ width) to inspect widget panels without UI scripting.
 | Weather | Weather, Weather & Forecast, Details, Daily, Today & Forecast, Conditions, Hourly, Sunrise & Sunset, Wind |
 | System & controls | Battery, CPU, Memory, Storage, Temperature, CPU History, Network, Devices Battery, Audio, Quick Toggles, Clipboard, Screenshots, Recent Screenshots, Voice Memo, Emoji |
 | Utilities | Color Picker, Converter, Calculator, Bookmarks, Search Web, Separator, Space |
-| Media & people | Now Playing (Music/Spotify), Now Playing Large, Background Sounds, YouTube Video, Recent Photo, Wallpaper, Mail, Latest Mail, Notes, Quick Contacts |
+| Media & people | Now Playing (Music/Spotify), Now Playing Large, Background Sounds, YouTube Video, Recent Photo, Wallpaper, Mail, Latest Mail, Notes, Quick Contacts, Contact Card |
 | Markets | Stock, Stock Chart, Watchlist, Crypto, Crypto Chart, Crypto Watchlist |
 | Connected | Polar, Stripe, Dodo Payments, Shopify ×3, Plausible, Simple Analytics, DataFast, Visitors Chart, Dub, Resend, GitHub, Supabase, X, TikTok, YouTube, AI Usage (Claude Code, Codex, Anthropic/OpenAI admin APIs) |
 
