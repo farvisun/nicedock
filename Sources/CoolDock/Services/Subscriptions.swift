@@ -86,7 +86,12 @@ enum Net {
         }
     }
 
+    /// Developer renders only: `COOLDOCK_OFFLINE=1 CoolDock --render …` never touches the network, so renders are
+    /// hermetic and a freshly built binary doesn't trigger firewall prompts.
+    nonisolated static let offline = RenderHarness.isActive && ProcessInfo.processInfo.environment["COOLDOCK_OFFLINE"] == "1"
+
     static func data(_ url: URL, headers: [String: String] = [:], method: String = "GET", body: Data? = nil) async throws -> Data {
+        if offline { throw URLError(.notConnectedToInternet) }
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.httpBody = body

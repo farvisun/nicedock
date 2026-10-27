@@ -65,7 +65,8 @@ struct CalAppIcon: View {
 @MainActor
 enum CalData {
     private static var svc: CalendarService { .shared }
-    static var hasEvents: Bool { svc.hasEventAccess }
+    /// Calendar access or a calendar feed: either one fills the event widgets.
+    static var hasEvents: Bool { svc.hasEventSource }
     static var hasReminders: Bool { svc.hasReminderAccess }
     static var upcoming: [DockEvent] { svc.upcoming }
     static var today: [DockEvent] { svc.todayEvents }
@@ -158,6 +159,15 @@ enum CalAccess {
     }
 }
 
+/// "Add calendar feed…": Settings → Privacy & Permissions → Calendar Feeds, link field focused.
+@MainActor
+enum CalFeedLink {
+    static func add() {
+        CalendarFeedService.shared.focusAdd = true
+        SettingsWindow.show(pane: .privacy, anchor: CalendarFeedsGroup.anchor)
+    }
+}
+
 struct CalAccessMessage: View {
     var reminders: Bool
 
@@ -201,6 +211,13 @@ struct CalMonthPanel: View {
             } else {
                 Button { CalAccess.request(reminders: false) } label: {
                     Label(L("Allow Calendar access"), systemImage: "lock.fill")
+                        .font(.dock(12, .semibold)).foregroundStyle(p.primary)
+                        .frame(maxWidth: .infinity).frame(height: 30)
+                        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(p.control))
+                }
+                .buttonStyle(PressableStyle())
+                Button { CalFeedLink.add() } label: {
+                    Label(L("Add calendar feed…"), systemImage: "link")
                         .font(.dock(12, .semibold)).foregroundStyle(p.primary)
                         .frame(maxWidth: .infinity).frame(height: 30)
                         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(p.control))

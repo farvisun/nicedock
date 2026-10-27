@@ -216,6 +216,12 @@ struct Settings: Codable, Equatable {
     // Performance
     var systemSampleInterval: Double = 2
     var pauseWhenHidden = true
+
+    // Calendar
+    /// ICS/webcal subscriptions shown by the calendar widgets (secret links live in the Keychain, see `CalendarFeed`).
+    /// Optional on purpose: synthesized `Decodable` treats a missing optional key as nil, so state files written
+    /// before this setting existed still load. New settings must follow the same rule.
+    var calendarFeeds: [CalendarFeed]? = nil
 }
 
 struct CGPointCodable: Codable, Equatable {

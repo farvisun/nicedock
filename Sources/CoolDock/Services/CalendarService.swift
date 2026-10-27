@@ -29,7 +29,8 @@ struct DockReminder: Identifiable, Equatable {
     var overdue: Bool { (due.map { $0 < ReferenceScene.date() } ?? false) }
 }
 
-/// EventKit access for calendar and reminder widgets. Refreshes on store change notifications only.
+/// EventKit access for calendar and reminder widgets, merged with subscribed ICS feeds (`CalendarFeedService`).
+/// Refreshes on store change notifications and a minute timer while a calendar widget is visible.
 @Observable
 @MainActor
 final class CalendarService {
@@ -48,6 +49,8 @@ final class CalendarService {
     @ObservationIgnored private var minuteTimer: Timer?
 
     var hasEventAccess: Bool { eventsAccess == .fullAccess || eventsAccess == .authorized }
+    /// Something to show events from: Calendar access or at least one enabled calendar feed.
+    var hasEventSource: Bool { hasEventAccess || CalendarFeedService.shared.hasFeeds }
     var hasReminderAccess: Bool { remindersAccess == .fullAccess || remindersAccess == .authorized }
 
     init() {
@@ -75,11 +78,21 @@ final class CalendarService {
     func subscribeEvents() {
         eventSubscribers += 1
         if eventSubscribers == 1 {
-            if eventsAccess == .notDetermined && !RenderHarness.isActive { Task { await requestEvents() } } else { reloadEvents() }
+            // With a calendar feed the widgets already have events: ask for Calendar access only when the user does.
+            if eventsAccess == .notDetermined && !RenderHarness.isActive && !CalendarFeedService.shared.hasFeeds {
+                Task { await requestEvents() }
+            } else {
+                reloadEvents()
+            }
             startMinuteTimer()
+            CalendarFeedService.shared.start()
         }
     }
-    func unsubscribeEvents() { eventSubscribers = max(0, eventSubscribers - 1); stopTimerIfIdle() }
+    func unsubscribeEvents() {
+        eventSubscribers = max(0, eventSubscribers - 1)
+        stopTimerIfIdle()
+        if eventSubscribers == 0 { CalendarFeedService.shared.stop() }
+    }
 
     func subscribeReminders() {
         reminderSubscribers += 1
@@ -111,23 +124,46 @@ final class CalendarService {
     func reloadEvents() {
         guard !ReferenceScene.isActive else { return }
         eventsAccess = EKEventStore.authorizationStatus(for: .event)
-        guard hasEventAccess else { upcoming = []; return }
+        let now = Date()
         let cal = Calendar.current
-        let start = cal.startOfDay(for: Date())
+        let start = cal.startOfDay(for: now)
         let end = cal.date(byAdding: .day, value: 8, to: start)!
-        let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
-        let events = store.events(matching: predicate)
-            .filter { $0.status != .canceled && $0.endDate > Date() }
-            .sorted { $0.startDate < $1.startDate }
-            .prefix(40)
-            .map { e in
-                DockEvent(id: e.eventIdentifier ?? UUID().uuidString, title: e.title ?? L("Untitled"), start: e.startDate, end: e.endDate,
-                          allDay: e.isAllDay, color: Color(nsColor: e.calendar.color ?? .systemBlue), calendar: e.calendar.title,
-                          meetingURL: Self.meetingURL(e), location: e.location)
-            }
-        let fresh = Array(events)
+        var events: [DockEvent] = []
+        if hasEventAccess {
+            let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
+            events = store.events(matching: predicate)
+                .filter { $0.status != .canceled && $0.endDate > now }
+                .map { e in
+                    DockEvent(id: e.eventIdentifier ?? UUID().uuidString, title: e.title ?? L("Untitled"), start: e.startDate, end: e.endDate,
+                              allDay: e.isAllDay, color: Color(nsColor: e.calendar.color ?? .systemBlue), calendar: e.calendar.title,
+                              meetingURL: Self.meetingURL(e), location: e.location)
+                }
+        }
+        events += CalendarFeedService.shared.events(from: start, to: end).filter { $0.end > now }
+        let merged = Self.merge(events)
+        let fresh = Array(merged.prefix(40))
         if fresh != upcoming { upcoming = fresh }
-        eventDays = Self.dayKeys(fresh)
+        // Day dots cover the whole window, also past the 40 listed events (busy feeds).
+        eventDays = Self.dayKeys(merged)
+    }
+
+    /// Calendar events first, then feed events; a feed copy of an event Calendar already has (same title, start
+    /// and all-day flag, e.g. the same calendar subscribed in both) is dropped. Sorted by start.
+    nonisolated static func merge(_ events: [DockEvent]) -> [DockEvent] {
+        var seen = Set<String>()
+        let unique = events.filter { e in
+            seen.insert("\(e.title.lowercased())|\(e.start.timeIntervalSince1970)|\(e.allDay)").inserted
+        }
+        let sorted = unique.enumerated().sorted { a, b in
+            a.element.start != b.element.start ? a.element.start < b.element.start : a.offset < b.offset
+        }
+        return sorted.map(\.element)
+    }
+
+    /// Re-reads Calendar and re-downloads the feeds (widget Refresh menu).
+    func refreshEvents() {
+        reloadEvents()
+        Task { await CalendarFeedService.shared.refresh(force: true) }
     }
 
     private static func dayKeys(_ events: [DockEvent]) -> Set<String> {
@@ -145,15 +181,23 @@ final class CalendarService {
         return n.isNow || n.start.timeIntervalSince(ReferenceScene.date()) < minutes * 60
     }
 
-    static func meetingURL(_ e: EKEvent) -> URL? {
-        if let url = e.url, isMeeting(url.absoluteString) { return url }
-        let haystack = [e.location, e.notes].compactMap { $0 }.joined(separator: " ")
+    static func meetingURL(_ e: EKEvent) -> URL? { meetingURL(url: e.url, location: e.location, notes: e.notes) }
+
+    /// Video-call link of an event (EventKit or feed): its URL when that is a meeting link, else the first meeting
+    /// link in the location or notes, else its URL.
+    nonisolated static func meetingURL(url: URL?, location: String?, notes: String?) -> URL? {
+        if let url, isMeeting(url.absoluteString) { return url }
+        let haystack = [location, notes].compactMap { $0 }.joined(separator: " ")
         let pattern = #"https?://[^\s<>"]*(zoom\.us|meet\.google\.com|teams\.microsoft\.com|teams\.live\.com|webex\.com|whereby\.com|meet\.jit\.si|around\.co|gather\.town|facetime\.apple\.com)[^\s<>"]*"#
-        if let r = haystack.range(of: pattern, options: .regularExpression) { return URL(string: String(haystack[r])) }
-        return e.url
+        if let r = haystack.range(of: pattern, options: .regularExpression) {
+            // "https://zoom.us/j/1, Room 4" — punctuation that ends the sentence isn't part of the link.
+            let link = String(haystack[r]).trimmingCharacters(in: CharacterSet(charactersIn: ".,;:)]}>'"))
+            return URL(string: link)
+        }
+        return url
     }
 
-    private static func isMeeting(_ s: String) -> Bool {
+    nonisolated private static func isMeeting(_ s: String) -> Bool {
         ["zoom.us", "meet.google", "teams.", "webex", "whereby", "jit.si", "facetime"].contains { s.contains($0) }
     }
 

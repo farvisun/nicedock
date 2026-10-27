@@ -187,6 +187,7 @@ struct PrivacyPane: View {
                           status: .info) { Open.url("x-apple.systempreferences:com.apple.preference.security?Privacy_Automation") }
         }
         .id(refresh)
+        CalendarFeedsGroup()
         SettingsGroup(title: L("Credential Storage"), footer: L("Connected widgets store tokens only on this Mac in your login Keychain. CoolDock has no cloud account and never syncs credentials.")) {
             SettingsRow(title: L("macOS Keychain"), subtitle: L("Recommended. Protected by your login keychain."), symbol: "key.fill") {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.cdGreen)
