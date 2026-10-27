@@ -105,6 +105,9 @@ final class DockWindowModel {
     var hovering = false
     var revealed = true
     var lastStripSize: CGSize = .zero
+    /// The Dock plate inside the hosting view (top-left origin), measured by `DockPlate`. Read imperatively by
+    /// Reserve Dock Space and Hide on Window Hover, so changes don't re-render anything.
+    @ObservationIgnored var plateFrame: CGRect = .zero
 
     init(screenID: String) { self.screenID = screenID }
 }
@@ -124,7 +127,11 @@ final class DockWindow {
     private var showWork: DispatchWorkItem?
     private var swapTimer: Timer?
     private(set) var isShown = false
-    private var suppressed = false // fullscreen / window overlap / manual toggle
+    private var suppressed = false // fullscreen
+    /// Hide on Window Hover: transparent and click-through while another app's window overlaps the Dock.
+    private(set) var windowFaded = false
+
+    var isSuppressed: Bool { suppressed }
 
     var store: AppStore { .shared }
     var settings: Settings { store.settings }
@@ -233,14 +240,29 @@ final class DockWindow {
 
     func layout(animated: Bool) {
         let frame = targetFrame(revealed: isShown || !settings.scenario.isReveal)
-        if panel.frame != frame { panel.setFrame(frame, display: true, animate: false) }
+        if panel.frame != frame {
+            panel.setFrame(frame, display: true, animate: false)
+            DockController.shared.dockGeometryChanged()
+        }
+    }
+
+    /// The Dock plate on screen (AppKit coordinates). Falls back to the panel minus the shadow margin before the
+    /// plate has been measured.
+    var plateScreenFrame: NSRect {
+        let f = panel.frame
+        let p = model.plateFrame
+        guard p.width > 1, p.height > 1, p.maxX <= f.width + 1, p.maxY <= f.height + 1 else {
+            let inset: (CGFloat, CGFloat) = settings.shadow ? (14, 10) : (0, 0)
+            return f.insetBy(dx: inset.0, dy: inset.1)
+        }
+        return NSRect(x: f.minX + p.minX, y: f.maxY - p.maxY, width: p.width, height: p.height)
     }
 
     // MARK: Triggers
 
     private func installTrigger() {
         let scenario = settings.scenario
-        let needsBottom = scenario == .revealBottom || scenario == .replaceAutoHide || scenario == .swapBottom || settings.hideOnWindowHover
+        let needsBottom = scenario == .revealBottom || scenario == .replaceAutoHide || scenario == .swapBottom
         let needsTop = scenario == .revealTop
         guard needsBottom || needsTop else {
             trigger?.orderOut(nil); trigger = nil
@@ -277,7 +299,6 @@ final class DockWindow {
     }
 
     private func reveal() {
-        suppressedByOverlap = false
         show(animated: true)
     }
 
@@ -304,6 +325,7 @@ final class DockWindow {
         } else if settings.scenario.isReveal {
             scheduleAutoHide()
         }
+        if settings.hideOnWindowHover { DockController.shared.stepWindowHover() }
     }
 
     func scheduleAutoHide() {
@@ -327,30 +349,55 @@ final class DockWindow {
         isShown = true
         model.revealed = true
         let target = targetFrame(revealed: true)
-        panel.ignoresMouseEvents = false
+        let alpha = restingAlpha
+        panel.ignoresMouseEvents = windowFaded
+        defer { DockController.shared.dockGeometryChanged() }
         if !panel.isVisible {
             var start = target
             if animated && settings.animations { start = targetFrame(revealed: false) }
-            if settings.scenario.isReveal == false && start == target { panel.alphaValue = animated ? 0 : 1 }
+            if settings.scenario.isReveal == false && start == target { panel.alphaValue = animated ? 0 : alpha }
             panel.setFrame(start, display: false)
             panel.orderFrontRegardless()
         }
         guard animated && settings.animations else {
-            panel.alphaValue = 1
+            panel.alphaValue = alpha
             panel.setFrame(target, display: true)
             return
         }
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = 0.28
             ctx.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 0.9, 0.25, 1)
-            panel.animator().alphaValue = 1
+            panel.animator().alphaValue = alpha
             panel.animator().setFrame(target, display: true)
+        }
+    }
+
+    /// Opacity of a shown Dock: 0 while Hide on Window Hover has faded it.
+    private var restingAlpha: CGFloat { windowFaded ? 0 : 1 }
+
+    /// Hide on Window Hover: fades the Dock out (clicks pass through to the window underneath) or back in. The panel
+    /// stays ordered in and keeps its frame, so only opacity changes.
+    func setWindowFaded(_ faded: Bool) {
+        guard faded != windowFaded else { return }
+        windowFaded = faded
+        guard isShown, panel.isVisible else { return }
+        panel.ignoresMouseEvents = faded
+        let alpha = restingAlpha
+        guard settings.animations else {
+            panel.alphaValue = alpha
+            return
+        }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = faded ? 0.24 : 0.18
+            ctx.timingFunction = CAMediaTimingFunction(name: faded ? .easeIn : .easeOut)
+            panel.animator().alphaValue = alpha
         }
     }
 
     func hide(animated: Bool) {
         isShown = false
         panel.ignoresMouseEvents = true
+        defer { DockController.shared.dockGeometryChanged() }
         let target = settings.scenario == .fixed || settings.scenario == .floating ? panel.frame : targetFrame(revealed: false)
         guard animated && settings.animations, panel.isVisible else {
             panel.alphaValue = 0
@@ -372,8 +419,7 @@ final class DockWindow {
         })
     }
 
-    /// Fullscreen / overlap suppression independent of scenario.
-    var suppressedByOverlap = false
+    /// Fullscreen suppression independent of scenario.
     func setSuppressed(_ value: Bool) {
         guard value != suppressed else { return }
         suppressed = value
@@ -383,6 +429,7 @@ final class DockWindow {
     // MARK: Floating drag
 
     private var dragStart: (mouse: NSPoint, origin: NSPoint)?
+    var isBeingDragged: Bool { dragStart != nil }
 
     func floatingDrag(began: Bool, ended: Bool) {
         let mouse = NSEvent.mouseLocation
@@ -405,8 +452,16 @@ final class DockController {
     static let shared = DockController()
     private(set) var windows: [String: DockWindow] = [:]
     private var observers: [NSObjectProtocol] = []
-    private var overlapTimer: Timer?
     private var lastScenario: LayoutScenario?
+
+    // Hide on Window Hover
+    private var hoverBoard = HoverHideBoard()
+    private var overlapping: Set<String> = []
+    private var overlapPoll: Timer?
+    private var hoverWake: Timer?
+    private var hoverWakeAt: TimeInterval?
+    private var pointerMonitors: [Any] = []
+    private var overlapRefreshWork: DispatchWorkItem?
 
     func start() {
         let nc = NotificationCenter.default
@@ -419,7 +474,16 @@ final class DockController {
         })
         for name in [NSWorkspace.activeSpaceDidChangeNotification, NSWorkspace.didActivateApplicationNotification] {
             observers.append(wnc.addObserver(forName: name, object: nil, queue: .main) { _ in
-                MainActor.assumeIsolated { DockController.shared.evaluateFullscreen() }
+                MainActor.assumeIsolated {
+                    DockController.shared.evaluateFullscreen()
+                    DockController.shared.windowsMayHaveChanged(after: 0.3)
+                }
+            })
+        }
+        for name in [NSWorkspace.didHideApplicationNotification, NSWorkspace.didUnhideApplicationNotification,
+                     NSWorkspace.didTerminateApplicationNotification] {
+            observers.append(wnc.addObserver(forName: name, object: nil, queue: .main) { _ in
+                MainActor.assumeIsolated { DockController.shared.windowsMayHaveChanged(after: 0.3) }
             })
         }
         for name in [NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
@@ -427,9 +491,11 @@ final class DockController {
                 MainActor.assumeIsolated { DockController.shared.rebuild() }
             })
         }
+        DockSpaceReserver.shared.reservations = { DockController.shared.dockReservations() }
         lastScenario = AppStore.shared.settings.scenario
         rebuild()
         configureOverlapWatch()
+        configureReserve()
     }
 
     private func settingsChanged() {
@@ -440,6 +506,13 @@ final class DockController {
         }
         rebuild()
         configureOverlapWatch()
+        configureReserve()
+    }
+
+    /// A Dock moved, resized, appeared or disappeared.
+    func dockGeometryChanged() {
+        DockSpaceReserver.shared.dockGeometryChanged()
+        if AppStore.shared.settings.hideOnWindowHover { windowsMayHaveChanged(after: 0.1) }
     }
 
     // MARK: Screens
@@ -560,25 +633,146 @@ final class DockController {
         }
     }
 
+    // MARK: Reserve Dock Space
+
+    private func configureReserve() {
+        let s = AppStore.shared.settings
+        // Auto-hiding layouts leave the screen to the windows, like the auto-hiding macOS Dock.
+        DockSpaceReserver.shared.configure(enabled: s.reservesDockSpace && !s.scenario.isReveal, afterDragging: s.reservesAfterDragging)
+        DockSpaceReserver.shared.dockGeometryChanged()
+    }
+
+    /// Room each visible Dock keeps free, in Quartz coordinates. Hidden, suppressed and auto-hiding Docks reserve nothing.
+    func dockReservations() -> [DockReservation] {
+        let s = AppStore.shared.settings
+        guard s.reservesDockSpace, !s.scenario.isReveal, !AppStore.shared.dockHidden,
+              let primary = NSScreen.screens.first?.frame.maxY else { return [] }
+        return windows.values.compactMap { w in
+            guard w.isShown, !w.isSuppressed, w.panel.isVisible else { return nil }
+            return DockReservation(displayID: w.screenID,
+                                   screen: ReserveSpace.quartz(w.screen.frame, primaryHeight: primary),
+                                   visible: ReserveSpace.quartz(w.screen.visibleFrame, primaryHeight: primary),
+                                   dock: ReserveSpace.quartz(w.plateScreenFrame, primaryHeight: primary),
+                                   edge: w.plateTop ? .top : .bottom)
+        }
+        .sorted { $0.displayID < $1.displayID }
+    }
+
+    // MARK: Hide on Window Hover
+    //
+    // Per display: a Dock fades out (opacity only, panel stays put, clicks pass through) while another app's window
+    // overlaps its plate, and comes back when the overlap ends or the pointer rests on the Dock area (`HoverHideMachine`).
+    // Overlap comes from one `CGWindowListCopyWindowInfo` pass (~1 ms): on Accessibility window events when trusted, on
+    // app / Space switches, and from a 1 s poll (tolerance 0.4 s) that only runs while the option is on. Pointer
+    // monitors are installed only while some Dock is faded or peeking.
+
     private func configureOverlapWatch() {
-        overlapTimer?.invalidate()
-        overlapTimer = nil
-        guard AppStore.shared.settings.hideOnWindowHover else {
-            windows.values.forEach { if $0.suppressedByOverlap { $0.suppressedByOverlap = false; $0.show(animated: true) } }
+        let on = AppStore.shared.settings.hideOnWindowHover && !RenderHarness.isActive
+        guard on else {
+            guard overlapPoll != nil || !overlapping.isEmpty || hoverBoard.needsPointerTracking else { return }
+            overlapPoll?.invalidate()
+            overlapPoll = nil
+            WindowEventHub.shared.unsubscribe("hover")
+            overlapping.removeAll()
+            hoverBoard.reset()
+            setPointerTracking(false)
+            scheduleHoverWake(nil)
+            windows.values.forEach { $0.setWindowFaded(false) }
             return
         }
-        overlapTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            MainActor.assumeIsolated {
-                for w in DockController.shared.windows.values where !w.model.hovering {
-                    let overlapping = FullscreenDetector.windowOverlaps(w.panel.frame, screen: w.screen)
-                    if overlapping != w.suppressedByOverlap {
-                        w.suppressedByOverlap = overlapping
-                        if overlapping { w.hide(animated: true) } else if !AppStore.shared.settings.scenario.isReveal { w.show(animated: true) }
-                    }
-                }
+        if overlapPoll == nil {
+            let t = Timer(timeInterval: 1.0, repeats: true) { _ in
+                MainActor.assumeIsolated { DockController.shared.refreshOverlap() }
+            }
+            t.tolerance = 0.4
+            RunLoop.main.add(t, forMode: .common)
+            overlapPoll = t
+            WindowEventHub.shared.subscribe("hover") { event in
+                // Moves arrive many times a second during a drag; one refresh per burst is enough.
+                DockController.shared.windowsMayHaveChanged(after: event.kind == .resync ? 0 : 0.08)
             }
         }
-        overlapTimer?.tolerance = 0.3
+        refreshOverlap()
+    }
+
+    /// Re-reads window overlap shortly (coalesced).
+    func windowsMayHaveChanged(after delay: TimeInterval) {
+        guard overlapPoll != nil else { return }
+        overlapRefreshWork?.cancel()
+        let work = DispatchWorkItem { MainActor.assumeIsolated { DockController.shared.refreshOverlap() } }
+        overlapRefreshWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    private func refreshOverlap() {
+        guard overlapPoll != nil, let primary = NSScreen.screens.first?.frame.maxY else { return }
+        var plates: [String: CGRect] = [:]
+        for (id, w) in windows where w.isShown && w.panel.isVisible {
+            plates[id] = ReserveSpace.quartz(w.plateScreenFrame, primaryHeight: primary)
+        }
+        overlapping = plates.isEmpty ? [] : FullscreenDetector.docksOverlapped(plates)
+        stepWindowHover()
+    }
+
+    /// Feeds the current overlap and pointer state to every display's machine and applies the result.
+    func stepWindowHover(pointerBusy: Bool = false) {
+        guard overlapPoll != nil else { return }
+        let store = AppStore.shared
+        let mouse = NSEvent.mouseLocation
+        let busy = pointerBusy || NSEvent.pressedMouseButtons != 0
+        let holdAll = Panels.shared.isOpen || store.browserOpen || NSApp.modalWindow != nil
+        var inputs: [String: HoverHideMachine.Input] = [:]
+        for (id, w) in windows {
+            let plate = w.plateScreenFrame.insetBy(dx: -2, dy: -2)
+            let inside = NSMouseInRect(mouse, plate, false)
+            inputs[id] = HoverHideMachine.Input(overlap: overlapping.contains(id), pointerInside: inside, pointerBusy: inside && busy,
+                                                holdOpen: holdAll || w.isBeingDragged)
+        }
+        let phases = hoverBoard.step(inputs, now: ProcessInfo.processInfo.systemUptime)
+        for (id, phase) in phases { windows[id]?.setWindowFaded(phase == .faded) }
+        setPointerTracking(hoverBoard.needsPointerTracking)
+        scheduleHoverWake(hoverBoard.deadline)
+    }
+
+    private func setPointerTracking(_ on: Bool) {
+        if on == !pointerMonitors.isEmpty { return }
+        if !on {
+            pointerMonitors.forEach(NSEvent.removeMonitor)
+            pointerMonitors.removeAll()
+            return
+        }
+        let mask: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDown, .leftMouseUp, .leftMouseDragged, .rightMouseDown, .otherMouseDown, .scrollWheel]
+        if let g = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: { e in
+            let type = e.type
+            MainActor.assumeIsolated { DockController.shared.pointerEvent(type) }
+        }) { pointerMonitors.append(g) }
+        if let l = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { e in
+            let type = e.type
+            MainActor.assumeIsolated { DockController.shared.pointerEvent(type) }
+            return e
+        }) { pointerMonitors.append(l) }
+    }
+
+    private func pointerEvent(_ type: NSEvent.EventType) {
+        // A window drag just ended: its final position decides the overlap.
+        if type == .leftMouseUp { windowsMayHaveChanged(after: 0.05) }
+        stepWindowHover(pointerBusy: type != .mouseMoved)
+    }
+
+    private func scheduleHoverWake(_ at: TimeInterval?) {
+        guard at != hoverWakeAt else { return }
+        hoverWake?.invalidate()
+        hoverWake = nil
+        hoverWakeAt = at
+        guard let at else { return }
+        let delay = max(0.01, at - ProcessInfo.processInfo.systemUptime)
+        hoverWake = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in
+            MainActor.assumeIsolated {
+                DockController.shared.hoverWakeAt = nil
+                DockController.shared.hoverWake = nil
+                DockController.shared.stepWindowHover()
+            }
+        }
     }
 }
 
@@ -609,18 +803,20 @@ enum FullscreenDetector {
         return result
     }
 
-    /// Whether another app's normal window overlaps a dock frame (AppKit coordinates).
-    static func windowOverlaps(_ frame: NSRect, screen: NSScreen) -> Bool {
+    /// Ids of the Docks (plates in Quartz coordinates) that another app's visible normal window overlaps.
+    /// One window-list pass for every display.
+    static func docksOverlapped(_ plates: [String: CGRect]) -> Set<String> {
         let me = ProcessInfo.processInfo.processIdentifier
-        guard let primary = NSScreen.screens.first else { return false }
-        let cgRect = CGRect(x: frame.minX, y: primary.frame.maxY - frame.maxY, width: frame.width, height: frame.height)
+        var hit = Set<String>()
         for info in windows() {
+            if hit.count == plates.count { break }
             guard (info[kCGWindowLayer as String] as? Int) == 0,
                   (info[kCGWindowOwnerPID as String] as? Int32) != me,
+                  ((info[kCGWindowAlpha as String] as? Double) ?? 1) > 0.05,
                   let b = info[kCGWindowBounds as String] as? [String: CGFloat] else { continue }
             let rect = CGRect(x: b["X"] ?? 0, y: b["Y"] ?? 0, width: b["Width"] ?? 0, height: b["Height"] ?? 0)
-            if rect.width > 80 && rect.height > 80 && rect.intersects(cgRect) { return true }
+            for (id, plate) in plates where !hit.contains(id) && WindowOverlap.overlaps(rect, dock: plate) { hit.insert(id) }
         }
-        return false
+        return hit
     }
 }

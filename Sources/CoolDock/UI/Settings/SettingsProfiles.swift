@@ -188,21 +188,7 @@ struct PrivacyPane: View {
         }
         .id(refresh)
         CalendarFeedsGroup()
-        SettingsGroup(title: L("Credential Storage"), footer: L("Connected widgets store tokens only on this Mac in your login Keychain. CoolDock has no cloud account and never syncs credentials.")) {
-            SettingsRow(title: L("macOS Keychain"), subtitle: L("Recommended. Protected by your login keychain."), symbol: "key.fill") {
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.cdGreen)
-            }
-            SettingsRow(title: L("Remove all saved credentials")) {
-                Button(L("Remove…"), role: .destructive) {
-                    let alert = NSAlert()
-                    alert.messageText = L("Remove all saved credentials?")
-                    alert.informativeText = L("Connected widgets will ask you to connect again.")
-                    alert.addButton(withTitle: L("Remove"))
-                    alert.addButton(withTitle: L("Cancel"))
-                    if alert.runModal() == .alertFirstButtonReturn { Secrets.wipe() }
-                }
-            }
-        }
+        CredentialStorageGroup()
     }
 
     enum PermStatus { case granted, denied, notDetermined, info }

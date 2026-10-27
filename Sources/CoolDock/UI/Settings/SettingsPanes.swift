@@ -53,7 +53,7 @@ struct GeneralPane: View {
     private func confirmReset() {
         let alert = NSAlert()
         alert.messageText = L("Reset all settings and profiles?")
-        alert.informativeText = L("Your widgets, profiles and preferences return to their defaults. Saved credentials stay in your Keychain.")
+        alert.informativeText = L("Your widgets, profiles and preferences return to their defaults. Saved credentials are kept.")
         alert.addButton(withTitle: L("Reset"))
         alert.addButton(withTitle: L("Cancel"))
         alert.alertStyle = .warning
@@ -264,10 +264,7 @@ struct LayoutPane: View {
             }
         }
 
-        SettingsGroup(title: L("Windows")) {
-            ToggleRow(title: L("Hide on Window Hover"), subtitle: L("Fade CoolDock out when another app's window overlaps it."), isOn: setting(\.hideOnWindowHover))
-            ToggleRow(title: L("Hide During Fullscreen"), subtitle: L("Hide CoolDock on a display while an app or video is fullscreen."), isOn: setting(\.hideDuringFullscreen))
-        }
+        WindowSettingsSection()
 
         SettingsGroup(title: L("macOS Dock")) {
             SettingsRow(title: dockAutohides ? L("The macOS Dock auto-hides") : L("The macOS Dock is always visible"),

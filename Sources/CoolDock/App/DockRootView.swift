@@ -66,6 +66,13 @@ struct DockPlate: View {
             .background { plateBackground(shape: shape, style: s.dockStyle) }
             .overlay { if s.dockStyle != .transparent && s.dockStyle != .liquidGlass { shape.strokeBorder(p.plateStroke, lineWidth: 0.5) } }
             .clipShape(shape)
+            .background(GeometryReader { g in
+                // Where the plate sits in the panel: Reserve Dock Space and Hide on Window Hover use the plate, not the
+                // panel (which also holds the shadow margin and the hidden profile tabs).
+                Color.clear
+                    .onAppear { model.plateFrame = g.frame(in: .global) }
+                    .onChange(of: g.frame(in: .global)) { _, frame in model.plateFrame = frame }
+            })
             .contentShape(shape)
             .gesture(plateDrag)
             .contextMenu { DockContextMenu() }

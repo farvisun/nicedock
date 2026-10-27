@@ -177,14 +177,14 @@ enum SettingsSearchIndex {
         switch pane {
         case .general: return [L("Launch at login"), L("Menu bar"), L("Weather units"), L("Screenshots"), L("Diagnostics")]
         case .appearance: return [L("Dock Style"), L("Dock Size"), L("Widget Spacing"), L("Monochrome"), L("Transparency"), L("Corner Radius"), L("Theme")]
-        case .layout: return [L("Position"), L("Reveal"), L("Floating"), L("Fullscreen"), L("Auto-Hide")]
+        case .layout: return [L("Position"), L("Reveal"), L("Floating"), L("Fullscreen"), L("Auto-Hide"), L("Windows"), L("Reserve Dock Space"), L("Hide on Window Hover")]
         case .screens: return [L("Displays"), L("Monitor")]
         case .dock: return [L("Running apps"), L("Folders"), L("Drag")]
         case .profiles: return [L("Profile switcher")]
         case .widgets: return [L("Visibility"), L("Customize")]
         case .shortcuts: return [L("Hotkey"), L("Keyboard")]
         case .language: return ["فارسی", "Persian", "Estedad", L("Calendar"), L("Digits"), L("24-hour")]
-        case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Accessibility"), L("Calendar Feeds"), "ICS", "webcal"]
+        case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Encrypted File"), L("Accessibility"), L("Calendar Feeds"), "ICS", "webcal"]
         case .performance: return [L("Memory"), L("CPU"), L("Cache")]
         case .about: return [L("Version")]
         }

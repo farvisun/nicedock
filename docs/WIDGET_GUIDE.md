@@ -67,7 +67,9 @@ Helpers that are private to a family must be `private`/`fileprivate` or prefixed
 * Images: downsample (`NowPlayingService.downsample`), app icons via `AppIcon(path:size:)` / `IconCache`.
 * Persist small widget state with `AppStore.shared.updateWidget(w.id) { $0.config["k"] = v }` — never
   more often than on user actions.
-* Secrets: `Secrets.get(w.id, "token")` (Keychain). Never store tokens in `config`.
+* Secrets: `Secrets.get(w.id, "token")` / `Secrets.set(value, w.id, "token")`. They go to the login Keychain, or to the
+  AES-GCM credential file when the user picks it in Settings → Privacy & Permissions → Credential Storage; widgets
+  never care which. Never store tokens in `config`.
 * Calendar data: read `CalData` (EventKit merged with the ICS/webcal feeds of Settings → Privacy & Permissions →
   Calendar Feeds, see `Services/CalendarFeeds.swift` and the parser `Services/ICS.swift`). Gate on `CalData.hasEvents`
   (Calendar access *or* a feed), never on EventKit access alone; Refresh calls `CalendarService.shared.refreshEvents()`.
