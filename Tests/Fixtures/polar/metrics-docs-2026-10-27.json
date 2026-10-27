@@ -1,0 +1,25 @@
+{
+  "periods": [
+    { "timestamp": "2026-10-21T00:00:00.000000Z", "orders": 2, "revenue": 4000, "net_revenue": 3712, "cumulative_revenue": 4000, "net_cumulative_revenue": 3712 },
+    { "timestamp": "2026-10-22T00:00:00.000000Z", "orders": 0, "revenue": 0, "net_revenue": 0, "cumulative_revenue": 4000, "net_cumulative_revenue": 3712 },
+    { "timestamp": "2026-10-23T00:00:00.000000Z", "orders": 1, "revenue": 1900, "net_revenue": 1763.5, "cumulative_revenue": 5900, "net_cumulative_revenue": 5475.5 },
+    { "timestamp": "2026-10-24T00:00:00.000000Z", "orders": 3, "revenue": 8700, "net_revenue": 8073, "cumulative_revenue": 14600, "net_cumulative_revenue": 13548.5 },
+    { "timestamp": "2026-10-25T00:00:00.000000Z", "orders": null, "revenue": null, "net_revenue": null, "cumulative_revenue": 14600, "net_cumulative_revenue": 13548.5 },
+    { "timestamp": "2026-10-26T00:00:00.000000Z", "orders": 1, "revenue": 2500, "net_revenue": 2320, "cumulative_revenue": 17100, "net_cumulative_revenue": 15868.5 },
+    { "timestamp": "2026-10-27T00:00:00.000000Z", "orders": 0, "revenue": 0, "net_revenue": 0, "cumulative_revenue": 17100, "net_cumulative_revenue": 15868.5 }
+  ],
+  "totals": {
+    "orders": 7,
+    "revenue": 17100,
+    "net_revenue": 15868.5,
+    "cumulative_revenue": 17100,
+    "net_cumulative_revenue": 15868.5
+  },
+  "metrics": {
+    "orders": { "slug": "orders", "display_name": "Orders", "type": "scalar" },
+    "revenue": { "slug": "revenue", "display_name": "Revenue", "type": "currency" },
+    "net_revenue": { "slug": "net_revenue", "display_name": "Net Revenue", "type": "currency" },
+    "cumulative_revenue": { "slug": "cumulative_revenue", "display_name": "Cumulative Revenue", "type": "currency" },
+    "net_cumulative_revenue": { "slug": "net_cumulative_revenue", "display_name": "Net Cumulative Revenue", "type": "currency" }
+  }
+}

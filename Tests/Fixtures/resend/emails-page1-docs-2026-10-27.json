@@ -1,0 +1,11 @@
+{
+  "object": "list",
+  "has_more": true,
+  "data": [
+    { "id": "4ef9a417-02e9-4d39-ad75-9611e0fcc33c", "message_id": "<111-222-333@email.example.com>", "to": ["delivered@resend.dev"], "from": "Acme <onboarding@resend.dev>", "created_at": "2026-10-27 12:02:42.674981+00", "subject": "Hello World", "bcc": null, "cc": null, "reply_to": null, "last_event": "delivered", "scheduled_at": null },
+    { "id": "3a9f8c2b-1e5d-4f8a-9c7b-2d6e5f8a9c7b", "message_id": "<444-555-666@email.example.com>", "to": ["user@example.com"], "from": "Acme <onboarding@resend.dev>", "created_at": "2026-10-27 11:51:12.345678+00", "subject": "Welcome to Acme", "bcc": null, "cc": null, "reply_to": null, "last_event": "opened", "scheduled_at": null },
+    { "id": "b1d0c3e4-5f60-4a71-8b92-c3d4e5f60718", "message_id": "<777-888-999@email.example.com>", "to": ["bounce@example.com"], "from": "Acme <onboarding@resend.dev>", "created_at": "2026-10-20 12:30:00.000001+00", "subject": "Your receipt", "bcc": null, "cc": null, "reply_to": null, "last_event": "bounced", "scheduled_at": null },
+    { "id": "c2e1d4f5-6071-4b82-9ca3-d4e5f6071829", "message_id": "<101-112-131@email.example.com>", "to": ["reader@example.com"], "from": "Acme <news@acme.dev>", "created_at": "2026-10-20 12:20:00.5+00", "subject": "October news", "bcc": null, "cc": null, "reply_to": null, "last_event": "clicked", "scheduled_at": null },
+    { "id": "d3f2e5a6-7182-4c93-adb4-e5f60718293a", "message_id": "<141-516-171@email.example.com>", "to": ["later@example.com"], "from": "Acme <news@acme.dev>", "created_at": "2026-10-20 12:10:00.123+00", "subject": "Reminder", "bcc": null, "cc": null, "reply_to": null, "last_event": "queued", "scheduled_at": null }
+  ]
+}

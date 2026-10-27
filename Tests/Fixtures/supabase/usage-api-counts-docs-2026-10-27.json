@@ -1,0 +1,8 @@
+{
+  "result": [
+    { "timestamp": "2026-10-26T14:00Z", "total_auth_requests": 12, "total_realtime_requests": 3, "total_rest_requests": 410, "total_storage_requests": 25 },
+    { "timestamp": "2026-10-26T12:00Z", "total_auth_requests": 20, "total_realtime_requests": 0, "total_rest_requests": 380, "total_storage_requests": 40 },
+    { "timestamp": "2026-10-26T13:00Z", "total_auth_requests": 8, "total_realtime_requests": 1, "total_rest_requests": 295, "total_storage_requests": 6 },
+    { "timestamp": "2026-10-26T15:00Z", "total_auth_requests": 0, "total_realtime_requests": 0, "total_rest_requests": 0, "total_storage_requests": 0 }
+  ]
+}

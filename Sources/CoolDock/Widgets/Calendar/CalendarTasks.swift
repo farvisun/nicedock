@@ -406,7 +406,7 @@ struct CalLinearIssue: Codable, Identifiable, Equatable {
 
 enum CalLinearAPI {
     static let query = """
-    query { viewer { assignedIssues(first: 20, filter: { state: { type: { nin: ["completed", "canceled"] } } }, orderBy: updatedAt) { nodes { identifier title dueDate priority url state { name color } } } } }
+    query { viewer { assignedIssues(first: 20, filter: { state: { type: { nin: ["completed", "canceled", "duplicate"] } } }, orderBy: updatedAt) { nodes { identifier title dueDate priority url state { name color } } } } }
     """
 
     struct GraphQLError: LocalizedError {
@@ -418,7 +418,13 @@ enum CalLinearAPI {
         let body = try JSONSerialization.data(withJSONObject: ["query": query])
         let obj = try await Net.json(URL(string: "https://api.linear.app/graphql")!,
                                      headers: ["Authorization": token, "Content-Type": "application/json"],
-                                     method: "POST", body: body) as? [String: Any]
+                                     method: "POST", body: body)
+        return try parse(obj)
+    }
+
+    /// GraphQL response → open issues, due ones first (pure; covered by fixture tests).
+    static func parse(_ root: Any) throws -> [CalLinearIssue] {
+        let obj = root as? [String: Any]
         if let errors = obj?["errors"] as? [[String: Any]], let first = errors.first {
             let ext = first["extensions"] as? [String: Any]
             if (ext?["code"] as? String) == "AUTHENTICATION_ERROR" { throw GraphQLError(message: L("Check your token")) }

@@ -1,0 +1,15 @@
+{
+  "data": {
+    "viewer": {
+      "assignedIssues": {
+        "nodes": [
+          { "identifier": "ENG-412", "title": "Flaky login test on CI", "dueDate": null, "priority": 2, "url": "https://linear.app/acme/issue/ENG-412/flaky-login-test-on-ci", "state": { "name": "In Progress", "color": "#f2c94c" } },
+          { "identifier": "ENG-398", "title": "Ship billing settings page", "dueDate": "2026-11-03", "priority": 3, "url": "https://linear.app/acme/issue/ENG-398/ship-billing-settings-page", "state": { "name": "Todo", "color": "#e2e2e2" } },
+          { "identifier": "ENG-377", "title": "Rotate API keys", "dueDate": "2026-10-28", "priority": 1, "url": "https://linear.app/acme/issue/ENG-377/rotate-api-keys", "state": { "name": "Todo", "color": "#e2e2e2" } },
+          { "identifier": "ENG-360", "title": "Update onboarding copy", "dueDate": null, "priority": 0.0, "url": "https://linear.app/acme/issue/ENG-360/update-onboarding-copy", "state": { "name": "Backlog", "color": "#bec2c8" } },
+          { "identifier": "ENG-355", "title": "Fix overdue invoice email", "dueDate": "2026-10-20", "priority": 4, "url": "https://linear.app/acme/issue/ENG-355/fix-overdue-invoice-email", "state": { "name": "In Review", "color": "#0f783c" } }
+        ]
+      }
+    }
+  }
+}

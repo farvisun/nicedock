@@ -1,0 +1,9 @@
+[
+  { "start": "2026-10-21T00:00:00.000Z", "clicks": 10, "leads": 1, "sales": 0, "saleAmount": 0 },
+  { "start": "2026-10-22T00:00:00.000Z", "clicks": 15, "leads": 2, "sales": 1, "saleAmount": 2500 },
+  { "start": "2026-10-23T00:00:00.000Z", "clicks": 12, "leads": 0, "sales": 0, "saleAmount": 0 },
+  { "start": "2026-10-24T00:00:00.000Z", "clicks": 20, "leads": 1, "sales": 1, "saleAmount": 2500 },
+  { "start": "2026-10-25T00:00:00.000Z", "clicks": 18, "leads": 1, "sales": 0, "saleAmount": 0 },
+  { "start": "2026-10-26T00:00:00.000Z", "clicks": 16, "leads": 0, "sales": 0, "saleAmount": 0 },
+  { "start": "2026-10-27T00:00:00.000Z", "clicks": 9, "leads": 0, "sales": 0, "saleAmount": 0 }
+]
