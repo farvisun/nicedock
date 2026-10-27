@@ -95,7 +95,8 @@ struct AppsAppFolderTile: View {
         Button {
             Panels.shared.toggle(w.id) { AppsAppFolderPanel(id: w.id, fallback: w) }
         } label: {
-            Tile(width: w.kind.spec.width, fill: fill) {
+            // The folder plate's corners are 1.5 pt tighter and circular in the reference frame.
+            Tile(width: w.kind.spec.width, fill: fill, radius: max(0, m.cornerRadius - 1.5), cornerStyle: .circular) {
                 AppsIconQuad(paths: apps, rowGap: 2)
                     .offset(y: m.u(-0.125))
             }

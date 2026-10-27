@@ -59,10 +59,11 @@ private struct FinQuoteTile: View {
                 TileMessage(symbol: "exclamationmark.triangle.fill", text: "\(key.symbol) · \(err)")
             } else {
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .firstTextBaseline, spacing: m.u(4.5)) {
+                    HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
                         Text(verbatim: key.symbol).dock(10, .bold)
                         if let name = q?.name, name != key.symbol {
-                            Text(verbatim: name).dock(9, .medium, p.secondary)
+                            // The company name is SF Pro 9 medium in the reference frame.
+                            Text(verbatim: name).dock(9, .medium, p.secondary, design: .default)
                         }
                     }
                     T(q.map(FinFormat.price) ?? "—").dock(22, .bold, q == nil ? p.tertiary : nil, mono: true)
@@ -100,13 +101,18 @@ private struct FinChartTile: View {
                         Text(verbatim: key.symbol).dock(10, .bold)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: m.u(1)) {
-                            T(q.map(FinFormat.price) ?? "—").dock(11.25, .semibold, q == nil ? p.tertiary : nil, mono: true)
+                            // Bold with proportional digits, ending exactly on the column's edge, which sits a quarter
+                            // device pixel inside the whole-pixel layout in the reference frame.
+                            let price = Fmt.digits(q.map(FinFormat.price) ?? "—")
+                            Text(verbatim: price).dock(11.25, .bold, q == nil ? p.tertiary : nil)
                                 .minimumScaleFactor(0.6)
+                                .runTrailing(price, 11.25, .bold)
+                                .transformEffect(CGAffineTransform(translationX: m.u(-0.125), y: 0))
                             T(q.map(FinFormat.percent) ?? " ").dock(9, .semibold, p.accent(color), mono: true)
                         }
                     }
                     .padding(.leading, m.u(13))
-                    .padding(.trailing, m.u(12.25))
+                    .padding(.trailing, m.u(12))
                     .padding(.top, m.u(6))
                     Spacer(minLength: 0)
                     // Line at 80 % so the area fill and stroke read softer, as in the reference.
@@ -165,7 +171,7 @@ private struct FinWatchlistTile: View {
 
     var body: some View {
         let svc = FinService.shared
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12.5)) {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12)) {
             if keys.isEmpty {
                 TileMessage(symbol: "list.number", text: L("Add symbols"), tint: .cdGreen)
                     .contentShape(Rectangle())
@@ -192,7 +198,7 @@ private struct FinWatchlistTile: View {
             T(q.map(FinFormat.price) ?? "—").dock(10, .semibold, q == nil ? p.tertiary : nil, mono: true)
             Spacer(minLength: m.u(6))
             if let q {
-                T(FinFormat.percent(q)).dock(8.75, .semibold, p.accent(q.isUp ? .finUp : .finDown), mono: true)
+                T(FinFormat.percent(q)).dock(9, .semibold, p.accent(q.isUp ? .finUp : .finDown), mono: true)
             } else if err != nil {
                 Image(systemName: "exclamationmark.triangle.fill").font(.system(size: m.u(9.5))).foregroundStyle(p.accent(.cdOrange))
                     .help(err ?? "")

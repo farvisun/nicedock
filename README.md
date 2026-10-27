@@ -37,11 +37,11 @@ app tile's right-click menu against the real app.
   reference data (`--scene reference`) and compares it with ImageMagick: exact size, match at 8 % and 3 % colour fuzz
   (ImageMagick's AE metric: 100 % minus the out-of-fuzz colour error, each differing pixel weighted by how far it is
   off), RMSE. Output: `build/pixel-report/report.html` (reference | render | diff strips),
-  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.89 % (median 99.91 %, strict 3 %:
-  99.77 %), every frame ≥ 99.5 % (lowest: contactCard 99.51 %, nowPlaying 99.59 %; all others ≥ 99.70 %).
-  `scripts/pixel-residue.sh` then sorts what is left: 94.3 % of the pixels that still differ (8 % fuzz)
-  lie within 1 px of an edge in the reference (anti-aliasing and sub-pixel placement); away from edges 99.95 % of
-  pixels match on average, and 99.82 % match when each pixel may be compared with any reference pixel up to 1 px away.
+  `report.md`, `metrics.tsv`. Current result: 74/74 frames exact size, mean match 99.93 % (median 99.95 %, strict 3 %:
+  99.81 %), every frame ≥ 99.5 % (lowest: contactCard 99.51 %, nowPlaying 99.59 %; all others ≥ 99.71 %, 63 of 74
+  ≥ 99.90 %). `scripts/pixel-residue.sh` then sorts what is left: 93.2 % of the pixels that still differ (8 % fuzz)
+  lie within 1 px of an edge in the reference (anti-aliasing and sub-pixel placement); away from edges 99.96 % of
+  pixels match on average, and 99.85 % match when each pixel may be compared with any reference pixel up to 1 px away.
   `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
 - **Data providers** — `swift test` runs 383 tests (they pass in any time zone, UTC−11 to UTC+14; live Now Playing, App Volume and Accessibility suites are opt-in); the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema

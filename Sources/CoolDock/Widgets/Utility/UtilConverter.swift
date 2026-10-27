@@ -106,14 +106,18 @@ struct UtilConverterView: View {
                     Group {
                         if ReferenceScene.isActive {
                             // The reference frame was captured mid-edit: the amount followed by the caret.
+                            // Sub-pixel placement of the frame (transforms keep half pixels, `.offset` snaps).
                             HStack(spacing: m.u(-1.5)) {
-                                Text(verbatim: amountText).dock(13.5, .medium, p.secondary).offset(y: m.u(0.5))
-                                RoundedRectangle(cornerRadius: m.u(0.9)).fill(p.primary).frame(width: m.u(1.85), height: m.u(15.5))
+                                Text(verbatim: amountText).dock(13, .semibold, p.secondary, mono: true)
+                                    .transformEffect(CGAffineTransform(translationX: 0, y: m.u(-0.25)))
+                                RoundedRectangle(cornerRadius: m.u(0.875)).fill(p.primary).frame(width: m.u(1.75), height: m.u(16))
+                                    .transformEffect(CGAffineTransform(translationX: m.u(0.25), y: 0))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
-                            UtilInlineField(text: $amountText, editing: $editing, placeholder: Fmt.digits("0"), size: 13.5, weight: .medium,
-                                            color: p.secondary, onSubmit: { editing = false }, onEnd: save)
+                            // SF Pro Rounded 13 semibold with tabular digits, as the reference frame's amount.
+                            UtilInlineField(text: $amountText, editing: $editing, placeholder: Fmt.digits("0"), size: 13, weight: .semibold,
+                                            mono: true, color: p.secondary, onSubmit: { editing = false }, onEnd: save)
                         }
                     }
                     .frame(height: m.u(17))
@@ -129,7 +133,8 @@ struct UtilConverterView: View {
                     currencyCapsule(from) { code in AppStore.shared.updateWidget(w.id) { $0.config["from"] = code } }
                     Button { Self.swap(w) } label: {
                         Image(systemName: "arrow.up.arrow.down")
-                            .font(.system(size: m.u(8.5), weight: .semibold))
+                            .font(.system(size: m.u(8), weight: .semibold))
+                            .transformEffect(CGAffineTransform(translationX: 0, y: m.u(0.25)))
                             .foregroundStyle(p.tertiary.opacity(0.75))
                             .frame(width: m.u(30), height: m.u(13))
                             .contentShape(Rectangle())
