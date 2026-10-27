@@ -13,6 +13,16 @@ enum UtilityScene {
                 UtilAudioDevice(id: 2, name: "AirPods Pro", transport: kAudioDeviceTransportTypeBluetooth),
                 UtilAudioDevice(id: 3, name: "Studio Display", transport: kAudioDeviceTransportTypeDisplayPort)
             ], current: 1, volume: 0.58)
+            // -panel: the popover with its App Volume section (panels render without blur offscreen).
+            if variant == "panel" {
+                AppStore.shared.settings.reduceTransparency = true
+                seedAppVolume(nil)
+            }
+            return [:]
+        case .appVolume:
+            // Tile: Music, Safari, Zoom (muted). Variants: -panel, -denied, -empty, -panel-denied.
+            if variant?.hasPrefix("panel") == true { AppStore.shared.settings.reduceTransparency = true }
+            seedAppVolume(variant)
             return [:]
         case .quickToggles:
             UtilToggleService.shared.seedReference(wifi: true, bluetooth: true, darkMode: false, keepAwake: true)
@@ -40,6 +50,23 @@ enum UtilityScene {
         default:
             return nil
         }
+    }
+
+    /// App Volume scene apps (content, not UI copy). Zoom isn't installed on most Macs: it uses the drawn stand-in icon.
+    @MainActor private static func seedAppVolume(_ variant: String?) {
+        func app(_ id: String, _ name: String, _ path: String?, _ object: AudioObjectID) -> UtilAudioApp {
+            UtilAudioApp(id: id, name: name, iconPath: path, processes: [object], pids: [pid_t(object)], running: true)
+        }
+        let apps = variant?.hasSuffix("empty") == true ? [] : [
+            app("com.apple.Music", "Music", "/System/Applications/Music.app", 201),
+            app("com.apple.Safari", "Safari", "/Applications/Safari.app", 202),
+            app("us.zoom.xos", "Zoom", nil, 203)
+        ]
+        UtilAppVolumeService.shared.seedReference(apps: apps, levels: [
+            "com.apple.Music": UtilAppVolumeLevel(volume: 0.72, muted: false),
+            "com.apple.Safari": UtilAppVolumeLevel(volume: 0.35, muted: false),
+            "us.zoom.xos": UtilAppVolumeLevel(volume: 0.8, muted: true)
+        ], denied: variant?.hasSuffix("denied") == true)
     }
 
     /// Scene windows (content, not UI copy: built positionally so the l10n extractor skips them).

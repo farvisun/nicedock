@@ -254,6 +254,17 @@ struct Settings: Codable, Equatable {
         get { aiAllowChanges ?? false }
         set { aiAllowChanges = newValue }
     }
+
+    // App Volume (macOS 14.2+). Optional for the same reason as `calendarFeeds`.
+    /// Volume and mute per app, keyed by bundle id (executable path for tools without one). Only changed apps are kept.
+    var appVolumes: [String: UtilAppVolumeLevel]? = nil
+    /// Restore each app's volume the next time it plays. nil means on.
+    var appVolumeRemember: Bool? = nil
+
+    var remembersAppVolumes: Bool {
+        get { appVolumeRemember ?? true }
+        set { appVolumeRemember = newValue }
+    }
 }
 
 struct CGPointCodable: Codable, Equatable {

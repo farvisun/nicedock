@@ -221,6 +221,7 @@ final class UtilAudioService: DemandDriven {
             if let hidden = UtilCA.get(id, UtilCA.address(kAudioDevicePropertyIsHidden), UInt32(0)), hidden != 0 { return nil }
             let name = UtilCA.string(id, kAudioObjectPropertyName) ?? L("Output")
             if name.hasPrefix("CADefaultDeviceAggregate") { return nil }
+            if UtilCA.string(id, kAudioDevicePropertyDeviceUID)?.hasPrefix(UtilAppVolumeAggregate.uidPrefix) == true { return nil }
             let transport = UtilCA.get(id, UtilCA.address(kAudioDevicePropertyTransportType), UInt32(0)) ?? 0
             return UtilAudioDevice(id: id, name: name, transport: transport)
         }
@@ -325,8 +326,16 @@ struct UtilAudioView: View {
     private var audio: UtilAudioService { .shared }
 
     var body: some View {
+        if UtilAudioPanel.sceneVariant {
+            PanelChrome { UtilAudioPanelView() }
+        } else {
+            tile
+        }
+    }
+
+    private var tile: some View {
         let others = Array(audio.outputs.filter { $0.id != audio.current && $0.rank < 5 }.prefix(2))
-        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 5.5, leading: 6, bottom: 6.5, trailing: 6)) {
+        return Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 5.5, leading: 6, bottom: 6.5, trailing: 6)) {
             if let device = audio.currentDevice {
                 HStack(spacing: m.u(6)) {
                     mainPanel(device)
@@ -434,6 +443,7 @@ struct UtilVolumeSlider: View {
     @Environment(\.palette) private var p
     var value: Double
     var enabled = true
+    var thickness: CGFloat = 11
     var onChange: (Double) -> Void
 
     var body: some View {
@@ -457,7 +467,7 @@ struct UtilVolumeSlider: View {
                 onChange(Double((v.location.x - knob / 2) / (width - knob)))
             })
         }
-        .frame(height: m.u(11))
+        .frame(height: m.u(thickness))
         .opacity(enabled ? 1 : 0.4)
         .environment(\.layoutDirection, .leftToRight)
         .flipsForRTL()
@@ -469,6 +479,9 @@ enum UtilAudioPanel {
     static func toggle(_ w: WidgetInstance) {
         Panels.shared.toggle(w.id) { UtilAudioPanelView() }
     }
+
+    /// `--scene reference` frame `audioControls-panel` draws the panel (with its App Volume section) instead of the tile.
+    nonisolated static var sceneVariant: Bool { ReferenceScene.isActive && ReferenceScene.variant == "panel" }
 }
 
 private struct UtilAudioPanelView: View {
@@ -511,6 +524,7 @@ private struct UtilAudioPanelView: View {
                     .buttonStyle(.plain)
                 }
             }
+            if UtilAppVolumeService.supported { UtilAppVolumeSection(showsTitle: true) }
         }
         .frame(width: 280)
         .demand(UtilAudioService.shared)

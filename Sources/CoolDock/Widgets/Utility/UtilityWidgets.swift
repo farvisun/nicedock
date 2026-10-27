@@ -7,6 +7,7 @@ enum UtilityWidgets {
     static func view(_ w: WidgetInstance) -> some View {
         switch w.kind {
         case .audioControls: UtilAudioView(w: w)
+        case .appVolume: UtilAppVolumeView(w: w)
         case .quickToggles: UtilTogglesView(w: w)
         case .windowManager: UtilWindowsView(w: w)
         case .clipboard: UtilClipboardTile(w: w)
@@ -31,6 +32,11 @@ enum UtilityWidgets {
         case .audioControls:
             Button(L("Output Devices…")) { UtilAudioPanel.toggle(w) }
             Button(L("Sound Settings…")) { Open.url("x-apple.systempreferences:com.apple.Sound-Settings.extension") }
+            Divider()
+        case .appVolume:
+            Button(L("All Playing Apps…")) { UtilAppVolumePanel.toggle(w) }
+            Button(L("Reset All")) { UtilAppVolumeService.shared.resetAll() }
+                .disabled(UtilAppVolumeService.shared.changedCount == 0)
             Divider()
         case .windowManager:
             Button(L("Show Windows…")) { UtilWindowPanel.show(w) }

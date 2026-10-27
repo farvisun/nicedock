@@ -2,7 +2,7 @@
 
 A native macOS **second Dock with live widgets** — a from-scratch Swift/SwiftUI recreation of the
 tools shown on [cooldock.app](https://cooldock.app): music, todos, events, weather, search, system
-stats, quick actions and 110 widgets in one beautiful dock beside the macOS Dock.
+stats, quick actions and 111 widgets in one beautiful dock beside the macOS Dock.
 
 * Native Swift 6 toolchain, SwiftUI + AppKit, macOS 14 Sonoma or later
 * ~9 MB app bundle, ~34 MB memory (+4 MB for the Now Playing helper while a music widget is shown), ~0 % CPU when idle
@@ -80,7 +80,7 @@ app tile's right-click menu against the real app.
 | Clocks & focus | Clock, Clock with Seconds, Time & Date, Time Card, Date, Day & Date, Date/Time/Weather, Flip Clock, Analog (dark/light), World Clock, Pixel Clock, Timer, Stopwatch, Pomodoro, Drink Water, Posture |
 | Calendar & tasks | Today's Events, Agenda, Week, Next Meeting, Zoom Meeting, Day/Month/Year Progress, Progress Ring, Reminders, Todo, Habit Tracker, Linear |
 | Weather | Weather, Weather & Forecast, Details, Daily, Today & Forecast, Conditions, Hourly, Sunrise & Sunset, Wind |
-| System & controls | Battery, CPU, Memory, Storage, Temperature, CPU History, Network, Devices Battery, Audio, Quick Toggles, Clipboard, Screenshots, Recent Screenshots, Voice Memo, Emoji |
+| System & controls | Battery, CPU, Memory, Storage, Temperature, CPU History, Network, Devices Battery, Audio, App Volume (per-app volume and mute, macOS 14.2+), Quick Toggles, Clipboard, Screenshots, Recent Screenshots, Voice Memo, Emoji |
 | Utilities | Color Picker, Converter, Calculator, Bookmarks, Search Web, Window Manager, Separator, Space |
 | Media & people | Now Playing (any app: Music, Spotify, browsers, Podcasts, VLC…), Now Playing Large, Background Sounds, YouTube Video, Recent Photo, Wallpaper, Mail, Latest Mail, Notes, Quick Contacts, Contact Card |
 | Markets | Stock, Stock Chart, Watchlist, Crypto, Crypto Chart, Crypto Watchlist |
@@ -95,7 +95,7 @@ CoreWLAN, IOKit, PhotoKit, Contacts and each provider's public API.
 General · Appearance (live preview, six dock styles incl. Liquid Glass, size, spacing, corner
 radius, monochrome, reduce transparency) · Layout (seven scenarios: Swap at the Bottom, Reveal,
 Fixed ×6 positions, Reveal on Top, Replace the macOS Dock, Replace & Auto-Hide, Floating) ·
-Screens (one / attached / all displays, rename, identify) · Dock · Profiles (up to 8) · Widgets ·
+Screens (one / attached / all displays, rename, identify) · Dock · Profiles (up to 8) · Widgets (incl. App Volume) ·
 Shortcuts (recorders) · Language & Region (language, calendar, digits, 12/24 h, Estedad) ·
 Privacy & Permissions (incl. Calendar Feeds and the AI Assistant) · Performance (live memory/CPU of CoolDock) · About.
 

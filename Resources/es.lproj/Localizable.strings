@@ -1302,3 +1302,26 @@
 "Queries" = "Consultas";
 "List price" = "Precio de lista";
 "Resets" = "Restablecimiento";
+
+/* App Volume */
+"App Volume" = "Volumen por app";
+"Volume and mute for each app playing sound." = "Volumen y silencio para cada app que reproduce sonido.";
+"System Audio Recording" = "Grabación de audio del sistema";
+"Remember volume per app" = "Recordar el volumen de cada app";
+"Needs macOS 14.2 or later" = "Requiere macOS 14.2 o posterior";
+"No apps playing" = "Ninguna app reproduce sonido";
+"CoolDock couldn't change this app's volume." = "CoolDock no pudo cambiar el volumen de esta app.";
+"Allow System Audio Recording" = "Permitir grabación de audio del sistema";
+"Turn on System Audio Recording for CoolDock in Privacy & Security to change app volumes." = "Activa la grabación de audio del sistema para CoolDock en Privacidad y seguridad para cambiar el volumen de las apps.";
+"No apps are playing sound." = "Ninguna app está reproduciendo sonido.";
+"Reset All" = "Restablecer todo";
+"Set every app back to 100% and unmuted" = "Devolver todas las apps al 100 % y activar el sonido";
+"1 app playing" = "1 app reproduciendo";
+"%@ apps playing" = "%@ apps reproduciendo";
+"An app plays through CoolDock only while its volume is below 100% or muted. macOS asks once for System Audio Recording." = "El sonido de una app pasa por CoolDock solo mientras su volumen está por debajo del 100 % o silenciado. macOS pide una vez permiso de grabación de audio del sistema.";
+"Restores an app's volume and mute the next time it plays." = "Restaura el volumen y el silencio de una app la próxima vez que reproduzca sonido.";
+"Reset all app volumes" = "Restablecer el volumen de todas las apps";
+"Every app plays at full volume." = "Todas las apps suenan a volumen completo.";
+"1 app changed" = "1 app modificada";
+"%@ apps changed" = "%@ apps modificadas";
+"All Playing Apps…" = "Todas las apps con sonido…";

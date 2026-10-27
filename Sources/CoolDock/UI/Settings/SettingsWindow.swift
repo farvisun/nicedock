@@ -181,7 +181,7 @@ enum SettingsSearchIndex {
         case .screens: return [L("Displays"), L("Monitor")]
         case .dock: return [L("Running apps"), L("Folders"), L("Drag")]
         case .profiles: return [L("Profile switcher")]
-        case .widgets: return [L("Visibility"), L("Customize")]
+        case .widgets: return [L("Visibility"), L("Customize"), L("App Volume"), L("Remember volume per app")]
         case .shortcuts: return [L("Hotkey"), L("Keyboard")]
         case .language: return ["فارسی", "Persian", "Estedad", L("Calendar"), L("Digits"), L("24-hour")]
         case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Encrypted File"), L("Accessibility"), L("Calendar Feeds"), "ICS", "webcal", L("AI Assistant"), "MCP", "Claude", "Codex", "Cursor", "VS Code"]
