@@ -39,8 +39,9 @@ enum ClockWidgets {
 // MARK: - Shared helpers
 
 extension DockPalette {
-    /// Large clock digits: primary at the references' ~86 % so the numerals don't glare.
-    var clockInk: Color { primary.opacity(0.86) }
+    /// Large clock digits. The palette's primary already carries the references' ≈86 % white (219/255)
+    /// in the dark styles, so the numerals use it as is.
+    var clockInk: Color { primary }
 }
 
 enum ClockTime {
@@ -82,9 +83,9 @@ struct ClockTicker<Content: View>: View {
 
     var body: some View {
         if seconds {
-            TimelineView(.periodic(from: ClockTime.alignedSecond(), by: 1)) { ctx in content(ctx.date) }
+            TimelineView(.periodic(from: ClockTime.alignedSecond(), by: 1)) { ctx in content(ReferenceScene.date(ctx.date)) }
         } else {
-            TimelineView(.everyMinute) { ctx in content(ctx.date) }
+            TimelineView(.everyMinute) { ctx in content(ReferenceScene.date(ctx.date)) }
         }
     }
 }
@@ -116,10 +117,12 @@ struct ClockDigits: View {
 
 private struct ClockDigitalView: View {
     let w: WidgetInstance
+    @Environment(\.metrics) private var m
     var body: some View {
         Tile(width: w.kind.spec.width) {
             ClockTicker { date in
-                ClockDigits(text: Fmt.clock(date), size: 28.2, tracking: -0.2)
+                ClockDigits(text: Fmt.clock(date), size: 28)
+                    .offset(x: m.u(0.5), y: m.u(0.5))
             }
         }
     }
@@ -127,10 +130,12 @@ private struct ClockDigitalView: View {
 
 private struct ClockSecondsView: View {
     let w: WidgetInstance
+    @Environment(\.metrics) private var m
     var body: some View {
         Tile(width: w.kind.spec.width) {
             ClockTicker(seconds: true) { date in
                 ClockDigits(text: Fmt.clock(date, seconds: true), size: 22)
+                    .offset(x: m.u(0.5), y: m.u(0.5))
             }
         }
     }
@@ -146,7 +151,7 @@ private struct ClockTimeDateView: View {
                 VStack(alignment: .leading, spacing: m.u(3)) {
                     ClockDigits(text: Fmt.clock(date), size: 26)
                     Text(ClockFormat.date(date, en: "EEE d MMM", template: "EEEdMMM"))
-                        .dock(10.7, .semibold, p.secondary)
+                        .dock(10.75, .semibold, p.secondary)
                         .minimumScaleFactor(0.8)
                 }
                 .offset(y: m.u(0.25))
@@ -182,13 +187,13 @@ private struct ClockDateTileView: View {
     var body: some View {
         Tile(width: w.kind.spec.width) {
             ClockTicker { date in
-                VStack(spacing: m.u(1.5)) {
-                    ClockDigits(text: Fmt.dayNumber(date), size: 30.5, tracking: 1.6)
+                VStack(spacing: 0) {
+                    ClockDigits(text: Fmt.dayNumber(date), size: 32, weight: .bold, tracking: 0.1)
                     Text(Fmt.monthShort(date))
                         .dock(11, .semibold, p.secondary)
                         .minimumScaleFactor(0.7)
                 }
-                .offset(y: m.u(0.5))
+                .offset(y: m.u(0.25))
             }
         }
     }
@@ -201,14 +206,14 @@ private struct ClockDayDateView: View {
     var body: some View {
         Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 5), alignment: .leading) {
             ClockTicker { date in
-                VStack(alignment: .leading, spacing: m.u(2.5)) {
+                VStack(alignment: .leading, spacing: m.u(3)) {
                     Text(Fmt.weekday(date))
-                        .dock(12.1, .semibold, p.secondary)
+                        .dock(12, .semibold, p.secondary)
                     Text(ClockFormat.date(date, en: "MMMM d", template: "MMMMd"))
-                        .dock(19.9, .semibold, p.clockInk)
+                        .dock(20, .semibold, p.clockInk)
                         .minimumScaleFactor(0.7)
                 }
-                .offset(y: m.u(0.25))
+                .offset(y: m.u(0.5))
             }
         }
     }

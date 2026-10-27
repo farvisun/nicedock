@@ -9,7 +9,9 @@ enum ClockTint {
     static let focus = Color(red: 242 / 255, green: 88 / 255, blue: 98 / 255)
     static let rest = Color(red: 48 / 255, green: 200 / 255, blue: 98 / 255)
     static let progress = Color(red: 0, green: 122 / 255, blue: 255 / 255)
-    static let water = Color(red: 68 / 255, green: 188 / 255, blue: 233 / 255)
+    /// Drink-water front wave, left → right (drawn at 70 % over the back swell).
+    static let waterLeading = Color(red: 73 / 255, green: 152 / 255, blue: 175 / 255)
+    static let waterTrailing = Color(red: 62 / 255, green: 199 / 255, blue: 251 / 255)
 }
 
 /// Inner rounded rectangle with a track and a progress stroke that starts at the trailing middle
@@ -18,6 +20,9 @@ private struct ClockProgressFrame: View {
     var progress: Double
     var color: Color
     var gradient = false
+    /// Outer edge of the stroke from the tile edge (left / right in points; the frame never mirrors).
+    var left: CGFloat = 6
+    var right: CGFloat = 6
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
 
@@ -28,13 +33,14 @@ private struct ClockProgressFrame: View {
             ? AnyShapeStyle(LinearGradient(colors: [color.clockLighter, color], startPoint: .top, endPoint: .bottom))
             : AnyShapeStyle(color)
         ZStack {
-            shape.stroke(p.track, lineWidth: line)
+            // Track ≈ 7 % white over the tile in the reference (a touch under `p.track`).
+            shape.stroke(p.primary.opacity(0.08), lineWidth: line)
             if progress > 0.001 {
                 shape.trim(from: 0, to: min(1, progress))
                     .stroke(style, style: StrokeStyle(lineWidth: line, lineCap: .round, lineJoin: .round))
             }
         }
-        .padding(m.u(6.5) + line / 2)
+        .padding(EdgeInsets(top: m.u(6) + line / 2, leading: m.u(left) + line / 2, bottom: m.u(6) + line / 2, trailing: m.u(right) + line / 2))
         .environment(\.layoutDirection, .leftToRight)
         .allowsHitTesting(false)
     }
@@ -104,21 +110,21 @@ struct ClockTimerTile: View {
         let s = engine.timer(w)
         Tile(width: w.kind.spec.width) {
             if let end = s.end {
-                TimelineView(.periodic(from: ClockTime.anchor(before: end), by: 1)) { ctx in content(s, ctx.date) }
+                TimelineView(.periodic(from: ClockTime.anchor(before: end), by: 1)) { ctx in content(s, ReferenceScene.date(ctx.date)) }
             } else {
-                content(s, Date())
+                content(s, ReferenceScene.date())
             }
         }
     }
 
     private func content(_ s: ClockCountdown, _ now: Date) -> some View {
         ZStack {
-            ClockProgressFrame(progress: s.isIdle ? 0 : s.elapsedFraction(at: now), color: p.accent(ClockTint.progress))
+            ClockProgressFrame(progress: s.isIdle ? 0 : s.elapsedFraction(at: now), color: p.accent(ClockTint.progress), left: 6, right: 5)
             HStack(spacing: 0) {
                 Button {
                     Panels.shared.toggle(w.id) { ClockTimerPresetPanel(w: w) }
                 } label: {
-                    ClockDigits(text: ClockFormat.countdown(s.displaySeconds(at: now)), size: 21.5, weight: .bold)
+                    ClockDigits(text: ClockFormat.countdown(s.displaySeconds(at: now)), size: 21, weight: .bold)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -199,9 +205,9 @@ struct ClockStopwatchTile: View {
         let s = engine.stopwatch(w.id)
         Tile(width: w.kind.spec.width) {
             if s.isRunning {
-                TimelineView(.animation(minimumInterval: 0.1)) { ctx in content(s, ctx.date) }
+                TimelineView(.animation(minimumInterval: 0.1)) { ctx in content(s, ReferenceScene.date(ctx.date)) }
             } else {
-                content(s, Date())
+                content(s, ReferenceScene.date())
             }
         }
     }
@@ -212,7 +218,8 @@ struct ClockStopwatchTile: View {
             Button {
                 Panels.shared.toggle(w.id) { ClockStopwatchPanel(id: w.id) }
             } label: {
-                ClockDigits(text: ClockFormat.tenths(elapsed), size: 19, weight: .bold)
+                ClockDigits(text: ClockFormat.tenths(elapsed), size: 19, weight: .semibold)
+                    .offset(x: m.u(-0.5))
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -315,9 +322,9 @@ struct ClockPomodoroTile: View {
         let s = engine.pomodoro(w)
         Tile(width: w.kind.spec.width) {
             if let end = s.countdown.end {
-                TimelineView(.periodic(from: ClockTime.anchor(before: end), by: 1)) { ctx in content(s, ctx.date) }
+                TimelineView(.periodic(from: ClockTime.anchor(before: end), by: 1)) { ctx in content(s, ReferenceScene.date(ctx.date)) }
             } else {
-                content(s, Date())
+                content(s, ReferenceScene.date())
             }
         }
     }
@@ -327,17 +334,18 @@ struct ClockPomodoroTile: View {
         let tint = s.phase == .focus ? ClockTint.focus : ClockTint.rest
         let remaining = s.countdown.duration > 0 ? s.countdown.remaining(at: now) / s.countdown.duration : 1
         return ZStack {
-            ClockProgressFrame(progress: remaining, color: p.accent(tint), gradient: true)
+            ClockProgressFrame(progress: remaining, color: p.accent(tint), gradient: true, left: 5, right: 6)
             HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .firstTextBaseline, spacing: m.u(3.5)) {
-                        Text(s.phase.title).dock(9.2, .bold, p.secondary)
+                        Text(s.phase.title).dock(9, .semibold, p.secondary)
                         Text(verbatim: Fmt.digits("\(s.round)/\(cfg.rounds)"))
-                            .dock(9.2, .bold, p.primary.opacity(0.27))
+                            .dock(9, .semibold, p.primary.opacity(0.27))
                             .environment(\.layoutDirection, .leftToRight)
                     }
                     .fixedSize()
-                    ClockDigits(text: ClockFormat.countdown(s.countdown.displaySeconds(at: now)), size: 20.1, weight: .bold)
+                    .offset(y: m.u(-1))
+                    ClockDigits(text: ClockFormat.countdown(s.countdown.displaySeconds(at: now)), size: 20, weight: .bold)
                 }
                 .offset(y: m.u(0.5))
                 .layoutPriority(1)
@@ -386,11 +394,11 @@ struct ClockReminderTile: View {
         } label: {
             Tile(width: w.kind.spec.width) {
                 if paused {
-                    content(s, Date(), animated: false)
+                    content(s, ReferenceScene.date(), animated: false)
                 } else if reduceMotion {
-                    TimelineView(.periodic(from: ClockTime.alignedSecond(), by: 1)) { ctx in content(s, ctx.date, animated: false) }
+                    TimelineView(.periodic(from: ClockTime.alignedSecond(), by: 1)) { ctx in content(s, ReferenceScene.date(ctx.date), animated: false) }
                 } else {
-                    TimelineView(.animation(minimumInterval: 1.0 / 15)) { ctx in content(s, ctx.date, animated: true) }
+                    TimelineView(.animation(minimumInterval: 1.0 / 15)) { ctx in content(s, ReferenceScene.date(ctx.date), animated: true) }
                 }
             }
         }
@@ -407,14 +415,14 @@ struct ClockReminderTile: View {
         let level = state.isPaused ? 0.5 : state.level(at: now)
         let colors: [Color] = posture
             ? [p.accent(.cdGreen).opacity(0.42), p.accent(.cdMint).opacity(0.62)]
-            : [p.accent(.cdCyan).opacity(0.55), p.accent(ClockTint.water).opacity(0.8)]
+            : [p.accent(ClockTint.waterLeading).opacity(0.7), p.accent(ClockTint.waterTrailing).opacity(0.7)]
         let phase = animated ? now.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 4) / 4 * 2 * .pi : 0
         let minutes = Int(interval / 60)
 
         return ZStack {
             Canvas { ctx, size in
                 ClockWave.draw(ctx, size: size, level: level, phase: phase, front: colors,
-                               back: p.primary.opacity(0.13), amplitude: m.u(3))
+                               back: p.primary.opacity(0.15), amplitude: m.u(4))
             }
             .opacity(state.isPaused ? 0.45 : 1)
             HStack(spacing: m.u(7)) {
@@ -430,15 +438,16 @@ struct ClockReminderTile: View {
                             .minimumScaleFactor(0.6)
                     } else {
                         ClockDigits(text: ClockFormat.countdown(ceil(state.remaining(at: now) - 0.05)), size: posture ? 22 : 24, weight: .bold,
-                                    color: state.isPaused ? p.secondary : p.primary.opacity(0.9))
+                                    color: state.isPaused ? p.secondary : p.primary)
                     }
                     Text(state.isPaused ? L("Paused") : Fmt.digits(L("Every %d min", minutes)))
-                        .dock(8.9, .bold, p.primary.opacity(0.54))
+                        .dock(8.9, .bold, p.primary.opacity(0.62))
+                        .offset(x: m.u(-0.5), y: m.u(0.75))
                         .minimumScaleFactor(0.7)
                 }
             }
             .padding(.horizontal, m.u(8))
-            .offset(y: m.u(-0.3))
+            .offset(y: m.u(-0.8))
         }
     }
 }
@@ -447,11 +456,11 @@ private enum ClockWave {
     static func draw(_ ctx: GraphicsContext, size: CGSize, level: Double, phase: Double, front: [Color], back: Color, amplitude: CGFloat) {
         let lvl = CGFloat(min(1, max(0, level)))
         let base = size.height * (1 - lvl)
-        let wavelength = size.width * 1.15
+        let wavelength = size.width * 0.88
 
         func surface(_ shift: Double, amp: CGFloat, lift: CGFloat) -> Path {
             var path = Path()
-            let step = max(2, size.width / 48)
+            let step = max(0.5, size.width / 150)
             var x: CGFloat = 0
             path.move(to: CGPoint(x: 0, y: size.height))
             while x <= size.width + step {
@@ -465,7 +474,7 @@ private enum ClockWave {
         }
 
         // Back swell (dim), then the coloured front wave with a left → right gradient.
-        ctx.fill(surface(-phase + 2.3, amp: amplitude * 0.9, lift: amplitude * 0.6), with: .color(back))
+        ctx.fill(surface(-phase + 5.5, amp: amplitude * 0.53, lift: amplitude * 0.15), with: .color(back))
         ctx.fill(surface(-phase + 4.2, amp: amplitude, lift: 0),
                  with: .linearGradient(Gradient(colors: front), startPoint: .zero, endPoint: CGPoint(x: size.width, y: 0)))
     }

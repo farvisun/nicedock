@@ -14,12 +14,14 @@ struct ClockFlipView: View {
                 ClockFlipCard(glyph: g[0])
                 Spacer().frame(width: m.u(3.5))
                 ClockFlipCard(glyph: g[1])
-                Spacer().frame(width: m.u(5.5))
+                Spacer().frame(width: m.u(5))
                 ClockFlipCard(glyph: g[2])
                 Spacer().frame(width: m.u(3.5))
                 ClockFlipCard(glyph: g[3])
             }
             .padding(.horizontal, m.u(1))
+            // The reference cards sit half a point low.
+            .offset(y: m.u(0.5))
         }
         .frame(width: m.u(w.kind.spec.width), height: m.tileHeight)
         .environment(\.layoutDirection, .leftToRight)
@@ -88,11 +90,10 @@ private struct ClockFlipStack: View, Animatable {
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             }
-            // The split: a faint highlight drawn over the numeral.
+            // The split: a faint 2 pt highlight drawn over the numeral (≈24 % white in the reference).
             Rectangle()
-                .fill(p.primary.opacity(0.25))
-                .frame(height: m.u(1))
-                .offset(y: m.u(0.5))
+                .fill(p.primary.opacity(p.isLight ? 0.25 : 0.28))
+                .frame(height: m.u(2))
         }
     }
 }
@@ -106,7 +107,7 @@ private struct ClockFlipHalf: View {
 
     private var fill: Color {
         if opaque { return Color(white: p.isLight ? (top ? 0.92 : 0.88) : (top ? 0.13 : 0.18)) }
-        return p.primary.opacity(p.isLight ? (top ? 0.06 : 0.09) : (top ? 0.095 : 0.15))
+        return p.primary.opacity(p.isLight ? (top ? 0.06 : 0.09) : (top ? 0.114 : 0.174))
     }
 
     var body: some View {
@@ -114,7 +115,7 @@ private struct ClockFlipHalf: View {
         ZStack {
             fill
             Text(verbatim: glyph)
-                .font(.dock(m.u(41.5), .semibold, mono: true))
+                .font(.dock(m.u(41.5), .bold, mono: true))
                 .foregroundStyle(p.clockInk)
                 .offset(y: ClockFormat.digitDrop(m.u(41.5)))
                 .frame(maxWidth: .infinity)
@@ -136,7 +137,9 @@ struct ClockAnalogView: View {
 
     var body: some View {
         let seconds = w.bool("seconds", true)
-        let diameter = m.u(light ? 49.5 : 49)
+        let diameter = m.u(50)
+        // The reference faces sit a little right of and below the tile centre.
+        let shift = CGSize(width: light ? 1 : 0.5, height: 0.5)
         Tile(width: w.kind.spec.width) {
             ClockTicker(seconds: seconds) { date in
                 let hands = ClockHands(date)
@@ -145,10 +148,12 @@ struct ClockAnalogView: View {
                         ClockAnalogDraw.light(ctx, size: size, hands: hands, seconds: seconds)
                     } else {
                         ClockAnalogDraw.dark(ctx, size: size, hands: hands, seconds: seconds, ink: p.clockInk,
-                                             ring: p.primary.opacity(0.2), minute: p.accent(.cdBlue), hub: p.primary)
+                                             ring: p.primary.opacity(0.151), second: p.accent(ClockTint.stopwatch),
+                                             hub: p.primary.opacity(0.87))
                     }
                 }
                 .frame(width: diameter, height: diameter)
+                .offset(x: m.u(shift.width), y: m.u(shift.height))
             }
         }
         .environment(\.layoutDirection, .leftToRight)
@@ -162,8 +167,16 @@ private struct ClockHands {
     var second: Double
 
     init(_ date: Date) {
-        let c = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
+        let c = Calendar.current.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
         let s = Double(c.second ?? 0), mi = Double(c.minute ?? 0), h = Double((c.hour ?? 0) % 12)
+        if ReferenceScene.isActive {
+            // The reference frames pose a quartz movement: hour and minute hands on their marks,
+            // the seconds hand at a fractional second.
+            second = (s + Double(c.nanosecond ?? 0) / 1e9) * 6
+            minute = mi * 6
+            hour = (h + mi / 60) * 30
+            return
+        }
         second = s * 6
         minute = (mi + s / 60) * 6
         hour = (h + mi / 60 + s / 3600) * 30
@@ -174,13 +187,22 @@ private enum ClockAnalogDraw {
     static let lightHand = Color(white: 0.12)
     static let lightHub = Color(white: 0.18)
     static let lightTick = Color(white: 0.28)
-    static let lightDot = Color(white: 0.68)
+    static let lightDot = Color(white: 0.75)
+    static let lightRing = Color(white: 0.95)
+    static let lightEdge = Color(white: 0.9)
     static let lightRed = Color(red: 232 / 255, green: 61 / 255, blue: 51 / 255)
 
     /// Point at `radius` along `degrees` (clockwise from 12) from `c`.
     static func point(_ c: CGPoint, _ degrees: Double, _ radius: CGFloat) -> CGPoint {
         let a = (degrees - 90) * .pi / 180
         return CGPoint(x: c.x + radius * CGFloat(cos(a)), y: c.y + radius * CGFloat(sin(a)))
+    }
+
+    /// Point `radius` along the hand and `side` across it (positive = clockwise side).
+    static func point(_ c: CGPoint, _ degrees: Double, _ radius: CGFloat, side: CGFloat) -> CGPoint {
+        let p = point(c, degrees, radius)
+        let a = degrees * .pi / 180
+        return CGPoint(x: p.x + side * CGFloat(cos(a)), y: p.y + side * CGFloat(sin(a)))
     }
 
     static func hand(_ ctx: GraphicsContext, _ c: CGPoint, _ degrees: Double, length: CGFloat, tail: CGFloat, width: CGFloat, color: Color, cap: CGLineCap = .round) {
@@ -190,55 +212,80 @@ private enum ClockAnalogDraw {
         ctx.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: width, lineCap: cap))
     }
 
-    /// Classic white face: tick marks only (no numerals), black hour/minute hands, red seconds.
+    /// A hand that narrows from `base` at the hub to `tip`, with a straight counterweight of `tailWidth`.
+    static func taperedHand(_ ctx: GraphicsContext, _ c: CGPoint, _ degrees: Double, length: CGFloat, base: CGFloat, tip: CGFloat,
+                            tail: CGFloat, tailWidth: CGFloat, color: Color) {
+        var path = Path()
+        path.move(to: point(c, degrees, -tail, side: -tailWidth / 2))
+        path.addLine(to: point(c, degrees, 0, side: -base / 2))
+        path.addLine(to: point(c, degrees, length, side: -tip / 2))
+        path.addLine(to: point(c, degrees, length, side: tip / 2))
+        path.addLine(to: point(c, degrees, 0, side: base / 2))
+        path.addLine(to: point(c, degrees, -tail, side: tailWidth / 2))
+        path.closeSubpath()
+        ctx.fill(path, with: .color(color))
+    }
+
+    static func disc(_ ctx: GraphicsContext, _ c: CGPoint, _ r: CGFloat, _ color: Color) {
+        ctx.fill(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2)), with: .color(color))
+    }
+
+    /// Classic white face: a soft rim, a faint inner ring, minute dots, hour ticks (longer quarters),
+    /// tapered black hour/minute hands and a thin red seconds hand.
     static func light(_ ctx: GraphicsContext, size: CGSize, hands: ClockHands, seconds: Bool) {
         let d = min(size.width, size.height)
-        let k = d / 49.5 // design units → points
+        let k = d / 50 // design units → points
         let c = CGPoint(x: size.width / 2, y: size.height / 2)
         let face = CGRect(x: c.x - d / 2, y: c.y - d / 2, width: d, height: d)
-        ctx.fill(Path(ellipseIn: face), with: .color(.white))
-        ctx.stroke(Path(ellipseIn: face.insetBy(dx: 0.35 * k, dy: 0.35 * k)), with: .color(Color(white: 0.9)), lineWidth: 0.7 * k)
+        ctx.fill(Path(ellipseIn: face), with: .radialGradient(
+            Gradient(stops: [.init(color: .white, location: 0), .init(color: .white, location: 0.94),
+                             .init(color: lightEdge, location: 0.98), .init(color: lightEdge, location: 1)]),
+            center: c, startRadius: 0, endRadius: d / 2))
+        let ringR = 21.55 * k
+        ctx.stroke(Path(ellipseIn: CGRect(x: c.x - ringR, y: c.y - ringR, width: ringR * 2, height: ringR * 2)),
+                   with: .color(lightRing), lineWidth: 0.7 * k)
 
         // Minute dots.
+        let dot = 1.1 * k
         for i in 0..<60 where i % 5 != 0 {
-            let pt = point(c, Double(i) * 6, 20.2 * k)
-            let r = 0.5 * k
-            ctx.fill(Path(ellipseIn: CGRect(x: pt.x - r, y: pt.y - r, width: r * 2, height: r * 2)), with: .color(lightDot))
+            let pt = point(c, Double(i) * 6, 19.2 * k)
+            ctx.fill(Path(CGRect(x: pt.x - dot / 2, y: pt.y - dot / 2, width: dot, height: dot)), with: .color(lightDot))
         }
-        // Hour ticks: the quarters are longer.
+        // Hour ticks: the quarters are longer and heavier.
         for i in 0..<12 {
             let quarter = i % 3 == 0
             var path = Path()
-            path.move(to: point(c, Double(i) * 30, (quarter ? 16.3 : 18.4) * k))
-            path.addLine(to: point(c, Double(i) * 30, 22.3 * k))
-            ctx.stroke(path, with: .color(lightTick), style: StrokeStyle(lineWidth: (quarter ? 2 : 1.6) * k, lineCap: .butt))
+            path.move(to: point(c, Double(i) * 30, (quarter ? 17.3 : 17.6) * k))
+            path.addLine(to: point(c, Double(i) * 30, (quarter ? 21.5 : 21.1) * k))
+            ctx.stroke(path, with: .color(lightTick),
+                       style: StrokeStyle(lineWidth: (quarter ? 2 : 1) * k, lineCap: .round))
         }
 
-        hand(ctx, c, hands.hour, length: 13.3 * k, tail: 2 * k, width: 2 * k, color: lightHand, cap: .butt)
-        hand(ctx, c, hands.minute, length: 18.8 * k, tail: 2.5 * k, width: 1.4 * k, color: lightHand, cap: .butt)
-        let hub = 2.25 * k
-        ctx.fill(Path(ellipseIn: CGRect(x: c.x - hub, y: c.y - hub, width: hub * 2, height: hub * 2)), with: .color(lightHub))
+        taperedHand(ctx, c, hands.hour, length: 13.35 * k, base: 3 * k, tip: 1.05 * k,
+                    tail: 3.65 * k, tailWidth: 1.3 * k, color: lightHand)
+        taperedHand(ctx, c, hands.minute, length: 19.35 * k, base: 1.9 * k, tip: 1.1 * k,
+                    tail: 4.75 * k, tailWidth: 1.4 * k, color: lightHand)
+        disc(ctx, c, 2.5 * k, lightHub)
         if seconds {
-            hand(ctx, c, hands.second, length: 19.6 * k, tail: 5.4 * k, width: 0.6 * k, color: lightRed, cap: .butt)
+            taperedHand(ctx, c, hands.second, length: 20.75 * k, base: 0.75 * k, tip: 0.2 * k,
+                        tail: 5.5 * k, tailWidth: 0.7 * k, color: lightRed)
         }
-        let dot = 1.05 * k
-        ctx.fill(Path(ellipseIn: CGRect(x: c.x - dot, y: c.y - dot, width: dot * 2, height: dot * 2)), with: .color(lightRed))
+        disc(ctx, c, 1.05 * k, lightRed)
     }
 
-    /// Minimal dark face: a faint ring, white hour hand, blue minute hand, thin white seconds.
-    static func dark(_ ctx: GraphicsContext, size: CGSize, hands: ClockHands, seconds: Bool, ink: Color, ring: Color, minute: Color, hub: Color) {
+    /// Minimal dark face: a faint ring, white hour and minute hands, a long blue seconds hand.
+    static func dark(_ ctx: GraphicsContext, size: CGSize, hands: ClockHands, seconds: Bool, ink: Color, ring: Color, second: Color, hub: Color) {
         let d = min(size.width, size.height)
-        let k = d / 49
+        let k = d / 50
         let c = CGPoint(x: size.width / 2, y: size.height / 2)
         ctx.stroke(Path(ellipseIn: CGRect(x: c.x - d / 2, y: c.y - d / 2, width: d, height: d).insetBy(dx: 0.5 * k, dy: 0.5 * k)),
                    with: .color(ring), lineWidth: 1 * k)
-        hand(ctx, c, hands.hour, length: 12.3 * k, tail: 1.8 * k, width: 1.9 * k, color: ink)
-        hand(ctx, c, hands.minute, length: 20.4 * k, tail: 0, width: 1.15 * k, color: minute)
+        hand(ctx, c, hands.hour, length: 11 * k, tail: 1 * k, width: 2 * k, color: ink)
+        hand(ctx, c, hands.minute, length: 18 * k, tail: 1.8 * k, width: 0.85 * k, color: ink, cap: .butt)
         if seconds {
-            hand(ctx, c, hands.second, length: 18.4 * k, tail: 0, width: 1 * k, color: ink)
+            hand(ctx, c, hands.second, length: 20 * k, tail: 1.85 * k, width: 0.95 * k, color: second, cap: .butt)
         }
-        let r = 1.3 * k
-        ctx.fill(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2)), with: .color(hub))
+        disc(ctx, c, 1.5 * k, hub)
     }
 }
 

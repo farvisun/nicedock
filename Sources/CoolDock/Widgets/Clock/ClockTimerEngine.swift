@@ -152,6 +152,13 @@ final class ClockTimerEngine {
     @ObservationIgnored private var wake: Timer?
     @ObservationIgnored private var wakeObserver: Any?
 
+    /// `--scene reference` only (seeded by `ClockScene`): the state every rendered instance shows,
+    /// dated against `ReferenceScene.now`. Never read in the normal app.
+    @ObservationIgnored var sceneTimer: ClockCountdown?
+    @ObservationIgnored var sceneStopwatch: ClockStopwatch?
+    @ObservationIgnored var scenePomodoro: ClockPomodoro?
+    @ObservationIgnored var sceneReminder: ClockReminder?
+
     static let timerPresets = [1, 3, 5, 10, 15, 25, 45, 60]
 
     private init() {
@@ -163,6 +170,7 @@ final class ClockTimerEngine {
     // MARK: Timer
 
     func timer(_ w: WidgetInstance) -> ClockCountdown {
+        if ReferenceScene.isActive, let s = sceneTimer { return s }
         let configured = TimeInterval(max(1, w.int("minutes", 5))) * 60
         guard var s = timers[w.id] else { return ClockCountdown(duration: configured) }
         if s.isIdle { s.duration = configured }
@@ -200,7 +208,10 @@ final class ClockTimerEngine {
 
     // MARK: Stopwatch
 
-    func stopwatch(_ id: UUID) -> ClockStopwatch { stopwatches[id] ?? ClockStopwatch() }
+    func stopwatch(_ id: UUID) -> ClockStopwatch {
+        if ReferenceScene.isActive, let s = sceneStopwatch { return s }
+        return stopwatches[id] ?? ClockStopwatch()
+    }
 
     func toggleStopwatch(_ id: UUID) {
         var s = stopwatch(id)
@@ -225,6 +236,7 @@ final class ClockTimerEngine {
     // MARK: Pomodoro
 
     func pomodoro(_ w: WidgetInstance) -> ClockPomodoro {
+        if ReferenceScene.isActive, let s = scenePomodoro { return s }
         let cfg = ClockPomodoroConfig(w)
         guard var s = pomodoros[w.id] else { return ClockPomodoro(countdown: ClockCountdown(duration: cfg.focus)) }
         if s.countdown.isIdle { s.countdown.duration = cfg.duration(s.phase) }
@@ -275,7 +287,10 @@ final class ClockTimerEngine {
 
     // MARK: Reminders (drink water, posture)
 
-    func reminder(_ id: UUID) -> ClockReminder? { reminders[id] }
+    func reminder(_ id: UUID) -> ClockReminder? {
+        if ReferenceScene.isActive, let s = sceneReminder { return s }
+        return reminders[id]
+    }
 
     private static func interval(_ w: WidgetInstance) -> TimeInterval {
         TimeInterval(max(1, w.int("interval", w.kind == .posture ? 45 : 30))) * 60
@@ -283,6 +298,7 @@ final class ClockTimerEngine {
 
     /// Starts the reminder cycle the first time the widget appears and follows interval edits.
     func registerReminder(_ w: WidgetInstance) {
+        guard !ReferenceScene.isActive else { return }
         let interval = Self.interval(w)
         if var s = reminders[w.id] {
             guard s.interval != interval else { return }
