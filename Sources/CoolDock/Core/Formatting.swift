@@ -72,7 +72,8 @@ enum Fmt {
         var cal = Calendar(identifier: calendarID)
         let loc = Locale(identifier: identifier)
         cal.locale = loc
-        cal.firstWeekday = lang == .fa ? 7 : Calendar.current.firstWeekday
+        // Reference renders pin Sunday so they don't depend on this Mac's region.
+        cal.firstWeekday = lang == .fa ? 7 : (ReferenceScene.isActive ? 1 : Calendar.current.firstWeekday)
         locale = loc
         calendar = cal
 
@@ -146,9 +147,10 @@ enum Fmt {
 
     static func relativeDay(_ date: Date) -> String {
         let cal = calendar
-        if cal.isDateInToday(date) { return L("Today") }
-        if cal.isDateInTomorrow(date) { return L("Tomorrow") }
-        if cal.isDateInYesterday(date) { return L("Yesterday") }
+        let today = ReferenceScene.date()
+        if cal.isDate(date, inSameDayAs: today) { return L("Today") }
+        if let d = cal.date(byAdding: .day, value: 1, to: today), cal.isDate(date, inSameDayAs: d) { return L("Tomorrow") }
+        if let d = cal.date(byAdding: .day, value: -1, to: today), cal.isDate(date, inSameDayAs: d) { return L("Yesterday") }
         return weekdayShort(date)
     }
 
