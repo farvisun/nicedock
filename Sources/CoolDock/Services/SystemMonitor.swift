@@ -37,6 +37,26 @@ final class SystemMonitor {
     @ObservationIgnored private var lastTicks: [UInt64]?
     @ObservationIgnored private var lastNet: (rx: UInt64, tx: UInt64, t: TimeInterval)?
     @ObservationIgnored private var tickCount = 0
+    @ObservationIgnored private var settingsObserver: NSObjectProtocol?
+
+    init() {
+        // Settings → Performance → System stats interval also retimes a sampler that is already running.
+        settingsObserver = NotificationCenter.default.addObserver(forName: .coolDockSettingsChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.followSampleInterval() }
+        }
+    }
+
+    /// Seconds between samples while widgets subscribe; nil while nothing does.
+    var sampleInterval: TimeInterval? { timer?.timeInterval }
+
+    private static var configuredInterval: TimeInterval { max(1, AppStore.shared.settings.systemSampleInterval) }
+
+    private func followSampleInterval() {
+        guard let timer, timer.timeInterval != Self.configuredInterval else { return }
+        timer.invalidate()
+        self.timer = nil
+        startTimer()
+    }
 
     func subscribe(_ id: String) {
         // Reference renders show seeded values (`seedReference`); live samples would overwrite them.
@@ -94,7 +114,7 @@ final class SystemMonitor {
 
     private func startTimer() {
         sample()
-        let interval = max(1, AppStore.shared.settings.systemSampleInterval)
+        let interval = Self.configuredInterval
         let t = Timer(timeInterval: interval, repeats: true) { _ in MainActor.assumeIsolated { SystemMonitor.shared.sample() } }
         t.tolerance = interval * 0.2
         RunLoop.main.add(t, forMode: .common)

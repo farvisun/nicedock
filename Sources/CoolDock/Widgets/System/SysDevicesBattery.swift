@@ -28,12 +28,8 @@ final class SysDeviceBatteryService {
         defer { inFlight = false }
         let skipProfiler = CommandLine.arguments.contains("--render")
         let list = await Task.detached(priority: .utility) { () -> [SysPeripheral] in
-            var all = SysDeviceBatteryService.readHID()
-            if !skipProfiler {
-                let known = Set(all.map { $0.name.lowercased() })
-                all += SysDeviceBatteryService.readProfiler().filter { !known.contains($0.name.lowercased()) }
-            }
-            return all
+            let hid = SysDeviceBatteryService.readHID()
+            return skipProfiler ? hid : SysDeviceBatteryService.merged(hid: hid, profiler: SysDeviceBatteryService.readProfiler())
         }.value
         if list != devices { devices = list }
         loaded = true
@@ -49,16 +45,28 @@ final class SysDeviceBatteryService {
             let service = IOIteratorNext(iterator)
             if service == 0 { break }
             defer { IOObjectRelease(service) }
-            func prop(_ key: String) -> Any? {
+            let device = peripheral { key in
                 IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
             }
-            guard let percent = (prop("BatteryPercent") as? NSNumber)?.intValue, percent > 0 else { continue }
-            let name = (prop("Product") as? String) ?? "Device"
-            let key = (prop("SerialNumber") as? String) ?? (prop("DeviceAddress") as? String) ?? name
-            guard seen.insert(key).inserted else { continue }
-            out.append(SysPeripheral(id: key, name: name, percent: min(100, percent), symbol: symbol(for: name, minor: nil)))
+            guard let device, seen.insert(device.id).inserted else { continue }
+            out.append(device)
         }
         return out
+    }
+
+    /// One `AppleDeviceManagementHIDEventService` entry, read through `prop` (registry key → value). Nil without a
+    /// battery level above 0. Keyed by serial number, else Bluetooth address, else name.
+    nonisolated static func peripheral(_ prop: (String) -> Any?) -> SysPeripheral? {
+        guard let percent = (prop("BatteryPercent") as? NSNumber)?.intValue, percent > 0 else { return nil }
+        let name = (prop("Product") as? String) ?? "Device"
+        let key = (prop("SerialNumber") as? String) ?? (prop("DeviceAddress") as? String) ?? name
+        return SysPeripheral(id: key, name: name, percent: min(100, percent), symbol: symbol(for: name, minor: nil))
+    }
+
+    /// HID devices first, then Bluetooth devices the HID registry didn't already list (same name, any case).
+    nonisolated static func merged(hid: [SysPeripheral], profiler: [SysPeripheral]) -> [SysPeripheral] {
+        let known = Set(hid.map { $0.name.lowercased() })
+        return hid + profiler.filter { !known.contains($0.name.lowercased()) }
     }
 
     /// Connected Bluetooth devices with battery fields (AirPods report left/right/case).
@@ -72,6 +80,12 @@ final class SysDeviceBatteryService {
         do { try proc.run() } catch { return [] }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         proc.waitUntilExit()
+        return parseProfiler(data)
+    }
+
+    /// `system_profiler SPBluetoothDataType -json` output → connected devices that report a battery level. With
+    /// several levels (AirPods left / right / case) the lowest earbud counts; the case is ignored.
+    nonisolated static func parseProfiler(_ data: Data) -> [SysPeripheral] {
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let sections = root["SPBluetoothDataType"] as? [[String: Any]] else { return [] }
         var out: [SysPeripheral] = []

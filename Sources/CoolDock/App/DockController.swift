@@ -110,6 +110,10 @@ final class DockWindowModel {
     @ObservationIgnored var plateFrame: CGRect = .zero
 
     init(screenID: String) { self.screenID = screenID }
+
+    /// Hidden with "Pause widgets while CoolDock is hidden" on: the strip is unmounted (timers and services stop)
+    /// and an empty frame of its last size keeps the footprint.
+    var widgetsPaused: Bool { !revealed && AppStore.shared.settings.pauseWhenHidden && lastStripSize != .zero }
 }
 
 // MARK: - Dock window (one per display)
@@ -198,8 +202,12 @@ final class DockWindow {
 
     func targetFrame(revealed: Bool = true) -> NSRect {
         let size = contentSize == .zero ? CGSize(width: 400, height: 120) : contentSize
-        let vf = screen.visibleFrame
-        let full = screen.frame
+        return Self.frame(settings, screenID: screenID, size: size, visible: screen.visibleFrame, full: screen.frame, revealed: revealed)
+    }
+
+    /// Where the Dock panel goes for the Layout settings (scenario, position, alignment, edge distance, floating origin)
+    /// on a display with `full` and `visible` frames. Hidden reveal scenarios park the panel just off the edge.
+    nonisolated static func frame(_ settings: Settings, screenID: String, size: CGSize, visible vf: NSRect, full: NSRect, revealed: Bool) -> NSRect {
         let edge = CGFloat(settings.edgeDistance)
         var x: CGFloat
         var y: CGFloat
@@ -546,20 +554,26 @@ final class DockController {
     }
 
     func targetScreens() -> [NSScreen] {
-        let s = AppStore.shared.settings
         let screens = NSScreen.screens
-        guard !screens.isEmpty else { return [] }
+        let ids = screens.map(Self.stableID)
+        let builtIn = screens.first { CGDisplayIsBuiltin(Self.displayID($0)) != 0 }.map(Self.stableID)
+        let targets = Self.targetIDs(AppStore.shared.settings, connected: ids, builtIn: builtIn, main: NSScreen.main.map(Self.stableID))
+        return targets.compactMap { id in screens.first { Self.stableID($0) == id } }
+    }
+
+    /// Displays (stable ids, in `connected` order) that get a Dock under Settings → Screens. One Display: the preferred
+    /// display, else the built-in one, else the main one. Attached Displays: the first attached display in the list
+    /// that is connected, or none.
+    nonisolated static func targetIDs(_ s: Settings, connected: [String], builtIn: String?, main: String?) -> [String] {
+        guard let first = connected.first else { return [] }
         switch s.screensMode {
         case .all:
-            return screens
+            return connected
         case .one:
-            if let pref = s.preferredDisplay, let match = screens.first(where: { Self.stableID($0) == pref }) { return [match] }
-            return [screens.first { CGDisplayIsBuiltin(Self.displayID($0)) != 0 } ?? NSScreen.main ?? screens[0]]
+            if let pref = s.preferredDisplay, connected.contains(pref) { return [pref] }
+            return [builtIn ?? main ?? first]
         case .attached:
-            for d in s.displays where d.attached {
-                if let match = screens.first(where: { Self.stableID($0) == d.id }) { return [match] }
-            }
-            return []
+            return s.displays.first { $0.attached && connected.contains($0.id) }.map { [$0.id] } ?? []
         }
     }
 

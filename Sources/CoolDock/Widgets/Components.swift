@@ -548,8 +548,12 @@ private struct FlipForRTL: ViewModifier {
 
 /// Opens URLs, apps and files.
 enum Open {
+    /// Receives the URL instead of opening it (tests: System Settings panes, apps and pages never open).
+    nonisolated(unsafe) static var interceptor: ((URL) -> Void)?
+
     static func url(_ s: String) {
         guard let u = URL(string: s) else { return }
+        if let interceptor { interceptor(u); return }
         NSWorkspace.shared.open(u)
     }
     static func path(_ p: String) {

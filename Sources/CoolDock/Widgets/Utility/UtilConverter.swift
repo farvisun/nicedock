@@ -13,7 +13,10 @@ struct UtilFXRate: Codable {
 @MainActor
 enum UtilFX {
     private static var memory: [String: UtilFXRate] = [:]
-    private static let ttl: TimeInterval = 12 * 3600
+    static let ttl: TimeInterval = 12 * 3600
+    /// Network lookup and clock; tests put a fixed rate and a moving clock here.
+    static var fetcher: (String, String) async throws -> Double = { try await fetch($0, $1) }
+    static var now: () -> Date = { Date() }
 
     static func key(_ from: String, _ to: String) -> String { "fx-\(from)-\(to)" }
 
@@ -22,6 +25,9 @@ enum UtilFX {
         guard ReferenceScene.isActive else { return }
         memory[key(from, to)] = UtilFXRate(rate: rate, fetched: Date())
     }
+
+    /// Drops the in-memory copies (the disk cache stays), as a relaunch does.
+    static func clearMemory() { memory.removeAll() }
 
     /// Last known rate, even if stale (for instant display).
     static func cached(_ from: String, _ to: String) -> Double? {
@@ -36,10 +42,10 @@ enum UtilFX {
         if from == to { return 1 }
         let k = key(from, to)
         let known = memory[k] ?? DiskCache.load(UtilFXRate.self, k)
-        if let known, Date().timeIntervalSince(known.fetched) < ttl { memory[k] = known; return known.rate }
+        if let known, now().timeIntervalSince(known.fetched) < ttl { memory[k] = known; return known.rate }
         do {
-            let r = try await fetch(from, to)
-            let value = UtilFXRate(rate: r, fetched: Date())
+            let r = try await fetcher(from, to)
+            let value = UtilFXRate(rate: r, fetched: now())
             memory[k] = value
             DiskCache.save(value, k)
             return r
@@ -156,12 +162,24 @@ struct UtilConverterView: View {
 
     private var result: String {
         guard let rate = currentRate else { return failed ? "—" : "…" }
-        let v = amount * rate
         // The (English) reference frame shows the amount in a euro locale ("436,03"); other languages keep their digits.
         if ReferenceScene.isActive && Localizer.language == .en {
-            return v.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "de_DE")))
+            return (amount * rate).formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "de_DE")))
         }
+        return Self.converted(amount, rate: rate)
+    }
+
+    /// The result line: two decimals, whole units from 100,000 up.
+    static func converted(_ amount: Double, rate: Double) -> String {
+        let v = amount * rate
         return Fmt.number(v, decimals: abs(v) >= 100_000 ? 0 : 2)
+    }
+
+    /// The typed amount as saved in the widget's config ("500", "12.5"); nil when it isn't a number.
+    static func storedAmount(_ text: String) -> String? {
+        guard let v = UtilDigits.parseAmount(text) else { return nil }
+        // Whole numbers drop the ".0". `Int(v)` traps beyond Int's range, so very large amounts keep Double's form.
+        return v == v.rounded() && abs(v) < 1e15 ? String(Int(v)) : String(v)
     }
 
     private var rateHelp: String {
@@ -180,8 +198,7 @@ struct UtilConverterView: View {
     }
 
     private func save() {
-        guard let v = UtilDigits.parseAmount(amountText) else { return }
-        let normalized = v == v.rounded() ? String(Int(v)) : String(v)
+        guard let normalized = Self.storedAmount(amountText) else { return }
         guard normalized != w.string("amount", "500") else { return }
         AppStore.shared.updateWidget(w.id) { $0.config["amount"] = normalized }
     }

@@ -36,8 +36,8 @@ struct DockReminder: Identifiable, Equatable {
 final class CalendarService {
     static let shared = CalendarService()
 
-    private(set) var eventsAccess: EKAuthorizationStatus = EKEventStore.authorizationStatus(for: .event)
-    private(set) var remindersAccess: EKAuthorizationStatus = EKEventStore.authorizationStatus(for: .reminder)
+    private(set) var eventsAccess: EKAuthorizationStatus = CalendarService.authorizationStatus(.event)
+    private(set) var remindersAccess: EKAuthorizationStatus = CalendarService.authorizationStatus(.reminder)
     private(set) var upcoming: [DockEvent] = []
     private(set) var reminders: [DockReminder] = []
     private(set) var eventDays: Set<String> = []
@@ -53,6 +53,9 @@ final class CalendarService {
     var hasEventSource: Bool { hasEventAccess || CalendarFeedService.shared.hasFeeds }
     var hasReminderAccess: Bool { remindersAccess == .fullAccess }
 
+    /// Calendar / Reminders permission as TCC reports it. Tests pin it, so they never see the user's real data.
+    nonisolated(unsafe) static var authorizationStatus: (EKEntityType) -> EKAuthorizationStatus = { EKEventStore.authorizationStatus(for: $0) }
+
     init() {
         observer = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: store, queue: .main) { _ in
             MainActor.assumeIsolated { CalendarService.shared.reload() }
@@ -63,13 +66,13 @@ final class CalendarService {
 
     func requestEvents() async {
         _ = try? await store.requestFullAccessToEvents()
-        eventsAccess = EKEventStore.authorizationStatus(for: .event)
+        eventsAccess = CalendarService.authorizationStatus(.event)
         reload()
     }
 
     func requestReminders() async {
         _ = try? await store.requestFullAccessToReminders()
-        remindersAccess = EKEventStore.authorizationStatus(for: .reminder)
+        remindersAccess = CalendarService.authorizationStatus(.reminder)
         reload()
     }
 
@@ -123,7 +126,7 @@ final class CalendarService {
 
     func reloadEvents() {
         guard !ReferenceScene.isActive else { return }
-        eventsAccess = EKEventStore.authorizationStatus(for: .event)
+        eventsAccess = CalendarService.authorizationStatus(.event)
         let now = Date()
         let cal = Calendar.current
         let start = cal.startOfDay(for: now)
@@ -209,7 +212,7 @@ final class CalendarService {
 
     func reloadReminders() {
         guard !ReferenceScene.isActive else { return }
-        remindersAccess = EKEventStore.authorizationStatus(for: .reminder)
+        remindersAccess = CalendarService.authorizationStatus(.reminder)
         guard hasReminderAccess else { reminders = []; return }
         let predicate = store.predicateForIncompleteReminders(withDueDateStarting: nil, ending: nil, calendars: nil)
         store.fetchReminders(matching: predicate) { items in
@@ -230,7 +233,7 @@ final class CalendarService {
     }
 
     func complete(_ reminder: DockReminder) {
-        guard let item = store.calendarItem(withIdentifier: reminder.id) as? EKReminder else { return }
+        guard hasReminderAccess, let item = store.calendarItem(withIdentifier: reminder.id) as? EKReminder else { return }
         item.isCompleted = true
         try? store.save(item, commit: true)
         reminders.removeAll { $0.id == reminder.id }

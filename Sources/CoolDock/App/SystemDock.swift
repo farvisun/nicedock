@@ -21,13 +21,18 @@ final class SystemDock {
         restartDock()
     }
 
+    /// What a layout scenario asks of the macOS Dock: hidden while CoolDock replaces it, else as the user had it.
+    enum Intent: Equatable { case hide, restore }
+
+    nonisolated static func intent(for scenario: LayoutScenario) -> Intent {
+        scenario == .replaceDock || scenario == .replaceAutoHide ? .hide : .restore
+    }
+
     /// Applies the macOS Dock side-effects a layout scenario needs.
     func apply(for scenario: LayoutScenario) {
-        switch scenario {
-        case .replaceDock, .replaceAutoHide:
-            hideSystemDock()
-        default:
-            restore()
+        switch Self.intent(for: scenario) {
+        case .hide: hideSystemDock()
+        case .restore: restore()
         }
     }
 

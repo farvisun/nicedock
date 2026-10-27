@@ -451,16 +451,12 @@ struct ScreensPane: View {
     }
 
     private func commitRename(_ id: String) {
-        mutate(id) { $0.customName = newName.trimmingCharacters(in: .whitespaces) }
+        store.settings.renameDisplay(id, to: newName)
         renaming = nil
     }
 
     private func move(_ id: String, _ delta: Int) {
-        var list = store.settings.displays
-        guard let i = list.firstIndex(where: { $0.id == id }) else { return }
-        let j = max(0, min(list.count - 1, i + delta))
-        list.swapAt(i, j)
-        store.settings.displays = list
+        store.settings.moveDisplay(id, by: delta)
     }
 
     private func identify(_ id: String) {
@@ -597,14 +593,24 @@ struct ShortcutRecorder: View {
         recording = true
         HotKeys.shared.uninstall()
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { e in
-            if e.keyCode == UInt16(kVK_Escape) { stop(); return nil }
-            let mods = HotKeys.carbonMask(e.modifierFlags)
-            guard mods != 0 else { NSSound.beep(); return nil }
-            if mods == UInt32(cmdKey), e.keyCode == UInt16(kVK_ANSI_Comma) { NSSound.beep(); return nil }
-            spec = HotKeySpec(keyCode: UInt32(e.keyCode), modifiers: mods, enabled: true)
-            stop()
+            switch Self.outcome(keyCode: e.keyCode, flags: e.modifierFlags) {
+            case .cancel: stop()
+            case .reject: NSSound.beep()
+            case .record(let recorded): spec = recorded; stop()
+            }
             return nil
         }
+    }
+
+    enum Outcome: Equatable { case cancel, reject, record(HotKeySpec) }
+
+    /// A key press while recording: Escape cancels; a key without modifiers, or ⌘, (Settings), is refused.
+    static func outcome(keyCode: UInt16, flags: NSEvent.ModifierFlags) -> Outcome {
+        if keyCode == UInt16(kVK_Escape) { return .cancel }
+        let mods = HotKeys.carbonMask(flags)
+        guard mods != 0 else { return .reject }
+        if mods == UInt32(cmdKey), keyCode == UInt16(kVK_ANSI_Comma) { return .reject }
+        return .record(HotKeySpec(keyCode: UInt32(keyCode), modifiers: mods, enabled: true))
     }
 
     private func stop() {
@@ -633,10 +639,15 @@ struct ModifierRecorder: View {
         recording = true
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged, .keyDown]) { e in
             if e.type == .keyDown { stop(); return nil }
-            let m = HotKeys.carbonMask(e.modifierFlags)
-            if m != 0 && m.nonzeroBitCount >= 2 { mask = m }
+            if let m = Self.mask(for: e.modifierFlags) { mask = m }
             return nil
         }
+    }
+
+    /// A held combination is taken once it has two or more modifiers (one alone would clash with typing).
+    static func mask(for flags: NSEvent.ModifierFlags) -> UInt32? {
+        let m = HotKeys.carbonMask(flags)
+        return m != 0 && m.nonzeroBitCount >= 2 ? m : nil
     }
 
     private func stop() {

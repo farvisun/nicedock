@@ -35,7 +35,7 @@ extension View {
 /// Tiny JSON disk cache shared by network-backed services (instant display after launch).
 enum DiskCache {
     static let dir: URL = {
-        let d = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("CoolDock", isDirectory: true)
+        let d = AppPaths.cacheDirectory
         try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
         return d
     }()

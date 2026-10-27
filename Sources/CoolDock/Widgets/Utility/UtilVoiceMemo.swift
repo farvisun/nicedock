@@ -24,7 +24,7 @@ final class UtilVoiceRecorder {
     private(set) var permissionDenied = false
     private(set) var failed = false
 
-    @ObservationIgnored private var recorder: AVAudioRecorder?
+    @ObservationIgnored private var recorder: UtilVoiceCapture?
     @ObservationIgnored private var player: AVAudioPlayer?
     @ObservationIgnored private let playerDelegate = UtilVoicePlayerDelegate()
     @ObservationIgnored private var accumulated: TimeInterval = 0
@@ -32,7 +32,14 @@ final class UtilVoiceRecorder {
     @ObservationIgnored private(set) var levels = [Float](repeating: 0, count: 16)
     @ObservationIgnored private var lastLevelAt = Date.distantPast
 
-    static let directory: URL = FileManager.default.homeDirectoryForCurrentUser
+    /// Microphone permission, the recorder for a new file and the clock. Tests replace them, so nothing is
+    /// recorded and no permission prompt appears there.
+    @ObservationIgnored var authorization: () -> AVAuthorizationStatus = { AVCaptureDevice.authorizationStatus(for: .audio) }
+    @ObservationIgnored var makeRecorder: (URL) throws -> UtilVoiceCapture = UtilVoiceRecorder.audioRecorder
+    @ObservationIgnored var now: () -> Date = { Date() }
+
+    /// ~/Music/CoolDock Voice Memos (a temporary folder in tests).
+    static var directory: URL = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Music/CoolDock Voice Memos", isDirectory: true)
 
     private static let nameFormatter: DateFormatter = {
@@ -42,7 +49,23 @@ final class UtilVoiceRecorder {
         return f
     }()
 
-    var elapsed: TimeInterval { accumulated + (resumedAt.map { Date().timeIntervalSince($0) } ?? 0) }
+    /// "Memo 2026-10-27 at 14.05.09.m4a": sorts by time in Finder, no characters Finder would refuse.
+    static func fileName(for date: Date) -> String { "Memo " + nameFormatter.string(from: date) + ".m4a" }
+
+    /// Mono AAC at 44.1 kHz with metering on, as the tile's level bars expect.
+    nonisolated static func audioRecorder(_ url: URL) throws -> UtilVoiceCapture {
+        let settings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 44_100,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+        ]
+        let r = try AVAudioRecorder(url: url, settings: settings)
+        r.isMeteringEnabled = true
+        return r
+    }
+
+    var elapsed: TimeInterval { accumulated + (resumedAt.map { now().timeIntervalSince($0) } ?? 0) }
     var isActive: Bool { state != .idle }
 
     /// Frozen recorder state for `--scene reference` renders (no microphone). No effect outside the scene.
@@ -61,7 +84,7 @@ final class UtilVoiceRecorder {
     /// User action only — may show the microphone permission prompt.
     func start() {
         guard state == .idle, !UtilEnv.rendering else { return }
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        switch authorization() {
         case .authorized:
             begin()
         case .notDetermined:
@@ -84,19 +107,12 @@ final class UtilVoiceRecorder {
         stopPlayback()
         do {
             try FileManager.default.createDirectory(at: Self.directory, withIntermediateDirectories: true)
-            let url = Self.directory.appendingPathComponent("Memo " + Self.nameFormatter.string(from: Date()) + ".m4a")
-            let settings: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: 44_100,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ]
-            let r = try AVAudioRecorder(url: url, settings: settings)
-            r.isMeteringEnabled = true
+            let url = Self.directory.appendingPathComponent(Self.fileName(for: now()))
+            let r = try makeRecorder(url)
             guard r.record() else { failed = true; return }
             recorder = r
             accumulated = 0
-            resumedAt = Date()
+            resumedAt = now()
             levels = [Float](repeating: 0, count: levels.count)
             state = .recording
         } catch {
@@ -114,7 +130,7 @@ final class UtilVoiceRecorder {
             state = .paused
         case .paused:
             r.record()
-            resumedAt = Date()
+            resumedAt = now()
             state = .recording
         case .idle:
             break
@@ -197,6 +213,18 @@ private final class UtilVoicePlayerDelegate: NSObject, AVAudioPlayerDelegate {
         DispatchQueue.main.async { MainActor.assumeIsolated { UtilVoiceRecorder.shared.playbackFinished() } }
     }
 }
+
+/// What the recorder uses of `AVAudioRecorder`; tests substitute a stand-in that records nothing.
+protocol UtilVoiceCapture: AnyObject {
+    @discardableResult func record() -> Bool
+    func pause()
+    func stop()
+    func updateMeters()
+    func averagePower(forChannel channelNumber: Int) -> Float
+    func peakPower(forChannel channelNumber: Int) -> Float
+}
+
+extension AVAudioRecorder: UtilVoiceCapture {}
 
 // MARK: - Tile
 

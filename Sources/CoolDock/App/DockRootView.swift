@@ -84,7 +84,7 @@ struct DockPlate: View {
 
     @ViewBuilder private var content: some View {
         let widgets = store.activeProfile.widgets
-        if !model.revealed && store.settings.pauseWhenHidden && model.lastStripSize != .zero {
+        if model.widgetsPaused {
             // Hidden dock: unmount widgets so their timers and services stop, keep the footprint.
             Color.clear.frame(width: model.lastStripSize.width, height: model.lastStripSize.height)
         } else if widgets.isEmpty && store.settings.runningApps == .hidden {

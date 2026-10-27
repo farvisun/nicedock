@@ -150,6 +150,8 @@ final class ClockTimerEngine {
     private(set) var reminders: [UUID: ClockReminder] = [:]
 
     @ObservationIgnored private var wake: Timer?
+    /// The engine's clock. Tests move it forward instead of waiting.
+    @ObservationIgnored var now: () -> Date = { Date() }
     @ObservationIgnored private var wakeObserver: Any?
 
     /// `--scene reference` only (seeded by `ClockScene`): the state every rendered instance shows,
@@ -178,7 +180,7 @@ final class ClockTimerEngine {
     }
 
     func toggleTimer(_ w: WidgetInstance) {
-        let now = Date()
+        let now = self.now()
         var s = timer(w)
         if s.isRunning {
             s.pause(now)
@@ -201,7 +203,7 @@ final class ClockTimerEngine {
         if w.int("minutes", 5) != minutes {
             AppStore.shared.updateWidget(w.id) { $0.config["minutes"] = String(minutes) }
         }
-        timers[w.id] = ClockCountdown(duration: duration, end: Date().addingTimeInterval(duration))
+        timers[w.id] = ClockCountdown(duration: duration, end: now().addingTimeInterval(duration))
         ClockAlerts.prepare()
         reschedule()
     }
@@ -215,7 +217,7 @@ final class ClockTimerEngine {
 
     func toggleStopwatch(_ id: UUID) {
         var s = stopwatch(id)
-        let now = Date()
+        let now = self.now()
         if let started = s.startedAt {
             s.accumulated += now.timeIntervalSince(started)
             s.startedAt = nil
@@ -227,7 +229,7 @@ final class ClockTimerEngine {
 
     func lap(_ id: UUID) {
         guard var s = stopwatches[id], s.isRunning else { return }
-        s.laps.append(s.elapsed(at: Date()))
+        s.laps.append(s.elapsed(at: now()))
         stopwatches[id] = s
     }
 
@@ -245,7 +247,7 @@ final class ClockTimerEngine {
     }
 
     func togglePomodoro(_ w: WidgetInstance) {
-        let now = Date()
+        let now = self.now()
         var s = pomodoro(w)
         if s.countdown.isRunning {
             s.countdown.pause(now)
@@ -259,7 +261,7 @@ final class ClockTimerEngine {
 
     func skipPhase(_ w: WidgetInstance) {
         let s = pomodoro(w)
-        pomodoros[w.id] = advanced(s, cfg: ClockPomodoroConfig(w), autoStart: s.countdown.isRunning, now: Date())
+        pomodoros[w.id] = advanced(s, cfg: ClockPomodoroConfig(w), autoStart: s.countdown.isRunning, now: now())
         reschedule()
     }
 
@@ -306,14 +308,14 @@ final class ClockTimerEngine {
             s.interval = interval
             reminders[w.id] = s
         } else {
-            reminders[w.id] = ClockReminder(interval: interval, due: Date().addingTimeInterval(interval))
+            reminders[w.id] = ClockReminder(interval: interval, due: now().addingTimeInterval(interval))
         }
         reschedule()
     }
 
     /// "I drank" / "Sat up": counts it and restarts the interval.
     func confirmReminder(_ w: WidgetInstance) {
-        let now = Date()
+        let now = self.now()
         var s = reminders[w.id] ?? ClockReminder(interval: Self.interval(w), due: now)
         s.interval = Self.interval(w)
         s.levelAtConfirm = s.level(at: now)
@@ -328,7 +330,7 @@ final class ClockTimerEngine {
     }
 
     func toggleReminderPause(_ w: WidgetInstance) {
-        let now = Date()
+        let now = self.now()
         var s = reminders[w.id] ?? ClockReminder(interval: Self.interval(w), due: now)
         if s.isPaused {
             s.levelAtConfirm = 0
@@ -373,7 +375,7 @@ final class ClockTimerEngine {
 
     /// Handles everything that has come due, then arms the next wake-up.
     func processDue() {
-        let now = Date()
+        let now = self.now()
 
         for (id, s) in timers {
             guard let end = s.end, end <= now else { continue }
@@ -439,7 +441,11 @@ enum ClockAlerts {
         center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
+    /// Receives every alert instead of the sound and the notification (tests).
+    static var sink: ((_ title: String, _ body: String, _ sound: Bool) -> Void)?
+
     static func post(title: String, body: String, sound: Bool) {
+        if let sink { sink(title, body, sound); return }
         guard !isRenderHarness else { return }
         if sound { NSSound(named: "Glass")?.play() }
         guard canNotify else { return }

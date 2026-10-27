@@ -40,6 +40,9 @@ final class MediaMailService {
     @ObservationIgnored private var lastFetch = Date.distantPast
     @ObservationIgnored private var inFlight = false
     @ObservationIgnored private var watcher: MediaAppWatcher?
+    /// Whether Mail runs, and the AppleScript bridge. Tests stand in for both, so no Automation prompt appears.
+    @ObservationIgnored var isRunning: (String) -> Bool = { Script.isRunning($0) }
+    @ObservationIgnored var runScript: (String) async -> NSAppleEventDescriptor? = { await Script.run($0) }
 
     private init() {
         watcher = MediaAppWatcher(bundleID: Self.bundleID) { running in
@@ -58,7 +61,7 @@ final class MediaMailService {
     }
 
     func refresh(force: Bool = false) async {
-        running = Script.isRunning(Self.bundleID)
+        running = isRunning(Self.bundleID)
         guard running, !MediaEnv.isRender, !inFlight else { return }
         guard force || Date().timeIntervalSince(lastFetch) > 60 else { return }
         inFlight = true
@@ -84,7 +87,7 @@ final class MediaMailService {
             return {n, t, s, subj}
         end tell
         """
-        guard let d = await Script.run(src), d.numberOfItems >= 4 else { return }
+        guard let d = await runScript(src), d.numberOfItems >= 4 else { return }
         lastFetch = Date()
         let snap = MediaMailSnapshot(unread: Int(d.atIndex(1)?.int32Value ?? 0), today: Int(d.atIndex(2)?.int32Value ?? 0),
                                      sender: d.atIndex(3)?.stringValue ?? "", subject: d.atIndex(4)?.stringValue ?? "")
@@ -247,6 +250,9 @@ final class MediaNotesService {
     @ObservationIgnored private var lastFetch = Date.distantPast
     @ObservationIgnored private var inFlight = false
     @ObservationIgnored private var watcher: MediaAppWatcher?
+    /// Whether Notes runs, and the AppleScript bridge. Tests stand in for both, so no Automation prompt appears.
+    @ObservationIgnored var isRunning: (String) -> Bool = { Script.isRunning($0) }
+    @ObservationIgnored var runScript: (String) async -> NSAppleEventDescriptor? = { await Script.run($0) }
 
     private init() {
         watcher = MediaAppWatcher(bundleID: Self.bundleID) { running in
@@ -264,7 +270,7 @@ final class MediaNotesService {
     }
 
     func refresh(force: Bool = false) async {
-        running = Script.isRunning(Self.bundleID)
+        running = isRunning(Self.bundleID)
         guard running, !MediaEnv.isRender, !inFlight else { return }
         guard force || Date().timeIntervalSince(lastFetch) > 60 else { return }
         inFlight = true
@@ -306,7 +312,7 @@ final class MediaNotesService {
             return {"", "", c}
         end tell
         """
-        guard let d = await Script.run(src), d.numberOfItems >= 3 else { return }
+        guard let d = await runScript(src), d.numberOfItems >= 3 else { return }
         lastFetch = Date()
         let title = d.atIndex(1)?.stringValue ?? ""
         let snap = MediaNoteSnapshot(title: title, body: Self.preview(d.atIndex(2)?.stringValue ?? "", title: title),

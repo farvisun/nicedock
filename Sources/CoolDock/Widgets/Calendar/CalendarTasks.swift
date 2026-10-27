@@ -306,6 +306,12 @@ enum CalTodoStore {
         let json = (try? JSONEncoder().encode(list)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
         AppStore.shared.updateWidget(id) { $0.config["items"] = json }
     }
+
+    /// New task at the end of the list (the panel's "New Task" field).
+    static func add(_ title: String, to id: UUID) { mutate(id) { $0.append(CalTodoItem(title: title)) } }
+
+    /// Checking a task off and deleting it both remove it.
+    static func remove(_ item: UUID, from id: UUID) { mutate(id) { $0.removeAll { $0.id == item } } }
 }
 
 struct CalTodoWidget: View {
@@ -343,7 +349,7 @@ struct CalTodoWidget: View {
         withAnimation(.easeOut(duration: 0.15)) { _ = checking.insert(item.id) }
         let id = w.id
         calAfterCheck {
-            CalTodoStore.mutate(id) { $0.removeAll { $0.id == item.id } }
+            CalTodoStore.remove(item.id, from: id)
             checking.remove(item.id)
         }
     }
@@ -375,12 +381,12 @@ struct CalTodoPanel: View {
                     ForEach(items) { item in
                         CalPanelTaskRow(title: item.title, color: .cdOrange, priority: nil, trailing: nil, done: checking.contains(item.id),
                                         onToggle: { complete(item) },
-                                        onDelete: { withAnimation(.easeOut(duration: 0.2)) { CalTodoStore.mutate(id) { $0.removeAll { $0.id == item.id } } } })
+                                        onDelete: { withAnimation(.easeOut(duration: 0.2)) { CalTodoStore.remove(item.id, from: id) } })
                     }
                 }
             }
             CalAddField(placeholder: L("New Task"), text: $draft) { title in
-                withAnimation(.easeOut(duration: 0.2)) { CalTodoStore.mutate(id) { $0.append(CalTodoItem(title: title)) } }
+                withAnimation(.easeOut(duration: 0.2)) { CalTodoStore.add(title, to: id) }
             }
         }
         .frame(width: 290)
@@ -391,7 +397,7 @@ struct CalTodoPanel: View {
         withAnimation(.easeOut(duration: 0.15)) { _ = checking.insert(item.id) }
         let id = id
         calAfterCheck {
-            CalTodoStore.mutate(id) { $0.removeAll { $0.id == item.id } }
+            CalTodoStore.remove(item.id, from: id)
             checking.remove(item.id)
         }
     }
