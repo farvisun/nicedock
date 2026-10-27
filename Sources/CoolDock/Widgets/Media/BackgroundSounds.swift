@@ -284,7 +284,8 @@ struct MediaSoundsTile: View {
     var body: some View {
         let playing = MediaSoundEngine.shared.isPlaying
         Tile(width: w.kind.spec.width) {
-            MediaSoundBars(animating: playing, color: playing ? p.accent(.cdTeal) : p.primary.opacity(0.85))
+            MediaSoundBars(animating: playing, color: playing ? p.accent(.cdTeal) : p.primary.opacity(0.885))
+                .offset(y: m.u(-0.75))
         }
         .gesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in Self.openPanel(w) }
             .exclusively(before: TapGesture().onEnded { Self.toggle(w) }))

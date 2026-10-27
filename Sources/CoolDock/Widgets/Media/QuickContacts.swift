@@ -112,8 +112,10 @@ struct MediaContactsTile: View {
     var body: some View {
         let model = MediaContactsModel.shared
         let ids = w.list("contacts")
-        Tile(width: w.kind.spec.width) {
-            if MediaEnv.demo {
+        Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 1.5)) {
+            if ReferenceScene.isActive {
+                avatars(MediaScene.contacts)
+            } else if MediaEnv.demo {
                 avatars(MediaContactsModel.demo)
             } else if !model.authorized {
                 TileMessage(symbol: "person.crop.circle.badge.exclamationmark",
@@ -132,7 +134,7 @@ struct MediaContactsTile: View {
                 Color.clear
             }
         }
-        .task(id: ids) { await model.load(ids) }
+        .task(id: ids) { if !ReferenceScene.isActive { await model.load(ids) } }
         .onWidgetRefresh(w.id) { Task { await model.load(ids, force: true) } }
     }
 

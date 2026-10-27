@@ -37,6 +37,12 @@ enum FinanceWidgets {
     }
 }
 
+/// Market green / red as the reference frames draw them (softer than the system accents).
+extension Color {
+    fileprivate static let finUp = Color(red: 50 / 255, green: 199 / 255, blue: 115 / 255)
+    fileprivate static let finDown = Color(red: 255 / 255, green: 82 / 255, blue: 82 / 255)
+}
+
 // MARK: - Quote (173 pt): "AAPL Apple Inc." / big price / "+3.29 (+1.12%)"
 
 private struct FinQuoteTile: View {
@@ -53,17 +59,17 @@ private struct FinQuoteTile: View {
                 TileMessage(symbol: "exclamationmark.triangle.fill", text: "\(key.symbol) · \(err)")
             } else {
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .firstTextBaseline, spacing: m.u(5)) {
+                    HStack(alignment: .firstTextBaseline, spacing: m.u(4.5)) {
                         Text(verbatim: key.symbol).dock(10, .bold)
                         if let name = q?.name, name != key.symbol {
-                            Text(verbatim: name).dock(10, .semibold, p.secondary)
+                            Text(verbatim: name).dock(9, .medium, p.secondary)
                         }
                     }
                     T(q.map(FinFormat.price) ?? "—").dock(22, .bold, q == nil ? p.tertiary : nil, mono: true)
                         .minimumScaleFactor(0.55)
-                        .padding(.top, m.u(3))
-                    T(q.map(FinFormat.change) ?? " ").dock(10.5, .semibold, p.accent(q?.isUp == false ? .cdRed : .cdGreen), mono: true)
-                        .padding(.top, m.u(1))
+                        .padding(.top, m.u(2))
+                    T(q.map(FinFormat.change) ?? " ").dock(10, .semibold, p.accent(q?.isUp == false ? .finDown : .finUp))
+                        .padding(.top, m.u(2))
                 }
             }
         }
@@ -84,29 +90,32 @@ private struct FinChartTile: View {
     var body: some View {
         let svc = FinService.shared
         let q = svc.quote(key)
-        let color: Color = q?.isUp == false ? .cdRed : .cdGreen
+        let color: Color = q?.isUp == false ? .finDown : .finUp
         Tile(width: w.kind.spec.width) {
             if q == nil, let err = svc.error(key) {
                 TileMessage(symbol: "exclamationmark.triangle.fill", text: "\(key.symbol) · \(err)")
             } else {
                 VStack(spacing: 0) {
                     HStack(alignment: .top, spacing: m.u(4)) {
-                        Text(verbatim: key.symbol).dock(10.5, .bold)
-                            .padding(.top, m.u(0.5))
+                        Text(verbatim: key.symbol).dock(10, .bold)
                         Spacer(minLength: 0)
                         VStack(alignment: .trailing, spacing: m.u(1)) {
-                            T(q.map(FinFormat.price) ?? "—").dock(11.5, .semibold, q == nil ? p.tertiary : nil, mono: true)
+                            T(q.map(FinFormat.price) ?? "—").dock(11.25, .semibold, q == nil ? p.tertiary : nil, mono: true)
                                 .minimumScaleFactor(0.6)
-                            T(q.map(FinFormat.percent) ?? " ").dock(9.5, .semibold, p.accent(color), mono: true)
+                            T(q.map(FinFormat.percent) ?? " ").dock(9, .semibold, p.accent(color), mono: true)
                         }
                     }
-                    .padding(.horizontal, m.u(13))
+                    .padding(.leading, m.u(13))
+                    .padding(.trailing, m.u(12.25))
                     .padding(.top, m.u(6))
                     Spacer(minLength: 0)
-                    FinSparkline(values: FinSparkline.smoothed(q?.points ?? [], buckets: 20), color: color, lineWidth: m.u(2), fillOpacity: 0.22, bottomRoom: 0.3)
-                        .frame(height: m.u(25))
-                        .padding(.horizontal, m.u(13))
-                        .padding(.bottom, m.u(2))
+                    // Line at 80 % so the area fill and stroke read softer, as in the reference.
+                    FinSparkline(values: FinSparkline.smoothed(q?.points ?? [], buckets: 20), color: p.accent(color).opacity(0.8), lineWidth: m.u(2),
+                                 fillOpacity: 0.4)
+                        .frame(height: m.u(21.75))
+                        .padding(.leading, m.u(14))
+                        .padding(.trailing, m.u(13.75))
+                        .padding(.bottom, m.u(6.5))
                 }
             }
         }
@@ -116,19 +125,18 @@ private struct FinChartTile: View {
     }
 }
 
-/// `AreaSparkline` with head-room below the lowest point so the gradient reads; always left-to-right.
+/// `AreaSparkline` scaled to the series' own range; always left-to-right.
 private struct FinSparkline: View {
     var values: [Double]
     var color: Color
     var lineWidth: CGFloat
     var fillOpacity: Double
-    var bottomRoom: Double = 0
 
     var body: some View {
         let lo = values.min() ?? 0, hi = values.max() ?? 1
         let span = max(hi - lo, abs(hi) * 0.001, 0.000_001)
         AreaSparkline(values: values, color: color, lineWidth: lineWidth, fillOpacity: fillOpacity,
-                      minValue: lo - span * bottomRoom, maxValue: hi)
+                      minValue: hi - span, maxValue: hi)
             .environment(\.layoutDirection, .leftToRight)
     }
 
@@ -178,13 +186,13 @@ private struct FinWatchlistTile: View {
     }
 
     private func row(_ k: FinKey, _ q: FinQuote?, _ err: String?) -> some View {
-        HStack(spacing: 0) {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
             Text(verbatim: k.symbol).dock(10, .bold)
-                .frame(width: m.u(48.5), alignment: .leading)
+                .frame(width: m.u(48), alignment: .leading)
             T(q.map(FinFormat.price) ?? "—").dock(10, .semibold, q == nil ? p.tertiary : nil, mono: true)
             Spacer(minLength: m.u(6))
             if let q {
-                T(FinFormat.percent(q)).dock(10, .semibold, p.accent(q.isUp ? .cdGreen : .cdRed), mono: true)
+                T(FinFormat.percent(q)).dock(8.75, .semibold, p.accent(q.isUp ? .finUp : .finDown), mono: true)
             } else if err != nil {
                 Image(systemName: "exclamationmark.triangle.fill").font(.system(size: m.u(9.5))).foregroundStyle(p.accent(.cdOrange))
                     .help(err ?? "")
@@ -202,7 +210,7 @@ private struct FinPanel: View {
     var body: some View {
         let svc = FinService.shared
         let q = svc.quote(key)
-        let color: Color = q?.isUp == false ? .cdRed : .cdGreen
+        let color: Color = q?.isUp == false ? .finDown : .finUp
         VStack(alignment: .leading, spacing: 12) {
             PanelHeader(title: key.symbol, subtitle: q?.name ?? (key.market == .crypto ? FinService.coinNames[key.symbol] : nil)) {
                 if let q {

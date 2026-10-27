@@ -1,8 +1,57 @@
-import Foundation
+import AppKit
 
 /// Reference-scene data for this family (see `ReferenceScene`). Returns nil for kinds it doesn't own.
+///
+/// The tiles read these values only while `ReferenceScene.isActive` (`--render … --scene reference`):
+/// no AppleScript, Contacts or audio is touched, and live data paths are unchanged.
+@MainActor
 enum MediaScene {
-    @MainActor static func prepare(_ kind: WidgetKind, _ variant: String?) -> [String: String]? {
-        nil
+    struct Track {
+        var name: String
+        var artist: String
+        var artwork: NSImage?
+        var isPlaying: Bool
+        var duration: Double
+        var position: Double
+        /// The reference frame catches the title marquee mid-scroll; this freezes it there (pt).
+        var titleScroll: CGFloat
+    }
+
+    private(set) static var track: Track?
+    private(set) static var mail: MediaMailSnapshot?
+    private(set) static var note: MediaNoteSnapshot?
+    private(set) static var contacts: [MediaContact] = []
+
+    static func prepare(_ kind: WidgetKind, _ variant: String?) -> [String: String]? {
+        switch kind {
+        case .nowPlaying, .nowPlayingHero:
+            track = Track(name: "Evil Ways (feat. J. Cole)", artist: "Drake", artwork: ReferenceScene.asset("album-drake-180.webp"),
+                          isPlaying: false, duration: 254, position: 3, titleScroll: kind == .nowPlaying ? 40 : 0)
+            return [:]
+        case .backgroundSounds:
+            return ["sound": "rain"]
+        case .mail:
+            mail = MediaMailSnapshot(unread: 12, today: 3, sender: "Alex Morgan", subject: "Project kickoff timeline")
+            return [:]
+        case .mailLatest:
+            mail = MediaMailSnapshot(unread: 5, today: 2, sender: "Alex Morgan", subject: "Project kickoff timeline")
+            return [:]
+        case .notes:
+            note = MediaNoteSnapshot(title: "Meeting notes", body: "Discuss launch timeline and assign owners for each workstream.", count: 8)
+            return [:]
+        case .quickContacts:
+            // The people in the reference frame are not among the bundled assets; this is the closest-matching order.
+            let people = [("lazar", "Lazar Stojkovic", "lazar-stojkovic-180.webp"),
+                          ("james", "James Ferguson", "james-ferguson-180.webp"),
+                          ("dave", "Dave Katague", "dave-katague-180.webp")]
+            contacts = people.map { id, name, file in
+                let initials = name.split(separator: " ").compactMap(\.first).map(String.init).joined()
+                return MediaContact(id: "scene-\(id)", name: name, initials: initials, phone: "+1 555 0100", email: "\(id)@example.com",
+                                    thumbnail: try? Data(contentsOf: ReferenceScene.assetsURL.appendingPathComponent(file)))
+            }
+            return [:]
+        default:
+            return nil
+        }
     }
 }
