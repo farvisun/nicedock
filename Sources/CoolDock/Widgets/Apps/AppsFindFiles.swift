@@ -23,7 +23,9 @@ struct AppsFindTile: View {
                     .frame(width: m.u(16))
                 ZStack(alignment: .leading) {
                     if query.isEmpty {
-                        Text(L("Find files…")).dock(13.25, .semibold, p.primary.opacity(0.25))
+                        Text(L("Find files…")).dock(13, .semibold, p.primary.opacity(0.25))
+                            // Half a device pixel left and up of the column, as in the reference frame.
+                            .transformEffect(CGAffineTransform(translationX: m.u(-0.25), y: m.u(-0.25)))
                             .allowsHitTesting(false)
                     }
                     if editing {
@@ -39,8 +41,16 @@ struct AppsFindTile: View {
                 .padding(.leading, m.u(9))
                 .padding(.trailing, m.u(6))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                CircleButton(symbol: direction == .rightToLeft ? "arrow.left" : "arrow.right", size: 18.5,
-                             fill: p.primary.opacity(0.24), foreground: p.primary, iconScale: 0.56, action: submit)
+                Button(action: submit) {
+                    Image(systemName: direction == .rightToLeft ? "arrow.left" : "arrow.right")
+                        .font(.system(size: m.u(10), weight: .black))
+                        .foregroundStyle(p.primary)
+                        .transformEffect(CGAffineTransform(translationX: m.u(direction == .rightToLeft ? 0.5 : -0.5), y: m.u(0.25)))
+                        .frame(width: m.u(18.5), height: m.u(18.5))
+                        .background(Circle().fill(p.primary.opacity(0.24)))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(PressableStyle())
             }
         }
         .contentShape(Rectangle())

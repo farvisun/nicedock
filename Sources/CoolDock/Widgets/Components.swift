@@ -13,14 +13,18 @@ struct Tile<Content: View>: View {
     var padding: EdgeInsets? = nil
     var fill: AnyShapeStyle? = nil
     var alignment: Alignment = .center
+    /// Corner radius in points at scale 1 (nil = the dock's tile radius) and curve style.
+    var radius: CGFloat? = nil
+    var cornerStyle: RoundedCornerStyle = .continuous
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         // The hairline border sits just outside the layout frame (as in the reference frames), so tiles
         // read as the same size while their interiors line up pixel for pixel.
         let outset = m.tileOutset
-        let shape = RoundedRectangle(cornerRadius: m.tileRadius, style: .continuous)
-        let outer = RoundedRectangle(cornerRadius: m.tileRadius + outset, style: .continuous)
+        let r = radius.map { m.u($0) } ?? m.tileRadius
+        let shape = RoundedRectangle(cornerRadius: r, style: cornerStyle)
+        let outer = RoundedRectangle(cornerRadius: r + outset, style: cornerStyle)
         let lw = 1 / max(displayScale, 1)
         content()
             .padding(padding.map { EdgeInsets(top: m.u($0.top), leading: m.u($0.leading), bottom: m.u($0.bottom), trailing: m.u($0.trailing)) } ?? EdgeInsets())
@@ -74,6 +78,87 @@ struct DockTextStyle: ViewModifier {
 
 /// Text with localized digits (Persian/Arabic numerals when enabled).
 func T(_ s: String) -> Text { Text(verbatim: Fmt.digits(s)) }
+
+// MARK: - Sub-pixel text placement
+
+/// SwiftUI sizes a `Text` up to whole device pixels and draws the run from the frame's leading edge, so a
+/// trailing-aligned label ends up to a device pixel short of the edge. Browsers (the cooldock.app frames) end the
+/// run exactly there. `TextRun.slack` is that rounding: the frame width minus the run's advance, measured with the
+/// same system font through Core Text.
+@MainActor
+enum TextRun {
+    private static var cache: [String: CGFloat] = [:]
+
+    static func slack(_ s: String, size: CGFloat, weight: Font.Weight, design: Font.Design, mono: Bool, scale: CGFloat) -> CGFloat {
+        // Estedad (Persian/Arabic) runs keep SwiftUI's placement.
+        guard !(Localizer.language.usesEstedad && AppStore.estedadEnabled), !s.isEmpty, scale > 0 else { return 0 }
+        let key = "\(s)|\(size)|\(weight)|\(design)|\(mono)|\(scale)"
+        if let hit = cache[key] { return hit }
+        var font = NSFont.systemFont(ofSize: size, weight: nsWeight(weight))
+        if design != .default, let d = font.fontDescriptor.withDesign(design == .rounded ? .rounded : design == .monospaced ? .monospaced : .serif) {
+            font = NSFont(descriptor: d, size: size) ?? font
+        }
+        if mono {
+            let d = font.fontDescriptor.addingAttributes([.featureSettings: [[
+                NSFontDescriptor.FeatureKey.typeIdentifier: kNumberSpacingType,
+                NSFontDescriptor.FeatureKey.selectorIdentifier: kMonospacedNumbersSelector
+            ]]])
+            font = NSFont(descriptor: d, size: size) ?? font
+        }
+        let line = CTLineCreateWithAttributedString(NSAttributedString(string: s, attributes: [.font: font]))
+        let width = CGFloat(CTLineGetTypographicBounds(line, nil, nil, nil))
+        let slack = max(0, (width * scale).rounded(.up) / scale - width)
+        if cache.count > 512 { cache.removeAll() }
+        cache[key] = slack
+        return slack
+    }
+
+    private static func nsWeight(_ w: Font.Weight) -> NSFont.Weight {
+        switch w {
+        case .ultraLight: return .ultraLight
+        case .thin: return .thin
+        case .light: return .light
+        case .medium: return .medium
+        case .semibold: return .semibold
+        case .bold: return .bold
+        case .heavy: return .heavy
+        case .black: return .black
+        default: return .regular
+        }
+    }
+}
+
+extension View {
+    /// Trailing-aligned `.dock` text: moves the run by its pixel rounding so it ends exactly on the trailing edge.
+    /// `s` is the displayed string (after `Fmt.digits`); size/weight/design/mono as passed to `.dock`.
+    func runTrailing(_ s: String, _ size: CGFloat, _ weight: Font.Weight = .semibold, design: Font.Design = .rounded,
+                     mono: Bool = false) -> some View {
+        modifier(TextRunShift(s: s, size: size, weight: weight, design: design, mono: mono))
+    }
+}
+
+private struct TextRunShift: ViewModifier {
+    @Environment(\.metrics) private var m
+    @Environment(\.displayScale) private var scale
+    @Environment(\.layoutDirection) private var direction
+    var s: String
+    var size: CGFloat
+    var weight: Font.Weight
+    var design: Font.Design
+    var mono: Bool
+
+    func body(content: Content) -> some View {
+        // Left-to-right only: right-to-left rows keep SwiftUI's placement.
+        let dx = direction == .leftToRight
+            ? TextRun.slack(s, size: m.u(size), weight: weight, design: design, mono: mono, scale: scale) : 0
+        if dx == 0 {
+            content
+        } else {
+            // `transformEffect` keeps the fractional offset (`.offset` snaps to whole device pixels).
+            content.transformEffect(CGAffineTransform(translationX: dx, y: 0))
+        }
+    }
+}
 
 // MARK: - Ring gauge
 
@@ -282,6 +367,25 @@ struct TileIconButton: View {
 }
 
 // MARK: - App icons
+
+/// The site's Notes, Mail and Calendar icons are bitmaps the browser resamples: their squircle has rounder corners
+/// than the system mask (26 % of the side), its edge sits a fraction of a device pixel inside the icon box and
+/// every edge is slightly soft. Drawn icons use this shape and `appIconSoftness` to read the same.
+enum AppIconFinish {
+    /// The icon's squircle in a canvas of `size`.
+    static func shape(_ size: CGSize) -> Path {
+        let inset = size.width * 0.1 / 36
+        let r = CGRect(origin: .zero, size: size).insetBy(dx: inset, dy: inset)
+        return Path(roundedRect: r, cornerRadius: size.width * 0.26 - inset, style: .continuous)
+    }
+}
+
+extension View {
+    /// Resampling softness of the site's app icon bitmaps (a quarter point at 36 pt).
+    func appIconSoftness(_ side: CGFloat) -> some View {
+        blur(radius: side * 0.25 / 36)
+    }
+}
 
 /// Thread-safe, size-bucketed NSWorkspace icon cache. Icons are rendered once at the needed pixel size.
 enum IconCache {

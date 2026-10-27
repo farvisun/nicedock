@@ -245,10 +245,11 @@ private struct ConnShopifyTodayTile: View {
                     .frame(maxWidth: m.u(width - 65 - 8), alignment: .leading)
                     .padding(.leading, m.u(65))
                     .connBaseline(m.u(38.5))
+                // Caption and delta are SF Pro 9 medium in the reference frame, like the other tiles' captions.
                 HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
-                    Text(L("total sales")).dock(9, .semibold, p.secondary)
+                    Text(L("total sales")).dock(9, .medium, p.secondary, design: .default)
                     if let d = s?.metric(ConnKey.valueDelta) {
-                        T(ConnFmt.delta(d)).dock(9, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
+                        T(ConnFmt.delta(d)).dock(9, .medium, p.accent(d >= 0 ? .cdGreen : .cdRed), design: .default)
                     }
                     if state.stale { ConnWarning() }
                 }
@@ -293,8 +294,11 @@ private struct ConnTableTile: View {
                             Circle().fill(p.accent(dot)).frame(width: m.u(6), height: m.u(6)).padding(.trailing, m.u(4))
                                 .alignmentGuide(.firstTextBaseline) { $0[.bottom] + m.u(0.5) }
                         }
+                        // Values that end the row sit exactly on the trailing edge (Dub, Resend, Supabase); the
+                        // Shopify table's values and deltas keep the whole-pixel placement its frame shows.
                         T(row.value).dock(10, .bold, state.snap == nil ? p.tertiary : nil, mono: true)
                             .minimumScaleFactor(0.6)
+                            .runTrailing(hasDeltas ? "" : Fmt.digits(row.value), 10, .bold, mono: true)
                             .connNudge(w.kind, .value)
                         if hasDeltas, let d = row.delta {
                             // SF Pro 9 medium in the reference frame (the deltas' own font, not the tile's Rounded).
@@ -476,10 +480,12 @@ private struct ConnAITile: View {
                     .frame(maxWidth: m.u(width - 12), alignment: .leading)
                     .padding(.leading, m.u(6))
                     .connBaseline(m.u(41.5))
-                Text(ConnAIText.detail(s)).dock(8, .semibold, p.tertiary)
+                // SF Pro 8 medium with tabular digits, half a device pixel left of the caption column (reference frame).
+                Text(ConnAIText.detail(s)).dock(8, .medium, p.tertiary, mono: true, design: .default)
+                    .transformEffect(CGAffineTransform(translationX: m.u(-0.25), y: 0))
                     .lineLimit(1)
                     .frame(maxWidth: m.u(width - 12), alignment: .leading)
-                    .padding(.leading, m.u(5))
+                    .padding(.leading, m.u(6))
                     .connBaseline(m.u(53.5))
                 ConnBrandMark(brand: ConnService.brand(w), size: 18)
                     .padding(.top, m.u(7))

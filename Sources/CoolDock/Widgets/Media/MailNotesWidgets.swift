@@ -113,7 +113,7 @@ struct MediaMailIcon: View {
         let s = m.u(size)
         Canvas { ctx, sz in
             let w = sz.width, h = sz.height
-            let tile = Path(roundedRect: CGRect(origin: .zero, size: sz), cornerRadius: w * 0.225, style: .continuous)
+            let tile = AppIconFinish.shape(sz)
             ctx.fill(tile, with: .linearGradient(Gradient(colors: [Color(hex: "#5CC4F7"), Color(hex: "#1B6EFB")]),
                                                  startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
             // Frosted body with a soft drop shadow, lighter fold lines, opaque white top flap.
@@ -139,6 +139,7 @@ struct MediaMailIcon: View {
             inner.stroke(flap, with: .color(.white), style: StrokeStyle(lineWidth: w * 0.04, lineJoin: .round))
         }
         .frame(width: s, height: s)
+        .appIconSoftness(s)
     }
 }
 
@@ -165,7 +166,8 @@ struct MediaMailTile: View {
                                 Text(L("+%@ today", Fmt.int(snap.today)))
                             }
                         }
-                        .font(.dock(m.u(9), .semibold))
+                        // Tabular digits like the count above ("+3" is as wide as in the reference frame).
+                        .font(.dock(m.u(9), .semibold, mono: true))
                         .foregroundStyle(p.secondary)
                         .lineLimit(1)
                         .padding(.leading, m.u(-0.75))
@@ -360,7 +362,7 @@ struct MediaNotesIcon: View {
         let s = m.u(size)
         Canvas { ctx, sz in
             let w = sz.width, h = sz.height
-            let shape = Path(roundedRect: CGRect(origin: .zero, size: sz), cornerRadius: w * 0.225, style: .continuous)
+            let shape = AppIconFinish.shape(sz)
             ctx.clip(to: shape)
             ctx.fill(Path(CGRect(origin: .zero, size: sz)), with: .linearGradient(Gradient(colors: [Color(hex: "#FBFBFA"), Color(hex: "#EAEAEA")]),
                                                                                     startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
@@ -380,6 +382,7 @@ struct MediaNotesIcon: View {
             }
         }
         .frame(width: s, height: s)
+        .appIconSoftness(s)
     }
 }
 

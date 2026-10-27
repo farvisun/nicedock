@@ -376,12 +376,13 @@ struct SysCPUGraph: View {
         SysGraphLayout(width: w.kind.spec.width,
                        series: [.init(values: mon.cpuHistory, color: SysGraphColor.cyan, fill: 0.36, fade: 0.75)],
                        top: sysChartMax(mon.cpuHistory, floor: 0.08)) {
-            HStack(spacing: m.u(3.5)) {
+            HStack(spacing: m.u(3)) {
                 Image(systemName: "cpu")
                     .font(.system(size: m.u(10), weight: .semibold))
                     .foregroundStyle(p.accent(SysTint.cyan))
                     .offset(y: m.u(0.5))
-                Text(L("CPU")).dock(9, .semibold, p.secondary)
+                // SF Pro (not Rounded) in the reference frame.
+                Text(L("CPU")).dock(9, .semibold, p.secondary, design: .default)
                 Spacer(minLength: m.u(4))
                 Text(verbatim: Fmt.percent(mon.cpu)).dock(11, .bold, mono: true)
             }

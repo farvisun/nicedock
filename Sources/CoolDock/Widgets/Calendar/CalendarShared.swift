@@ -14,7 +14,7 @@ struct CalAppIcon: View {
         let slot = Self.todaySlot(date)
         Canvas { ctx, sz in
             let w = sz.width, h = sz.height
-            let shape = Path(roundedRect: CGRect(origin: .zero, size: sz), cornerRadius: w * 0.225, style: .continuous)
+            let shape = AppIconFinish.shape(sz)
             ctx.clip(to: shape)
             ctx.fill(shape, with: .linearGradient(Gradient(colors: [Color(white: 1), Color(white: 0.925)]),
                                                   startPoint: .zero, endPoint: CGPoint(x: 0, y: h)))
@@ -35,6 +35,7 @@ struct CalAppIcon: View {
             }
         }
         .frame(width: m.u(size), height: m.u(size))
+        .appIconSoftness(m.u(size))
         .environment(\.layoutDirection, .leftToRight)
     }
 

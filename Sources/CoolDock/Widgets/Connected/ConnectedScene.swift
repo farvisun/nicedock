@@ -70,7 +70,6 @@ enum ConnectedScene {
         .visitorsChart: [.value: (-2, -2), .caption: (-2, -2), .chart: (-2, -2), .mark: (0, -1)],
         .shopifyToday: [.icon: (0, 1)],
         .shopifyOverview: [.icon: (0, 1), .rows: (0, 1)],
-        .dubStats: [.value: (0.5, 0)],
         .socialX: [.icon: (4, 0), .value: (1, 0), .caption: (1, 0)],
         .socialTikTok: [.icon: (2, 0), .value: (-1, 0), .caption: (-1, 0)],
         .socialYouTube: [.value: (-3, 0), .caption: (-3, 0)]

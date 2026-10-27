@@ -147,6 +147,8 @@ struct UtilInlineField: View {
     var size: CGFloat
     var weight: Font.Weight = .medium
     var design: Font.Design = .rounded
+    /// Tabular digits (amount fields).
+    var mono = false
     var color: Color?
     var placeholderColor: Color? = nil
     var onSubmit: () -> Void = {}
@@ -157,11 +159,11 @@ struct UtilInlineField: View {
         ZStack(alignment: .leading) {
             if editing {
                 if text.isEmpty {
-                    Text(verbatim: placeholder).dock(size, weight, placeholderColor ?? p.tertiary, design: design).allowsHitTesting(false)
+                    Text(verbatim: placeholder).dock(size, weight, placeholderColor ?? p.tertiary, mono: mono, design: design).allowsHitTesting(false)
                 }
                 TextField("", text: $text)
                     .textFieldStyle(.plain)
-                    .font(.dock(m.u(size), weight, design: design))
+                    .font(.dock(m.u(size), weight, design: design, mono: mono))
                     .foregroundStyle(color ?? p.primary)
                     .lineLimit(1)
                     .focused($focused)
@@ -177,7 +179,7 @@ struct UtilInlineField: View {
                     .onChange(of: focused) { _, isFocused in if !isFocused { finish() } }
             } else {
                 Text(verbatim: text.isEmpty ? placeholder : text)
-                    .dock(size, weight, text.isEmpty ? (placeholderColor ?? p.tertiary) : (color ?? p.primary), design: design)
+                    .dock(size, weight, text.isEmpty ? (placeholderColor ?? p.tertiary) : (color ?? p.primary), mono: mono, design: design)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -296,8 +298,10 @@ struct UtilEmojiView: View {
             if i == min(items.count, 9) {
                 Button { NSApp.orderFrontCharacterPalette(nil) } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: m.u(12), weight: .medium))
+                        .font(.system(size: m.u(12.5), weight: .semibold))
                         .foregroundStyle(p.secondary)
+                        // A device pixel left of and half a pixel below the cell's centre, as in the reference frame.
+                        .transformEffect(CGAffineTransform(translationX: m.u(-0.5), y: m.u(0.25)))
                         .frame(width: m.u(28), height: m.u(28))
                         .contentShape(Rectangle())
                 }
