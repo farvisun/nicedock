@@ -1,0 +1,17 @@
+# Live capture Tue, 27 Oct 2026 01:39:51 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> GET https://api.anthropic.com/v1/cooldock-no-such-route
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+> x-api-key: sk-ant-admin01-invalid
+> anthropic-version: 2023-06-01
+>
+< HTTP/2 404
+< date: Tue, 27 Oct 2026 01:39:51 GMT
+< content-type: application/json
+< x-should-retry: false
+< server: cloudflare
+<

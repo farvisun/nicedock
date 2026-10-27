@@ -1,0 +1,70 @@
+{
+
+  "__ok": "INFO: With this boolean you can quickly check if you can expect a response",
+  "ok": true,
+  "docs": "https://docs.simpleanalytics.com/api",
+
+  "__info": "INFO: Disable these info fields by adding 'info=false' to the URL.",
+  "info": true,
+  "hostname": "simpleanalytics.com",
+  "url": "http://simpleanalytics.com",
+
+  "__path": "INFO: You can add a path to your domain (e.g. example.com/contact.json or via the pages param). counts are relative to only that path.",
+  "path": "*",
+  "start": "2026-10-20T20:30:00.000Z",
+  "end": "2026-10-26T20:29:59.999Z",
+
+  "__version": "INFO: API version. You are using the latest version. You can specify versions by adding 'version=6' to your URL (valid versions: 1, 2, 3, 4, 5, 6)",
+  "version": 6,
+
+  "__timezone": "INFO: You can change your timezone in your website settings",
+  "timezone": "Asia/Tehran",
+
+  "__pageviews": "INFO: Just a total of all pageviews",
+  "pageviews": 4892,
+
+  "__visitors": "INFO: Just a total of all visitors",
+  "visitors": 3287,
+
+  "__histogram": "INFO: This histogram is exactly the same as the chart in your dashboard",
+  "histogram": [
+    {
+      "date": "2026-10-21",
+      "pageviews": 754,
+      "visitors": 588
+    },
+    {
+      "date": "2026-10-22",
+      "pageviews": 900,
+      "visitors": 714
+    },
+    {
+      "date": "2026-10-23",
+      "pageviews": 741,
+      "visitors": 528
+    },
+    {
+      "date": "2026-10-24",
+      "pageviews": 444,
+      "visitors": 348
+    },
+    {
+      "date": "2026-10-25",
+      "pageviews": 1105,
+      "visitors": 366
+    },
+    {
+      "date": "2026-10-26",
+      "pageviews": 823,
+      "visitors": 646
+    },
+    {
+      "date": "2026-10-27",
+      "pageviews": 125,
+      "visitors": 97
+    }
+  ],
+
+  "__generated_in_ms": "INFO: Time needed to generate this response on the server in milliseconds",
+  "generated_in_ms": 829
+}

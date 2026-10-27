@@ -1,0 +1,16 @@
+# Live capture Tue, 27 Oct 2026 01:36:13 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> GET https://api.polar.sh/v1/metrics/?start_date=2026-10-21&end_date=2026-10-27&interval=day&timezone=Asia/Tehran
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+>
+< HTTP/2 401
+< date: Tue, 27 Oct 2026 01:36:13 GMT
+< content-type: application/json
+< polar-version: 2026-10
+< server: cloudflare
+< www-authenticate: Bearer realm="polar"
+<

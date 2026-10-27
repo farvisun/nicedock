@@ -1,0 +1,14 @@
+# Live capture Tue, 27 Oct 2026 01:39:00 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> GET https://open.tiktokapis.com/v2/user/info/?fields=follower_count,display_name
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+>
+< HTTP/2 401
+< server: nginx
+< content-type: application/json
+< date: Tue, 27 Oct 2026 01:39:00 GMT
+<

@@ -202,8 +202,13 @@ enum ConnShopify {
         return Window(start: start, prevStart: prevStart, prevEnd: prevEnd)
     }
 
+    /// Latest stable Admin API version (accessible until 2027-10-16). Retired versions such as the
+    /// 2024-10 used before are silently served by the oldest accessible one
+    /// (https://shopify.dev/docs/api/usage/versioning), so the pin must move with Shopify's schedule.
+    static let apiVersion = "2026-10"
+
     static func ordersURL(host: String, since: Date) throws -> URL {
-        try ConnHTTP.url("https://\(host)/admin/api/2024-10/orders.json", [
+        try ConnHTTP.url("https://\(host)/admin/api/\(apiVersion)/orders.json", [
             ("status", "any"), ("created_at_min", ConnDate.iso(since)), ("limit", "250"),
             ("fields", "total_price,current_total_price,created_at,currency,cancelled_at,test")
         ])
@@ -229,7 +234,7 @@ enum ConnShopify {
             try Task.checkCancellation()
         }
         if currency == nil {
-            let shopURL = try ConnHTTP.url("https://\(host)/admin/api/2024-10/shop.json", [("fields", "currency")])
+            let shopURL = try ConnHTTP.url("https://\(host)/admin/api/\(apiVersion)/shop.json", [("fields", "currency")])
             currency = shopCurrency(try? await ConnJSON.object(send(shopURL, headers).0))
         }
         return summarize(orders, currency: currency, range: range, now: now)

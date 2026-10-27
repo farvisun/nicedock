@@ -1,0 +1,55 @@
+{
+ "source": "https://api.supabase.com/api/v1-json",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://api.supabase.com"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/v1/projects/{ref}",
+   "security": [
+    {
+     "bearer": []
+    }
+   ],
+   "parameters": [
+    {
+     "name": "ref",
+     "in": "path",
+     "required": true
+    }
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/v1/projects/{ref}/analytics/endpoints/usage.api-counts",
+   "security": [
+    {
+     "bearer": []
+    }
+   ],
+   "parameters": [
+    {
+     "name": "ref",
+     "in": "path",
+     "required": true
+    },
+    {
+     "name": "interval",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "15min",
+      "30min",
+      "1hr",
+      "3hr",
+      "1day",
+      "3day",
+      "7day"
+     ]
+    }
+   ]
+  }
+ ]
+}

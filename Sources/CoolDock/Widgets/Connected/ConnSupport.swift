@@ -38,11 +38,9 @@ enum ConnHTTP {
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         if body != nil { req.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         headers.forEach { req.setValue($1, forHTTPHeaderField: $0) }
-        let (data, response) = try await Net.session.data(for: req)
+        let (data, response) = try await Net.load(req)
         guard let http = response as? HTTPURLResponse else { throw ConnError(L("Offline")) }
-        if !(200..<300).contains(http.statusCode) {
-            throw Net.HTTPError(status: http.statusCode, body: String(data: data.prefix(300), encoding: .utf8) ?? "")
-        }
+        if !(200..<300).contains(http.statusCode) { throw Net.HTTPError(response: http, data: data) }
         return (data, http)
     }
 
@@ -108,6 +106,47 @@ enum ConnHTTP {
             return value.lowercased().split(whereSeparator: \.isWhitespace).map(String.init)
         }
         return []
+    }
+}
+
+// MARK: - Error responses
+
+extension Net.HTTPError {
+    /// Non-2xx response → error whose message follows what the provider means, not only the status.
+    /// Each rule matches a response captured live (Tests/Fixtures/live-auth) or the provider's error docs.
+    init(response http: HTTPURLResponse, data: Data) {
+        self.init(status: http.statusCode, body: String(decoding: data.prefix(300), as: UTF8.self))
+        hint = Self.hint(status: http.statusCode, remaining: http.value(forHTTPHeaderField: "X-RateLimit-Remaining"),
+                         retryAfter: http.value(forHTTPHeaderField: "Retry-After"), data: data)
+    }
+
+    static func hint(status: Int, remaining: String? = nil, retryAfter: String? = nil, data: Data) -> Hint {
+        if status == 429 { return .rateLimited }
+        // GitHub: an exhausted primary limit is 403 (or 429) with `x-ratelimit-remaining: 0`; a
+        // secondary limit is 403 with `retry-after`.
+        if status == 403, remaining?.trimmingCharacters(in: .whitespaces) == "0" || retryAfter != nil { return .rateLimited }
+        guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return .none }
+
+        // Google APIs (YouTube): `error.errors[].reason` / `error.details[].reason`.
+        let google = ConnJSON.dict(obj["error"])
+        let reasons = Set((ConnJSON.array(google?["errors"]) + ConnJSON.array(google?["details"])).compactMap { ConnJSON.str($0["reason"]) })
+        if !reasons.isDisjoint(with: ["quotaExceeded", "rateLimitExceeded", "userRateLimitExceeded", "dailyLimitExceeded", "RATE_LIMIT_EXCEEDED"]) {
+            return .rateLimited
+        }
+        if !reasons.isDisjoint(with: ["API_KEY_INVALID", "keyInvalid", "keyExpired", "API_KEY_SERVICE_BLOCKED"]) { return .badCredential }
+
+        // GraphQL (Linear): `errors[].extensions.code`.
+        let codes = Set(ConnJSON.array(obj["errors"]).compactMap { ConnJSON.str(ConnJSON.path($0, "extensions.code")) })
+        if codes.contains("RATELIMITED") { return .rateLimited }
+        if codes.contains("AUTHENTICATION_ERROR") { return .badCredential }
+
+        // Resend: an unknown key is HTTP 400 `validation_error` "API key is invalid".
+        switch ConnJSON.str(obj["name"]) {
+        case "missing_api_key", "invalid_api_key", "restricted_api_key": return .badCredential
+        case "rate_limit_exceeded": return .rateLimited
+        case "validation_error" where (ConnJSON.str(obj["message"]) ?? "").localizedCaseInsensitiveContains("API key"): return .badCredential
+        default: return .none
+        }
     }
 }
 

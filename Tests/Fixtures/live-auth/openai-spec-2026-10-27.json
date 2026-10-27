@@ -1,0 +1,147 @@
+{
+ "source": "https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://api.openai.com/v1"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/organization/usage/completions",
+   "security": "AdminApiKeyAuth",
+   "parameters": [
+    {
+     "name": "start_time",
+     "in": "query",
+     "required": true
+    },
+    {
+     "name": "end_time",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "bucket_width",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "1m",
+      "1h",
+      "1d"
+     ]
+    },
+    {
+     "name": "project_ids",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "user_ids",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "api_key_ids",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "models",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "batch",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "group_by",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "project_id",
+      "user_id",
+      "api_key_id",
+      "model",
+      "batch",
+      "service_tier",
+      "api_source"
+     ]
+    },
+    {
+     "name": "limit",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "page",
+     "in": "query",
+     "required": false
+    }
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/organization/costs",
+   "security": "AdminApiKeyAuth",
+   "parameters": [
+    {
+     "name": "start_time",
+     "in": "query",
+     "required": true
+    },
+    {
+     "name": "end_time",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "bucket_width",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "1d"
+     ]
+    },
+    {
+     "name": "project_ids",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "api_key_ids",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "line_items",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "group_by",
+     "in": "query",
+     "required": false,
+     "enum": [
+      "project_id",
+      "user_id",
+      "line_item",
+      "api_key_id",
+      "api_source"
+     ]
+    },
+    {
+     "name": "limit",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "page",
+     "in": "query",
+     "required": false
+    }
+   ]
+  }
+ ]
+}
