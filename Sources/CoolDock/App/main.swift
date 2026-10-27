@@ -1,5 +1,10 @@
 import AppKit
 
+// `CoolDock --mcp`: stdio MCP server for AI assistants. Runs before NSApplication is created: no UI, no prompts.
+if CommandLine.arguments.contains("--mcp") {
+    MCPServer.runStdio()
+}
+
 MainActor.assumeIsolated {
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)

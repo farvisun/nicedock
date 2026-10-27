@@ -53,6 +53,12 @@ struct DockProfile: Codable, Identifiable, Hashable {
     var name: String
     var symbol: String = "square.grid.2x2"
     var widgets: [WidgetInstance] = []
+
+    /// Symbols offered for profile tabs (Settings → Profiles and the AI Assistant).
+    static let symbolChoices = ["house", "briefcase", "cpu", "music.note", "moon", "sun.max", "leaf", "flame", "graduationcap", "gamecontroller",
+                                "paintbrush", "chart.bar", "airplane", "cup.and.saucer", "heart", "star", "bolt", "terminal", "camera", "book"]
+    static let maxProfiles = 8
+    static let maxNameLength = 24
 }
 
 // MARK: - Categories

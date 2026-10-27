@@ -184,7 +184,7 @@ enum SettingsSearchIndex {
         case .widgets: return [L("Visibility"), L("Customize")]
         case .shortcuts: return [L("Hotkey"), L("Keyboard")]
         case .language: return ["فارسی", "Persian", "Estedad", L("Calendar"), L("Digits"), L("24-hour")]
-        case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Encrypted File"), L("Accessibility"), L("Calendar Feeds"), "ICS", "webcal"]
+        case .privacy: return [L("Permissions"), L("Keychain"), L("Credentials"), L("Encrypted File"), L("Accessibility"), L("Calendar Feeds"), "ICS", "webcal", L("AI Assistant"), "MCP", "Claude", "Codex", "Cursor", "VS Code"]
         case .performance: return [L("Memory"), L("CPU"), L("Cache")]
         case .about: return [L("Version")]
         }

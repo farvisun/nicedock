@@ -1132,3 +1132,23 @@
 "The unreadable file is renamed and kept next to the new one. Connected widgets will ask you to connect again." = "فایل ناخوانا تغییر نام می‌دهد و کنار فایل جدید نگه داشته می‌شود. ابزارک‌های متصل از شما می‌خواهند دوباره وصل شوید.";
 "In Use" = "در حال استفاده";
 "Switch…" = "انتخاب…";
+/* AI Assistant (MCP) */
+"AI Assistant" = "دستیار هوش مصنوعی";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "⁦Claude⁩، ⁦Codex⁩، ⁦Cursor⁩، ⁦VS Code⁩ و دیگر کلاینت‌های ⁦MCP⁩ می‌توانند ⁦CoolDock⁩ را بخوانند و تنظیم کنند، از سبک داک تا تنظیمات ابزارک‌ها، و بر اساس حال‌وهوا، فصل یا آب‌وهوا تصویر زمینه بسازند. توکن‌های ⁦API⁩ و دیگر اطلاعات محرمانه هرگز به اشتراک گذاشته نمی‌شوند.";
+"Enable AI Assistant" = "فعال‌سازی دستیار هوش مصنوعی";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "به دستیارهای این مک اجازه می‌دهد چیدمان داک شما را از طریق سرور ⁦MCP⁩ برنامهٔ ⁦CoolDock⁩ بخوانند.";
+"Allow Changes" = "اجازهٔ تغییرات";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "خاموش: دستیارها فقط می‌توانند بخوانند. روشن: می‌توانند داک، ابزارک‌ها، نمایه‌ها و تصویر زمینه را تغییر دهند.";
+"Turn on Enable AI Assistant first." = "ابتدا «فعال‌سازی دستیار هوش مصنوعی» را روشن کنید.";
+"Access" = "دسترسی";
+"Connect an Assistant" = "اتصال یک دستیار";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "تنظیمات را در دستیار خود جای‌گذاری کنید و سپس یک نشست تازه شروع کنید. دستیار خودش سرور ⁦MCP⁩ برنامهٔ ⁦CoolDock⁩ را اجرا می‌کند؛ هیچ درگاه شبکه‌ای باز نمی‌شود.";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "ابتدا ⁦CoolDock⁩ را به پوشهٔ ⁦Applications⁩ منتقل کنید: ⁦macOS⁩ اکنون آن را از یک مکان موقت اجرا می‌کند.";
+"Run in Terminal:" = "در ⁦Terminal⁩ اجرا کنید:";
+"Add to %@:" = "به ⁦%@⁩ اضافه کنید:";
+"Add to %@ in your workspace:" = "به ⁦%@⁩ در فضای کاری خود اضافه کنید:";
+"Other MCP clients" = "دیگر کلاینت‌های ⁦MCP⁩";
+"Command and argument:" = "فرمان و آرگومان:";
+"Can make changes" = "می‌تواند تغییر دهد";
+"Read-only" = "فقط خواندنی";
+"Copied" = "کپی شد";

@@ -1132,3 +1132,23 @@
 "The unreadable file is renamed and kept next to the new one. Connected widgets will ask you to connect again." = "El archivo ilegible se renombra y se guarda junto al nuevo. Los widgets conectados te pedirán que vuelvas a conectarlos.";
 "In Use" = "En uso";
 "Switch…" = "Cambiar…";
+/* AI Assistant (MCP) */
+"AI Assistant" = "Asistente de IA";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "Claude, Codex, Cursor, VS Code y otros clientes MCP pueden leer y configurar CoolDock, desde el estilo del Dock hasta los ajustes de los widgets, y pintar un fondo de pantalla según el estado de ánimo, la estación o el tiempo. Los tokens de API y otros secretos nunca se comparten.";
+"Enable AI Assistant" = "Activar el asistente de IA";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "Permite que los asistentes de este Mac lean la configuración de tu Dock a través del servidor MCP de CoolDock.";
+"Allow Changes" = "Permitir cambios";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "Desactivado: los asistentes solo pueden leer. Activado: pueden cambiar el Dock, los widgets, los perfiles y el fondo de pantalla.";
+"Turn on Enable AI Assistant first." = "Primero activa «Activar el asistente de IA».";
+"Access" = "Acceso";
+"Connect an Assistant" = "Conectar un asistente";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "Pega la configuración en tu asistente y luego inicia una sesión nueva. El asistente inicia el servidor MCP de CoolDock por sí mismo; no se abre ningún puerto de red.";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "Primero mueve CoolDock a la carpeta Aplicaciones: macOS lo está ejecutando desde una ubicación temporal.";
+"Run in Terminal:" = "Ejecuta en Terminal:";
+"Add to %@:" = "Añade a %@:";
+"Add to %@ in your workspace:" = "Añade a %@ en tu espacio de trabajo:";
+"Other MCP clients" = "Otros clientes MCP";
+"Command and argument:" = "Comando y argumento:";
+"Can make changes" = "Puede hacer cambios";
+"Read-only" = "Solo lectura";
+"Copied" = "Copiado";

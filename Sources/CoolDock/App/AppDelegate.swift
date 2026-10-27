@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SystemDock.shared.apply(for: store.settings.scenario)
         DockController.shared.start()
         HotKeys.shared.install()
+        AssistantBridge.start()
 
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated {
@@ -72,6 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     #endif
 
     func applicationWillTerminate(_ notification: Notification) {
+        AssistantBridge.stop()
         AppStore.shared.saveNow()
         SystemDock.shared.restore()
     }

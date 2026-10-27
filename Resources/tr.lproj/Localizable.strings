@@ -1132,3 +1132,23 @@
 "The unreadable file is renamed and kept next to the new one. Connected widgets will ask you to connect again." = "Okunamayan dosya yeniden adlandırılır ve yenisinin yanında saklanır. Bağlı widget'lar yeniden bağlanmanızı isteyecek.";
 "In Use" = "Kullanımda";
 "Switch…" = "Değiştir…";
+/* AI Assistant (MCP) */
+"AI Assistant" = "Yapay Zekâ Asistanı";
+"Claude, Codex, Cursor, VS Code and other MCP clients can read and configure CoolDock, from dock style to widget settings, and paint a wallpaper by mood, season or weather. API tokens and other secrets are never shared." = "Claude, Codex, Cursor, VS Code ve diğer MCP istemcileri, Dock stilinden widget ayarlarına kadar CoolDock'u okuyup yapılandırabilir ve ruh hâline, mevsime ya da havaya göre bir duvar kâğıdı çizebilir. API anahtarları ve diğer gizli bilgiler asla paylaşılmaz.";
+"Enable AI Assistant" = "Yapay Zekâ Asistanını Etkinleştir";
+"Lets assistants on this Mac read your Dock setup through CoolDock's MCP server." = "Bu Mac'teki asistanların Dock düzeninizi CoolDock'un MCP sunucusu üzerinden okumasına izin verir.";
+"Allow Changes" = "Değişikliklere İzin Ver";
+"Off: assistants can only read. On: they can change the Dock, widgets, profiles and the wallpaper." = "Kapalı: asistanlar yalnızca okuyabilir. Açık: Dock'u, widget'ları, profilleri ve duvar kâğıdını değiştirebilirler.";
+"Turn on Enable AI Assistant first." = "Önce “Yapay Zekâ Asistanını Etkinleştir” seçeneğini açın.";
+"Access" = "Erişim";
+"Connect an Assistant" = "Asistan Bağla";
+"Paste the setup into your assistant, then start a new session. The assistant starts CoolDock's MCP server itself; no network port is opened." = "Kurulumu asistanınıza yapıştırın, ardından yeni bir oturum başlatın. Asistan CoolDock'un MCP sunucusunu kendisi başlatır; hiçbir ağ bağlantı noktası açılmaz.";
+"Move CoolDock to the Applications folder first: macOS is running it from a temporary location." = "Önce CoolDock'u Uygulamalar klasörüne taşıyın: macOS şu anda onu geçici bir konumdan çalıştırıyor.";
+"Run in Terminal:" = "Terminal'de çalıştırın:";
+"Add to %@:" = "%@ dosyasına ekleyin:";
+"Add to %@ in your workspace:" = "Çalışma alanınızdaki %@ dosyasına ekleyin:";
+"Other MCP clients" = "Diğer MCP istemcileri";
+"Command and argument:" = "Komut ve argüman:";
+"Can make changes" = "Değişiklik yapabilir";
+"Read-only" = "Salt okunur";
+"Copied" = "Kopyalandı";

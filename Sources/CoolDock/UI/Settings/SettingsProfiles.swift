@@ -11,8 +11,7 @@ import SwiftUI
 struct ProfilesPane: View {
     @State private var editing: UUID?
     private var store: AppStore { .shared }
-    static let symbols = ["house", "briefcase", "cpu", "music.note", "moon", "sun.max", "leaf", "flame", "graduationcap", "gamecontroller",
-                          "paintbrush", "chart.bar", "airplane", "cup.and.saucer", "heart", "star", "bolt", "terminal", "camera", "book"]
+    static let symbols = DockProfile.symbolChoices
 
     var body: some View {
         PaneHeader(pane: .profiles, subtitle: L("Named Dock layouts for different workflows. Each keeps its own widgets and order. Up to eight."))
@@ -188,6 +187,7 @@ struct PrivacyPane: View {
         }
         .id(refresh)
         CalendarFeedsGroup()
+        AIAssistantGroup()
         CredentialStorageGroup()
     }
 
