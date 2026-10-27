@@ -5,8 +5,10 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: StatusItemController?
+    private var signalSources: [DispatchSourceSignal] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        quitOnTerminationSignals()
         DockFonts.registerBundledFonts()
         let store = AppStore.shared
         if let i = CommandLine.arguments.firstIndex(of: "--lang"), CommandLine.arguments.count > i + 1,
@@ -73,6 +75,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     #endif
+
+    /// `kill`, Ctrl-C and a closing terminal quit like ⌘Q: `applicationWillTerminate` then gives the macOS Dock back
+    /// (a "replace" layout hides it) instead of leaving it hidden with nothing in its place.
+    private func quitOnTerminationSignals() {
+        for sig in [SIGTERM, SIGINT, SIGHUP] {
+            signal(sig, SIG_IGN)
+            let source = DispatchSource.makeSignalSource(signal: sig, queue: .main)
+            source.setEventHandler { NSApp.terminate(nil) }
+            source.resume()
+            signalSources.append(source)
+        }
+    }
 
     func applicationWillTerminate(_ notification: Notification) {
         AssistantBridge.stop()
