@@ -21,7 +21,7 @@ struct MediaContactCardTile: View {
                 prompt("person.crop.circle.badge.plus", L("Choose a contact")) { WidgetSetup.customize(w) }
             } else if !model.authorized {
                 prompt("person.crop.circle.badge.exclamationmark",
-                       model.status == .notDetermined ? L("Allow Contacts access") : L("Contacts access off")) { model.requestAccess(then: ids) }
+                       model.accessPrompt) { model.requestAccess(then: ids) }
             } else if let list = model.contacts(ids) {
                 if let contact = list.first {
                     MediaContactCard(contact: contact)

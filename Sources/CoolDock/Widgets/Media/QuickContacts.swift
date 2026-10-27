@@ -30,7 +30,7 @@ extension MediaContact {
 final class MediaContactsModel {
     static let shared = MediaContactsModel()
 
-    private(set) var status = CNContactStore.authorizationStatus(for: .contacts)
+    private(set) var status = MediaContactsModel.authorizationStatus()
     private(set) var lists: [String: [MediaContact]] = [:]
     @ObservationIgnored private var images: [String: NSImage] = [:]
     @ObservationIgnored private var inFlight = Set<String>()
@@ -39,7 +39,13 @@ final class MediaContactsModel {
         status == .authorized
     }
 
-    func refreshStatus() { status = CNContactStore.authorizationStatus(for: .contacts) }
+    /// Contacts permission as TCC reports it. Tests pin it, so they never read the user's contacts.
+    nonisolated(unsafe) static var authorizationStatus: () -> CNAuthorizationStatus = { CNContactStore.authorizationStatus(for: .contacts) }
+
+    /// What a tile without access says: an invitation before the first answer, then that access is off.
+    var accessPrompt: String { status == .notDetermined ? L("Allow Contacts access") : L("Contacts access off") }
+
+    func refreshStatus() { status = Self.authorizationStatus() }
 
     /// Only ever called from a click — never on appear.
     func requestAccess(then reload: [String]) {
@@ -131,7 +137,7 @@ struct MediaContactsTile: View {
                 avatars(MediaContactsModel.demo)
             } else if !model.authorized {
                 TileMessage(symbol: "person.crop.circle.badge.exclamationmark",
-                            text: model.status == .notDetermined ? L("Allow Contacts access") : L("Contacts access off"), tint: .cdGreen)
+                            text: model.accessPrompt, tint: .cdGreen)
                     .contentShape(Rectangle())
                     .onTapGesture { model.requestAccess(then: ids) }
             } else if let list = model.contacts(ids) {

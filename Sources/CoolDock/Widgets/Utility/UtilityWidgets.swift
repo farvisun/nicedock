@@ -236,7 +236,9 @@ enum UtilDigits {
         } else if commas > 1 {
             s = s.replacingOccurrences(of: ",", with: "")
         }
-        return Double(s)
+        // "inf", "nan" and digit runs too long for a Double are not amounts.
+        guard let v = Double(s), v.isFinite else { return nil }
+        return v
     }
 }
 
@@ -272,12 +274,14 @@ struct UtilEmojiView: View {
     @Environment(\.palette) private var p
     @State private var copied: Int?
 
-    private var emoji: [String] {
+    /// The configured emoji in order, at most nine (the tenth cell is the "+" button). Spaces and commas are ignored;
+    /// each grapheme counts once, so flags, skin tones and ZWJ sequences stay whole.
+    static func items(_ w: WidgetInstance) -> [String] {
         Array(w.string("emoji").filter { !$0.isWhitespace && $0 != "," }.prefix(9)).map(String.init)
     }
 
     var body: some View {
-        let items = emoji
+        let items = Self.items(w)
         Tile(width: w.kind.spec.width) {
             VStack(spacing: 0) {
                 ForEach(0..<2, id: \.self) { row in
@@ -353,7 +357,9 @@ struct UtilColorPickerView: View {
         let list = w.string("colors").split(whereSeparator: { $0 == "\n" || $0 == "," || $0 == " " })
             .map { $0.hasPrefix("#") ? String($0) : "#" + $0 }
             .filter { $0.count == 7 || $0.count == 9 }
-        return Array((list.isEmpty ? fallback : list + fallback.filter { !list.contains($0) }).prefix(3))
+        // Hex case doesn't matter: a saved "#ee5450" is the default "#EE5450", not a second swatch of the same colour.
+        let taken = Set(list.map { $0.uppercased() })
+        return Array((list.isEmpty ? fallback : list + fallback.filter { !taken.contains($0) }).prefix(3))
     }
 
     var body: some View {
@@ -424,16 +430,26 @@ enum UtilColorPicking {
         s.show { color in
             MainActor.assumeIsolated {
                 sampler = nil
-                guard let color, let srgb = color.usingColorSpace(.sRGB) else { return }
-                let hex = String(format: "#%02X%02X%02X", Int((srgb.redComponent * 255).rounded()),
-                                 Int((srgb.greenComponent * 255).rounded()), Int((srgb.blueComponent * 255).rounded()))
-                let current = AppStore.shared.widget(w.id).map(UtilColorPickerView.colors) ?? UtilColorPickerView.colors(w)
-                let recents = Array(([hex] + current.filter { $0.uppercased() != hex }).prefix(3))
-                AppStore.shared.updateWidget(w.id) { $0.config["colors"] = recents.joined(separator: "\n") }
+                guard let color, let hex = hex(color) else { return }
+                remember(hex, for: w)
                 UtilPasteboard.copy(hex)
                 UtilColorPanel.show(w, hex: hex)
             }
         }
+    }
+
+    /// "#RRGGBB" in sRGB, components rounded.
+    static func hex(_ color: NSColor) -> String? {
+        guard let srgb = color.usingColorSpace(.sRGB) else { return nil }
+        return String(format: "#%02X%02X%02X", Int((srgb.redComponent * 255).rounded()),
+                      Int((srgb.greenComponent * 255).rounded()), Int((srgb.blueComponent * 255).rounded()))
+    }
+
+    /// Saves a picked colour as the first of the widget's three swatches (an earlier copy of it moves up).
+    static func remember(_ hex: String, for w: WidgetInstance) {
+        let current = AppStore.shared.widget(w.id).map(UtilColorPickerView.colors) ?? UtilColorPickerView.colors(w)
+        let recents = Array(([hex] + current.filter { $0.uppercased() != hex }).prefix(3))
+        AppStore.shared.updateWidget(w.id) { $0.config["colors"] = recents.joined(separator: "\n") }
     }
 }
 
@@ -462,6 +478,17 @@ enum UtilColorMath {
         return (Int(h.rounded()) % 360, Int((s * 100).rounded()), Int((l * 100).rounded()))
     }
 
+    /// The rows of the Color Details panel: HEX, RGB, HSL and a SwiftUI initializer.
+    static func formats(_ hex: String) -> [(String, String)] {
+        let c = rgb(hex), h = hsl(hex)
+        return [
+            (L("HEX"), hex.uppercased()),
+            (L("RGB"), "rgb(\(c.r), \(c.g), \(c.b))"),
+            (L("HSL"), "hsl(\(h.h), \(h.s)%, \(h.l)%)"),
+            (L("SwiftUI"), String(format: "Color(red: %.3f, green: %.3f, blue: %.3f)", Double(c.r) / 255, Double(c.g) / 255, Double(c.b) / 255))
+        ]
+    }
+
     static func isLight(_ hex: String) -> Bool {
         let c = rgb(hex)
         return (0.299 * Double(c.r) + 0.587 * Double(c.g) + 0.114 * Double(c.b)) / 255 > 0.62
@@ -485,13 +512,7 @@ private struct UtilColorPanelView: View {
     @State private var copied: String?
 
     var body: some View {
-        let c = UtilColorMath.rgb(hex), h = UtilColorMath.hsl(hex)
-        let formats: [(String, String)] = [
-            (L("HEX"), hex.uppercased()),
-            (L("RGB"), "rgb(\(c.r), \(c.g), \(c.b))"),
-            (L("HSL"), "hsl(\(h.h), \(h.s)%, \(h.l)%)"),
-            (L("SwiftUI"), String(format: "Color(red: %.3f, green: %.3f, blue: %.3f)", Double(c.r) / 255, Double(c.g) / 255, Double(c.b) / 255))
-        ]
+        let formats = UtilColorMath.formats(hex)
         VStack(alignment: .leading, spacing: 12) {
             PanelHeader(title: L("Color Picker")) {
                 Button { Panels.shared.close(); UtilColorPicking.pick(w) } label: {

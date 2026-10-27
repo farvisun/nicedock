@@ -35,9 +35,15 @@ final class AppStore {
     @ObservationIgnored private var saveWork: DispatchWorkItem?
     @ObservationIgnored private let fileURL: URL
 
-    private init() {
+    private convenience init() {
         AppPaths.ensureSupportDirectory()
-        fileURL = AppPaths.stateFile
+        self.init(stateFile: AppPaths.stateFile)
+    }
+
+    /// Loads the state saved at `stateFile` (defaults when it is missing or unreadable) and saves back there.
+    /// The app uses `shared`; tests open their own files in a temporary folder.
+    init(stateFile: URL) {
+        fileURL = stateFile
 
         if let data = try? Data(contentsOf: fileURL), let saved = try? JSONDecoder().decode(Persisted.self, from: data), !saved.profiles.isEmpty {
             settings = saved.settings
@@ -78,6 +84,9 @@ final class AppStore {
     }
 
     var activeIndex: Int { profiles.firstIndex { $0.id == activeProfileID } ?? 0 }
+
+    /// How profile switches and assistant changes animate; nil when Settings → Animations is off.
+    var switchAnimation: Animation? { settings.animations ? .spring(response: 0.35, dampingFraction: 0.86) : nil }
 
     private func applyDerived(old: Settings) {
         if settings.language != old.language || settings.calendarSystem != old.calendarSystem
@@ -159,7 +168,7 @@ final class AppStore {
     func switchProfile(to index: Int) {
         guard profiles.indices.contains(index) else { return }
         if activeProfileID != profiles[index].id {
-            withAnimation(settings.animations ? .spring(response: 0.35, dampingFraction: 0.86) : nil) {
+            withAnimation(switchAnimation) {
                 activeProfileID = profiles[index].id
             }
         }
@@ -207,7 +216,7 @@ final class AppStore {
     /// Applies a state produced by an assistant tool exactly like a change made in Settings: animated,
     /// propagated through the usual didSet hooks and saved by the regular debounce.
     func applyAssistantState(_ state: DockState, effects: [DockEffect]) {
-        withAnimation(settings.animations ? .spring(response: 0.35, dampingFraction: 0.86) : nil) {
+        withAnimation(switchAnimation) {
             if profiles != state.profiles { profiles = state.profiles }
             if activeProfileID != state.activeProfileID, state.profiles.contains(where: { $0.id == state.activeProfileID }) {
                 activeProfileID = state.activeProfileID

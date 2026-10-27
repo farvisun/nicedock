@@ -66,6 +66,9 @@ final class MediaSoundEngine {
     @ObservationIgnored private var teardownTask: Task<Void, Never>?
     @ObservationIgnored private var configObserver: NSObjectProtocol?
 
+    /// The audio engine exists (playing, or fading out for 1.2 s after Stop).
+    var isEngineRunning: Bool { engine != nil }
+
     func play(_ s: MediaNoise, volume v: Double) {
         teardownTask?.cancel()
         teardownTask = nil

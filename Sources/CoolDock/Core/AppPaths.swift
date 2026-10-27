@@ -4,6 +4,7 @@ import Foundation
 ///
 /// `COOLDOCK_SUPPORT_DIR` (environment) or `AppPaths.overrideDirectory` (tests) replaces
 /// `~/Library/Application Support/CoolDock`, so tests and the end-to-end MCP run never touch the user's state.
+/// A test runner that sets neither still gets a private temporary folder (`testRoot`), for state and caches alike.
 enum AppPaths {
     nonisolated(unsafe) static var overrideDirectory: URL?
 
@@ -12,9 +13,21 @@ enum AppPaths {
         if let env = ProcessInfo.processInfo.environment["COOLDOCK_SUPPORT_DIR"], !env.isEmpty {
             return URL(fileURLWithPath: (env as NSString).expandingTildeInPath, isDirectory: true)
         }
+        if let testRoot { return testRoot.appendingPathComponent("Support", isDirectory: true) }
         return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("CoolDock", isDirectory: true)
     }
+
+    /// `~/Library/Caches/CoolDock` (`DiskCache`, favicons, thumbnails).
+    static var cacheDirectory: URL {
+        if let testRoot { return testRoot.appendingPathComponent("Caches", isDirectory: true) }
+        return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("CoolDock", isDirectory: true)
+    }
+
+    /// Per-process temporary folder used instead of the user's Library when this process is a test runner.
+    static let testRoot: URL? = CredentialVault.isTestProcess
+        ? FileManager.default.temporaryDirectory.appendingPathComponent("CoolDockTests-\(ProcessInfo.processInfo.processIdentifier)", isDirectory: true)
+        : nil
 
     static var stateFile: URL { supportDirectory.appendingPathComponent("state.json") }
 

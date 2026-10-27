@@ -200,30 +200,43 @@ struct PrivacyPane: View {
 
     enum PermStatus { case granted, denied, notDetermined, info }
 
-    static func ekStatus(_ type: EKEntityType) -> PermStatus {
-        switch EKEventStore.authorizationStatus(for: type) {
+    static func ekStatus(_ type: EKEntityType) -> PermStatus { status(EKEventStore.authorizationStatus(for: type)) }
+    static func contactsStatus() -> PermStatus { status(CNContactStore.authorizationStatus(for: .contacts)) }
+    static func locationStatus() -> PermStatus { status(CLLocationManager().authorizationStatus) }
+    static func photosStatus() -> PermStatus { status(PHPhotoLibrary.authorizationStatus(for: .readWrite)) }
+
+    // What each permission row shows for a TCC answer. Write-only Calendar access can't feed the widgets.
+    static func status(_ s: EKAuthorizationStatus) -> PermStatus {
+        switch s {
         case .fullAccess, .authorized: return .granted
         case .denied, .restricted, .writeOnly: return .denied
         default: return .notDetermined
         }
     }
-    static func contactsStatus() -> PermStatus {
-        switch CNContactStore.authorizationStatus(for: .contacts) {
+    static func status(_ s: CNAuthorizationStatus) -> PermStatus {
+        switch s {
         case .authorized: return .granted
         case .denied, .restricted: return .denied
         default: return .notDetermined
         }
     }
-    static func locationStatus() -> PermStatus {
-        switch CLLocationManager().authorizationStatus {
+    static func status(_ s: CLAuthorizationStatus) -> PermStatus {
+        switch s {
         case .authorizedAlways: return .granted
         case .denied, .restricted: return .denied
         default: return .notDetermined
         }
     }
-    static func photosStatus() -> PermStatus {
-        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+    static func status(_ s: PHAuthorizationStatus) -> PermStatus {
+        switch s {
         case .authorized, .limited: return .granted
+        case .denied, .restricted: return .denied
+        default: return .notDetermined
+        }
+    }
+    static func status(_ s: AVAuthorizationStatus) -> PermStatus {
+        switch s {
+        case .authorized: return .granted
         case .denied, .restricted: return .denied
         default: return .notDetermined
         }
@@ -237,11 +250,7 @@ struct PrivacyPane: View {
         }
     }
     static func micStatus() -> PermStatus {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized: return .granted
-        case .denied, .restricted: return .denied
-        default: return .notDetermined
-        }
+        status(AVCaptureDevice.authorizationStatus(for: .audio))
     }
 }
 

@@ -267,6 +267,20 @@ struct Settings: Codable, Equatable {
     }
 }
 
+extension Settings {
+    /// Settings → Screens → Move Up / Move Down. With Attached Displays the first connected one in this order wins.
+    mutating func moveDisplay(_ id: String, by delta: Int) {
+        guard let i = displays.firstIndex(where: { $0.id == id }) else { return }
+        displays.swapAt(i, max(0, min(displays.count - 1, i + delta)))
+    }
+
+    /// Settings → Screens → Rename…. An empty name shows the display's own name again.
+    mutating func renameDisplay(_ id: String, to name: String) {
+        guard let i = displays.firstIndex(where: { $0.id == id }) else { return }
+        displays[i].customName = name.trimmingCharacters(in: .whitespaces)
+    }
+}
+
 struct CGPointCodable: Codable, Equatable {
     var x: Double
     var y: Double
