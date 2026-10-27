@@ -83,7 +83,10 @@ final class FinService {
     func keepFresh(_ keys: [FinKey], chart: Bool) async {
         guard let market = keys.first?.market else { return }
         while !Task.isCancelled {
-            for k in keys where !Task.isCancelled { await ensure(k, chart: chart) }
+            // Symbols load side by side so a watchlist fills in as fast as its slowest quote.
+            await withTaskGroup(of: Void.self) { group in
+                for k in keys { group.addTask { await self.ensure(k, chart: chart) } }
+            }
             try? await Task.sleep(for: .seconds(market.interval))
         }
     }
@@ -111,29 +114,59 @@ final class FinService {
         }
     }
 
-    /// Binance first; where it is blocked or unreachable, Yahoo Finance's `<SYM>-USD` pair (Binance is skipped for 30 min).
+    /// Binance first; Yahoo Finance's `<SYM>-USD` pair joins if Binance hasn't answered within 2.5 s (a firewall or
+    /// network holding the connection would otherwise leave the tile empty for the full timeouts) and takes over
+    /// for 30 min when Binance is unreachable. Unlisted coins fall through to Yahoo.
     private func fetchCrypto(_ k: FinKey, chart: Bool) async throws -> FinQuote {
-        if Date() >= binanceRetry {
-            do {
-                var q = try await Self.fetchBinance(k.symbol)
-                if chart {
-                    q.points = (try? await Self.fetchKlines(k.symbol)) ?? quotes[k.id]?.points ?? []
-                    chartFetched[k.id] = Date()
-                } else {
-                    q.points = quotes[k.id]?.points ?? []
-                }
-                return q
-            } catch let e as FinError where e.invalidSymbol {
-                // Not listed against USDT on Binance — Yahoo may still know it.
-            } catch {
-                binanceRetry = Date().addingTimeInterval(1800)
-            }
+        let symbol = k.symbol
+        let previous = quotes[k.id]?.points ?? []
+        let yahoo: @Sendable () async throws -> FinQuote = {
+            var q = try await Self.fetchYahoo("\(symbol)-USD", interval: "15m")
+            q.symbol = symbol
+            q.name = Self.coinNames[symbol] ?? q.name.replacingOccurrences(of: " USD", with: "")
+            return q
         }
-        var q = try await Self.fetchYahoo("\(k.symbol)-USD", interval: "15m")
-        q.symbol = k.symbol
-        q.name = Self.coinNames[k.symbol] ?? q.name.replacingOccurrences(of: " USD", with: "")
-        chartFetched[k.id] = Date()
+        guard Date() >= binanceRetry else {
+            chartFetched[k.id] = Date()
+            return try await yahoo()
+        }
+        let binance: @Sendable () async throws -> FinQuote = {
+            var q = try await Self.fetchBinance(symbol)
+            q.points = chart ? ((try? await Self.fetchKlines(symbol)) ?? previous) : previous
+            return q
+        }
+        let (q, fromBinance, binanceDown) = try await Self.race(binance, yahoo, after: 2.5)
+        if binanceDown { binanceRetry = Date().addingTimeInterval(1800) }
+        if chart || !fromBinance { chartFetched[k.id] = Date() }
         return q
+    }
+
+    /// Runs `first` and, after `delay`, `second`; returns the first success.
+    /// Also reports whether `first` failed for a reason other than an unknown symbol.
+    private nonisolated static func race(_ first: @escaping @Sendable () async throws -> FinQuote,
+                                         _ second: @escaping @Sendable () async throws -> FinQuote,
+                                         after delay: Double) async throws -> (FinQuote, fromFirst: Bool, firstDown: Bool) {
+        enum Outcome: Sendable { case first(Result<FinQuote, Error>), second(Result<FinQuote, Error>) }
+        return try await withThrowingTaskGroup(of: Outcome.self) { group in
+            group.addTask { do { return .first(.success(try await first())) } catch { return .first(.failure(error)) } }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(delay))
+                do { return .second(.success(try await second())) } catch { return .second(.failure(error)) }
+            }
+            var firstDown = false
+            var lastError: Error = FinError(invalidSymbol: false)
+            while let outcome = try await group.next() {
+                switch outcome {
+                case .first(.success(let q)): group.cancelAll(); return (q, true, false)
+                case .second(.success(let q)): group.cancelAll(); return (q, false, firstDown)
+                case .first(.failure(let e)):
+                    if !((e as? FinError)?.invalidSymbol ?? false) { firstDown = true }
+                    lastError = e
+                case .second(.failure(let e)): lastError = e
+                }
+            }
+            throw lastError
+        }
     }
 
     // MARK: Yahoo Finance
