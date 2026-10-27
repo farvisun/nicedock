@@ -52,7 +52,7 @@ Show All Windows · Hide · Quit / ⌥ Force Quit
 
 | Item | Needs | Covered by |
 |---|---|---|
-| Window list, Dock badges, generic New Window (File ▸ New Window), Safari private / profile windows | Accessibility permission for CoolDock, which only the user can grant in System Settings | AX title matching, badge formatting and menu-model unit tests; reference-scene renders in `en/`, `fa/` |
+| Window list, Dock badges, generic New Window (File ▸ New Window), Safari private / profile windows — on *other* apps | Accessibility permission for CoolDock, which only the user can grant in System Settings | The same code driven live against the test process's own windows and menus (no permission needed for itself; only the pid differs): [accessibility-live.md](accessibility-live.md). Badges: the reader degrades cleanly without the permission, the parser ran on a Dock-shaped tree. Plus AX title matching, badge formatting and menu-model unit tests; reference-scene renders in `en/`, `fa/` |
 | Open at Login | one-time Automation approval for System Events (a system prompt) | login-item path normalisation and parsing tests |
 | New Document (TextEdit, Pages…) | Automation approval for that app | menu presence above |
 | Show All Windows | runs Mission Control's App Exposé on screen | — |
