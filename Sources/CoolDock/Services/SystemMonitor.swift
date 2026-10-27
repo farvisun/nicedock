@@ -30,6 +30,9 @@ final class SystemMonitor {
     private(set) var temperature: Double?
 
     @ObservationIgnored private var subscribers = Set<String>()
+    /// Die temperature is read only for these (Temperature ring, details panel, "temperature high" rule):
+    /// the sensor read costs more than every other sample together.
+    @ObservationIgnored private var temperatureUsers = Set<String>()
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var lastTicks: [UInt64]?
     @ObservationIgnored private var lastNet: (rx: UInt64, tx: UInt64, t: TimeInterval)?
@@ -68,7 +71,25 @@ final class SystemMonitor {
 
     func unsubscribe(_ id: String) {
         subscribers.remove(id)
+        temperatureUsers.remove(id)
         if subscribers.isEmpty { timer?.invalidate(); timer = nil }
+    }
+
+    /// Subscribes like `subscribe` and also asks for die temperature.
+    func subscribeTemperature(_ id: String) {
+        guard !ReferenceScene.isActive else { return }
+        let first = temperatureUsers.isEmpty
+        temperatureUsers.insert(id)
+        subscribe(id)
+        if first { temperature = TemperatureSensors.cpuTemperature() }
+    }
+
+    /// `.demand(SystemMonitor.temperatureDemand)` for views that show the temperature.
+    static let temperatureDemand: DemandDriven = TemperatureDemand()
+
+    private final class TemperatureDemand: DemandDriven {
+        func subscribe(_ id: String) { SystemMonitor.shared.subscribeTemperature(id) }
+        func unsubscribe(_ id: String) { SystemMonitor.shared.unsubscribe(id) }
     }
 
     private func startTimer() {
@@ -88,7 +109,7 @@ final class SystemMonitor {
         if tickCount % 5 == 1 { samplePower() }
         if tickCount % 30 == 1 { sampleDisk() }
         thermal = ProcessInfo.processInfo.thermalState
-        if tickCount % 3 == 1 { temperature = TemperatureSensors.cpuTemperature() }
+        if !temperatureUsers.isEmpty && tickCount % 3 == 1 { temperature = TemperatureSensors.cpuTemperature() }
     }
 
     // MARK: CPU
@@ -217,6 +238,9 @@ enum TemperatureSensors {
     private typealias GetFloat = @convention(c) (AnyObject, Int32) -> Double
 
     nonisolated(unsafe) private static var handle: UnsafeMutableRawPointer? = dlopen("/System/Library/Frameworks/IOKit.framework/IOKit", RTLD_NOW)
+    /// One client and its sensor list for the app's lifetime (creating them is most of a read's cost).
+    nonisolated(unsafe) private static var client: AnyObject?
+    nonisolated(unsafe) private static var services: [AnyObject] = []
 
     static func cpuTemperature() -> Double? {
         guard let h = handle,
@@ -230,10 +254,14 @@ enum TemperatureSensors {
         let copyServices = unsafeBitCast(s, to: CopyServices.self)
         let copyEvent = unsafeBitCast(e, to: CopyEvent.self)
         let getFloat = unsafeBitCast(f, to: GetFloat.self)
-        guard let client = create(kCFAllocatorDefault)?.takeRetainedValue() else { return nil }
-        let matching = ["PrimaryUsagePage": 0xFF00, "PrimaryUsage": 5] as CFDictionary
-        _ = setMatching(client, matching)
-        guard let services = copyServices(client)?.takeRetainedValue() as? [AnyObject], !services.isEmpty else { return nil }
+        if services.isEmpty {
+            guard let made = client ?? create(kCFAllocatorDefault)?.takeRetainedValue() else { return nil }
+            client = made
+            let matching = ["PrimaryUsagePage": 0xFF00, "PrimaryUsage": 5] as CFDictionary
+            _ = setMatching(made, matching)
+            services = copyServices(made)?.takeRetainedValue() as? [AnyObject] ?? []
+        }
+        guard !services.isEmpty else { return nil }
         let kTemperatureEvent: Int64 = 15
         let field = Int32(kTemperatureEvent << 16)
         var values: [Double] = []

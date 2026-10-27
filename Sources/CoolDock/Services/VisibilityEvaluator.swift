@@ -23,6 +23,7 @@ final class VisibilityEvaluator {
             return SystemMonitor.shared.memory > 0.8
         case .temperatureHigh:
             ensureMonitor()
+            SystemMonitor.shared.subscribeTemperature("visibility")
             let t = SystemMonitor.shared
             return t.thermal == .serious || t.thermal == .critical || (t.temperature ?? 0) > 85
         case .lowBattery:

@@ -201,7 +201,7 @@ struct SysTemperatureRing: View {
             SysGlyph(symbol: "thermometer.medium", size: 12)
         }
         .onTapGesture { SysDetails.toggle(w) }
-        .demand(SystemMonitor.shared)
+        .demand(SystemMonitor.temperatureDemand)
     }
 }
 

@@ -55,7 +55,7 @@ struct SysDetailsPanel: View {
             }
         }
         .frame(width: 330)
-        .demand(SystemMonitor.shared)
+        .demand(SystemMonitor.temperatureDemand)
         .task {
             health = await SysBatteryHealth.read()
             await refreshProcesses()
