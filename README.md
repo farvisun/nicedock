@@ -5,7 +5,7 @@ tools shown on [cooldock.app](https://cooldock.app): music, todos, events, weath
 stats, quick actions and 110 widgets in one beautiful dock beside the macOS Dock.
 
 * Native Swift 6 toolchain, SwiftUI + AppKit, macOS 14 Sonoma or later
-* ~9 MB app bundle, ~32 MB memory, ~0 % CPU when idle
+* ~9 MB app bundle, ~34 MB memory (+4 MB for the Now Playing helper while a music widget is shown), ~0 % CPU when idle
 * 10 languages, full right-to-left support, Persian with the **Estedad** typeface,
   Solar Hijri calendar and Persian digits
 * Local-first: credentials live in the macOS Keychain, no account, no telemetry
