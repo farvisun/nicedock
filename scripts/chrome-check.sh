@@ -35,9 +35,31 @@ corners=("+0+0" "+$((rw-P))+0" "+0+$((rh-P))" "+$((rw-P))+$((rh-P))")
 for i in 1 2 3 4; do magick "$REF" -crop ${P}x${P}${corners[$i]} +repage "$OUT/.ref-c$i.png"; done
 
 # Same full-bleed design as a referenced sibling (the fill reaches the tile corners on purpose).
+# recentPhoto is full-bleed only when Photos access is granted and it shows a picture (the rounded mask still
+# matches: every plate pixel outside the reference corners stays plate); without access it is a normal tile.
 typeset -A FULLBLEED
 FULLBLEED=(posture drinkWater)
 BARE=" $(awk '/case \.[a-zA-Z]+:/ { match($0, /case \.[a-zA-Z]+/); k = substr($0, RSTART + 6, RLENGTH - 6) } /bare: true/ { print k }' "$ROOT/Sources/CoolDock/Core/WidgetCatalog.swift" | tr '\n' ' ') "
+# A picture tile passes when every reference corner pixel outside the tile (plate) is plate in the render too.
+photo_mask_ok() {
+  python3 - "$1" "$REF" "$P" <<'PY'
+import subprocess, sys
+ren, ref, P = sys.argv[1], sys.argv[2], int(sys.argv[3])
+def px(path, crop):
+    out = subprocess.run(['magick', path, '-crop', crop, '+repage', '-background', '#0B0B0B', '-alpha', 'remove',
+                          '-depth', '8', 'rgb:-'], capture_output=True).stdout
+    return [out[i:i + 3] for i in range(0, len(out), 3)]
+size = lambda p: [int(x) for x in subprocess.run(['magick', 'identify', '-format', '%w %h', p], capture_output=True, text=True).stdout.split()]
+(w, h), (rw, rh) = size(ren), size(ref)
+plate = bad = 0
+for (ax, ay), (bx, by) in [((0, 0), (0, 0)), ((w - P, 0), (rw - P, 0)), ((0, h - P), (0, rh - P)), ((w - P, h - P), (rw - P, rh - P))]:
+    for a, b in zip(px(ren, f'{P}x{P}+{ax}+{ay}'), px(ref, f'{P}x{P}+{bx}+{by}')):
+        if max(b) <= 0x0E:
+            plate += 1
+            bad += max(abs(x - y) for x, y in zip(a, b)) > 10
+sys.exit(0 if plate > 0 and bad == 0 else 1)
+PY
+}
 printf 'kind\tsize\theight_ok\twidth_ok\tcorner_match_pct\tresult\n' > "$OUT/chrome.tsv"
 for f in "$OUT"/render/*.png; do
   k=$(basename "$f" .png)
@@ -57,6 +79,7 @@ for f in "$OUT"/render/*.png; do
   if python3 -c "import sys; sys.exit(0 if $pct < 97 else 1)"; then res=fail; fi
   [ -f "$ROOT/docs/reference/$k.png" ] && res=referenced
   [ -n "${FULLBLEED[$k]:-}" ] && res="full-bleed"
+  if [ "$k" = recentPhoto ] && [ "$res" = fail ] && [ "$hok" = yes ] && [ "$wok" = yes ] && photo_mask_ok "$f"; then res="full-bleed"; fi
   case "$BARE" in *" $k "*) res=bare ;; esac
   printf '%s\t%sx%s\t%s\t%s\t%s\t%s\n' "$k" "$w" "$h" "$hok" "$wok" "$pct" "$res" >> "$OUT/chrome.tsv"
 done

@@ -108,7 +108,8 @@ private struct MediaYouTubeBadge: View {
 final class MediaPhotoModel {
     static let shared = MediaPhotoModel()
 
-    private(set) var status: PHAuthorizationStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    /// Reference renders never read the library: they show the permission prompt state on any Mac.
+    private(set) var status: PHAuthorizationStatus = MediaPhotoModel.currentStatus()
     private(set) var image: NSImage?
     private(set) var empty = false
     @ObservationIgnored private var assetID: String?
@@ -122,8 +123,12 @@ final class MediaPhotoModel {
         activate()
     }
 
+    private static func currentStatus() -> PHAuthorizationStatus {
+        ReferenceScene.isActive ? .notDetermined : PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    }
+
     private func activate() {
-        status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        status = Self.currentStatus()
         guard authorized, users > 0 else { return }
         if observer == nil {
             let o = MediaPhotoObserver()
