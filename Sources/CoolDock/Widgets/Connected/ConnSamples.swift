@@ -1,26 +1,11 @@
-#if DEBUG
 import SwiftUI
 
-/// DEBUG-only sample values matching the reference frames, for render-harness checks:
+/// Sample values matching the reference frames in `docs/reference`. Used by the `--scene reference`
+/// render in every build (through `ConnectedScene`) and, in DEBUG builds, by harness checks:
 ///
 ///     CD_SAMPLE=1 ./.build/debug/CoolDock --render /tmp/out category:finance
 ///     CD_SAMPLE=panel …   # renders the expanded panel instead of the tile
 enum ConnSample {
-    static let mode = ProcessInfo.processInfo.environment["CD_SAMPLE"] ?? ""
-    static let enabled = !mode.isEmpty && mode != "0"
-    static var panel: Bool { mode == "panel" }
-
-    /// `CD_CONN_CONFIG="user=octocat;range=30d"` merges config into harness instances (live checks).
-    static func override(_ w: WidgetInstance) -> WidgetInstance {
-        guard let raw = ProcessInfo.processInfo.environment["CD_CONN_CONFIG"], !raw.isEmpty else { return w }
-        var out = w
-        for pair in raw.split(separator: ";") {
-            let kv = pair.split(separator: "=", maxSplits: 1).map(String.init)
-            if kv.count == 2 { out.config[kv[0]] = kv[1] }
-        }
-        return out
-    }
-
     static func snapshot(_ w: WidgetInstance) -> ConnSnapshot? {
         var s = ConnSnapshot()
         s.signature = ConnService.signature(w)
@@ -30,7 +15,12 @@ enum ConnSample {
         s.seriesStep = range.step
         let n = 30
         let rising = (0..<n).map { i -> Double in 100 + pow(Double(i) / Double(n - 1), 2.6) * 70 }
-        let wavy = (0..<60).map { i -> Double in 50 + Double(i) * 0.32 + 3.2 * sin(Double(i) * 0.95) }
+        // Traced from the reference charts (least-squares fit of the smoothed line, 0…100).
+        let sales: [Double] = [0, 6.2, 11.8, 16.5, 18.1, 15.9, 10.6, 6.8, 7.6, 14.4, 23.6, 31.3, 33.8, 31.3, 27.0, 24.5,
+                               24.8, 25.2, 28.5, 35.1, 47.2, 63.5, 81.5, 100].map { 400 + $0 * 3 }
+        let wavy: [Double] = [0, 6.4, 10.2, 8.5, 5.6, 11.9, 19.3, 17.7, 13.8, 20.1, 29.2, 27.8, 21.7, 25.7, 33.5, 32.2,
+                              25.5, 30.3, 41.7, 42.6, 36.6, 39.4, 50.4, 51.6, 43.3, 45.0, 57.0, 59.4, 50.8, 50.8, 63.2, 67.8,
+                              60.0, 59.1, 71.2, 76.8, 69.1, 66.9, 79.7, 87.6, 78.2, 73.3, 85.6, 95.2, 87.0, 80.5, 88.4, 100].map { 150 + $0 * 0.4 }
         switch w.kind {
         case .polarRevenue:
             s.value = 12_450; s.currency = "USD"; s.metrics[ConnKey.orders] = 214; s.series = rising
@@ -45,7 +35,7 @@ enum ConnSample {
             s.metrics[ConnKey.valueDelta] = w.kind == .shopifyToday ? 0.27 : 0.22
             s.metrics[ConnKey.ordersDelta] = 0.17
             s.metrics[ConnKey.aovDelta] = 0.05
-            s.series = rising
+            s.series = sales
         case .plausible, .simpleAnalytics, .dataFast, .visitorsChart:
             s.value = 1_284; s.metrics[ConnKey.pageviews] = 3_910; s.series = wavy
         case .dubStats:
@@ -58,8 +48,8 @@ enum ConnSample {
             s.metrics[ConnKey.deliveredRate] = 0.93; s.metrics[ConnKey.bounced] = 6
             s.series = (0..<27).map { 20 + Double(($0 * 7) % 23) }
         case .githubContributions:
-            let pattern: [Double] = [6, 9, 4, 8, 10, 7, 3, 9, 11, 8, 5, 10, 9, 2]
-            s.series = (0..<91).map { pattern[$0 % pattern.count] }
+            // 14 weeks × 4 rows; every third cell (reading row by row) a shade darker, as in the reference.
+            s.series = (0..<56).map { day in (day % 4 * 14 + day / 4) % 3 == 2 ? 7 : 10 }
             s.value = 5
             s.metrics[ConnKey.today] = 5; s.metrics[ConnKey.week] = 23; s.metrics[ConnKey.streak] = 12
             s.metrics[ConnKey.total] = 1_942
@@ -81,6 +71,25 @@ enum ConnSample {
             return nil
         }
         return s
+    }
+
+}
+
+#if DEBUG
+extension ConnSample {
+    static let mode = ProcessInfo.processInfo.environment["CD_SAMPLE"] ?? ""
+    static let enabled = !mode.isEmpty && mode != "0"
+    static var panel: Bool { mode == "panel" }
+
+    /// `CD_CONN_CONFIG="user=octocat;range=30d"` merges config into harness instances (live checks).
+    static func override(_ w: WidgetInstance) -> WidgetInstance {
+        guard let raw = ProcessInfo.processInfo.environment["CD_CONN_CONFIG"], !raw.isEmpty else { return w }
+        var out = w
+        for pair in raw.split(separator: ";") {
+            let kv = pair.split(separator: "=", maxSplits: 1).map(String.init)
+            if kv.count == 2 { out.config[kv[0]] = kv[1] }
+        }
+        return out
     }
 
     /// Panel preview for the harness (no blur — ImageRenderer can't capture NSVisualEffectView).

@@ -7,15 +7,23 @@ enum ConnFmt {
     static func money(_ value: Double, _ code: String?, decimals: Int? = nil) -> String {
         guard let code, !code.isEmpty else { return count(value) }
         if abs(value) >= 1_000_000 {
-            let s = Fmt.currency(value / 1_000_000, code: code, decimals: 1)
+            let s = currency(value / 1_000_000, code, decimals: 1)
             return insertSuffix(L("M"), into: s)
         }
-        return Fmt.currency(value, code: code, decimals: decimals ?? (abs(value) >= 1000 ? 0 : 2))
+        return currency(value, code, decimals: decimals ?? (abs(value) >= 1000 ? 0 : 2))
     }
 
     /// "1 284" / "12K" / "1.2M" (compact above 100 000 so tiles never overflow).
     static func count(_ value: Double) -> String {
-        abs(value) >= 100_000 ? Fmt.compact(value) : Fmt.int(Int(value.rounded()))
+        if abs(value) >= 100_000 { return Fmt.compact(value) }
+        guard let loc = ConnectedScene.numberLocale else { return Fmt.int(Int(value.rounded())) }
+        return value.rounded().formatted(.number.precision(.fractionLength(0)).locale(loc))
+    }
+
+    /// `Fmt.currency`, or the reference frame's locale while rendering the reference scene.
+    private static func currency(_ value: Double, _ code: String, decimals: Int) -> String {
+        guard let loc = ConnectedScene.numberLocale else { return Fmt.currency(value, code: code, decimals: decimals) }
+        return value.formatted(.currency(code: code).precision(.fractionLength(decimals)).locale(loc))
     }
 
     /// "↑ 27%" / "↓ 4%".
@@ -59,7 +67,7 @@ struct ConnCaption: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
     var text: String
-    var size: CGFloat = 9.25
+    var size: CGFloat = 9
     var stale = false
 
     var body: some View {
@@ -135,7 +143,7 @@ struct ConnContributionGrid: View {
             let days = Array(counts.suffix(total))
             let padded = Array(repeating: -1.0, count: max(total - days.count, 0)) + days
             let levels = Self.levels(days)
-            let accent = p.accent(color)
+            let ramp = color == .cdGreen && !p.monochrome ? Self.greens : (1...4).map { p.accent(color).opacity([0.42, 0.62, 0.82, 1][$0 - 1]) }
             let pitchX = columns > 1 ? (size.width - dot) / CGFloat(columns - 1) : 0
             let pitchY = rows > 1 ? (size.height - dot) / CGFloat(rows - 1) : 0
             for i in 0..<total {
@@ -146,19 +154,17 @@ struct ConnContributionGrid: View {
                 if v < 0 {
                     fill = p.primary.opacity(0.06)
                 } else {
-                    switch levels(v) {
-                    case 0: fill = p.primary.opacity(0.12)
-                    case 1: fill = accent.opacity(0.42)
-                    case 2: fill = accent.opacity(0.62)
-                    case 3: fill = accent.opacity(0.82)
-                    default: fill = accent
-                    }
+                    let level = levels(v)
+                    fill = level == 0 ? p.primary.opacity(0.12) : ramp[level - 1]
                 }
                 ctx.fill(Path(ellipseIn: rect), with: .color(fill))
             }
         }
         .environment(\.layoutDirection, .leftToRight)
     }
+
+    /// GitHub-style green ramp (levels 1–4); the top two are measured from the reference frame.
+    static let greens: [Color] = [Color(hex: "#1B6A35"), Color(hex: "#24853F"), Color(hex: "#2EA14E"), Color(hex: "#42C464")]
 
     /// Four intensity levels relative to the 90th percentile of active days, so one outlier
     /// day doesn't wash out the rest of the grid.

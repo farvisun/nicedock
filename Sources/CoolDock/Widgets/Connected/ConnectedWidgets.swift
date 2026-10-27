@@ -63,9 +63,11 @@ private struct ConnShell<Content: View>: View {
     var body: some View {
         let store = ConnMetricStore.shared
         let token = ConnEnv.token(w.id)
-        let configured = ConnService.isConfigured(w, token: token)
-        let snap = store.snapshot(w)
-        let error = store.error(w)
+        // Reference-scene renders show seeded data and never start the refresh loop.
+        let scene = ConnectedScene.snapshot(w)
+        let configured = scene != nil || ConnService.isConfigured(w, token: token)
+        let snap = scene ?? store.snapshot(w)
+        let error = scene == nil ? store.error(w) : nil
         Button {
             if configured {
                 Panels.shared.toggle(w.id) { ConnPanel(w: w) }
@@ -88,7 +90,7 @@ private struct ConnShell<Content: View>: View {
         .buttonStyle(ConnTilePress())
         .if(error != nil) { $0.help(error ?? "") }
         .task(id: "\(ConnService.signature(w))#\(token?.hashValue ?? 0)#\(tick)#\(configured)") {
-            guard configured else { return }
+            guard configured, scene == nil else { return }
             await store.keepFresh(w)
         }
         .onWidgetRefresh(w.id) {
@@ -124,19 +126,22 @@ private struct ConnValueTile: View {
             let range = ConnService.range(w)
             ConnCanvas {
                 T(value(state.snap))
-                    .dock(19.5, .bold, state.snap == nil ? p.tertiary : nil, mono: true)
+                    .dock(20, .bold, state.snap == nil ? p.tertiary : nil)
                     .minimumScaleFactor(0.5)
                     .frame(maxWidth: m.u(width - 34), alignment: .leading)
                     .padding(.leading, m.u(6))
-                    .connBaseline(m.u(32.75))
+                    .connBaseline(m.u(32.25))
+                    .connNudge(w.kind, .value)
                 ConnCaption(text: "\(caption) · \(range.caption)", stale: state.stale)
                     .frame(maxWidth: m.u(width - 12), alignment: .leading)
                     .padding(.leading, m.u(6))
                     .connBaseline(m.u(47.5))
+                    .connNudge(w.kind, .caption)
                 ConnBrandMark(brand: ConnService.brand(w), size: 18)
                     .padding(.top, m.u(7.5))
                     .padding(.trailing, m.u(7))
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                    .connNudge(w.kind, .mark)
             }
         }
     }
@@ -170,29 +175,34 @@ private struct ConnChartTile: View {
             let s = state.snap
             ConnCanvas {
                 T(value(s))
-                    .dock(18.5, .bold, s == nil ? p.tertiary : nil, mono: true)
+                    .dock(18, .bold, s == nil ? p.tertiary : nil)
                     .minimumScaleFactor(0.5)
                     .frame(maxWidth: m.u(width - 36), alignment: .leading)
                     .padding(.leading, m.u(6))
-                    .connBaseline(m.u(23))
+                    .connBaseline(m.u(23.5))
+                    .connNudge(w.kind, .value)
                 ConnCaption(text: caption(s), stale: state.stale)
                     .frame(maxWidth: m.u(width - 36), alignment: .leading)
                     .padding(.leading, m.u(6))
-                    .connBaseline(m.u(36.5))
+                    .connBaseline(m.u(37.5))
+                    .connNudge(w.kind, .caption)
                 ConnBrandMark(brand: ConnService.brand(w), size: 18)
                     .padding(.top, m.u(7))
-                    .padding(.trailing, m.u(7.5))
+                    .padding(.trailing, m.u(7))
                     .frame(maxWidth: .infinity, alignment: .trailing)
-                ConnSparkline(values: s?.series ?? [], colors: colors, lineWidth: m.u(1.8), fillOpacity: 0.2)
-                    .frame(height: m.u(16))
-                    .padding(.horizontal, m.u(4.5))
-                    .padding(.top, m.u(41))
+                    .connNudge(w.kind, .mark)
+                // Fixed 220 pt plot (plus line insets), as in the reference frames.
+                ConnSparkline(values: s?.series ?? [], colors: colors, lineWidth: m.u(2), fillOpacity: 0.2)
+                    .frame(width: m.u(223), height: m.u(15))
+                    .padding(.leading, m.u(5.5))
+                    .padding(.top, m.u(42))
+                    .connNudge(w.kind, .chart)
             }
         }
     }
 
     private var colors: [Color] {
-        w.kind == .shopifyChart ? [Color(hex: "#80B03D")] : [Color(hex: "#F39033"), Color(hex: "#EC5A35")]
+        w.kind == .shopifyChart ? [Color(hex: "#80B03D")] : [Color(hex: "#EF882D"), Color(hex: "#EA5236")]
     }
 
     private func value(_ s: ConnSnapshot?) -> String {
@@ -225,19 +235,20 @@ private struct ConnShopifyTodayTile: View {
                 ConnBigMark(brand: .shopify, icon: true, pill: ConnRange.day.pill)
                     .padding(.leading, m.u(13))
                     .frame(maxHeight: .infinity)
-                Text(L("Today")).dock(9.25, .semibold, p.secondary)
+                    .connNudge(w.kind, .icon)
+                Text(L("Today")).dock(9, .semibold, p.secondary)
                     .padding(.leading, m.u(65))
                     .connBaseline(m.u(15.5))
                 T(s?.value.map { ConnFmt.money($0, s?.currency) } ?? dash)
-                    .dock(20, .bold, s == nil ? p.tertiary : nil, mono: true)
+                    .dock(20, .bold, s == nil ? p.tertiary : nil)
                     .minimumScaleFactor(0.5)
                     .frame(maxWidth: m.u(width - 65 - 8), alignment: .leading)
                     .padding(.leading, m.u(65))
-                    .connBaseline(m.u(39))
+                    .connBaseline(m.u(38.5))
                 HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
-                    Text(L("total sales")).dock(9.25, .semibold, p.secondary)
+                    Text(L("total sales")).dock(9, .semibold, p.secondary)
                     if let d = s?.metric(ConnKey.valueDelta) {
-                        T(ConnFmt.delta(d)).dock(9.25, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
+                        T(ConnFmt.delta(d)).dock(9, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
                     }
                     if state.stale { ConnWarning() }
                 }
@@ -272,6 +283,7 @@ private struct ConnTableTile: View {
                 ConnBigMark(brand: ConnService.brand(w), icon: [.shopifyOverview, .resendStats, .supabase].contains(w.kind), pill: pill)
                     .padding(.leading, m.u(hasDeltas ? 11 : 13))
                     .frame(maxHeight: .infinity)
+                    .connNudge(w.kind, .icon)
                 ForEach(Array(rows.enumerated()), id: \.offset) { i, row in
                     HStack(alignment: .firstTextBaseline, spacing: 0) {
                         Text(row.label).dock(10, .semibold, p.secondary)
@@ -284,14 +296,15 @@ private struct ConnTableTile: View {
                         T(row.value).dock(10, .bold, state.snap == nil ? p.tertiary : nil, mono: true)
                             .minimumScaleFactor(0.6)
                         if hasDeltas, let d = row.delta {
-                            T(ConnFmt.delta(d)).dock(8.5, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
+                            T(ConnFmt.delta(d)).dock(9, .semibold, p.accent(d >= 0 ? .cdGreen : .cdRed))
                                 .fixedSize()
-                                .padding(.leading, m.u(6))
+                                .padding(.leading, m.u(4.5))
                         }
                     }
                     .padding(.leading, m.u(leading))
-                    .padding(.trailing, m.u(hasDeltas ? 13.5 : 14))
+                    .padding(.trailing, m.u(hasDeltas ? 12 : 13))
                     .connBaseline(m.u(19.5 + CGFloat(i) * 15))
+                    .connNudge(w.kind, .rows)
                 }
             }
         }
@@ -374,21 +387,24 @@ private struct ConnGitHubTile: View {
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
                     stat(s?.metric(ConnKey.today), L("today"))
                     Spacer(minLength: m.u(3))
-                    stat(s?.metric(ConnKey.week), L("week"))
+                    // Sits 2 pt right of centre between its neighbours, as in the reference.
+                    stat(s?.metric(ConnKey.week), L("week")).padding(.leading, m.u(4))
                     Spacer(minLength: m.u(3))
-                    HStack(alignment: .firstTextBaseline, spacing: m.u(2)) {
-                        Text(verbatim: "🔥").font(.system(size: m.u(8.5)))
-                        T(s?.metric(ConnKey.streak).map { Fmt.int(Int($0)) } ?? dash).dock(8.5, .bold, mono: true)
-                        Text(L("streak")).dock(7.25, .bold, p.secondary)
+                    HStack(alignment: .firstTextBaseline, spacing: m.u(3.5)) {
+                        Text(verbatim: "🔥").font(.system(size: m.u(8.25)))
+                        HStack(alignment: .firstTextBaseline, spacing: m.u(2.5)) {
+                            T(s?.metric(ConnKey.streak).map { Fmt.int(Int($0)) } ?? dash).dock(7.5, .bold)
+                            Text(L("streak")).dock(6, .semibold, p.secondary)
+                        }
                         if state.stale { ConnWarning() }
                     }
                     .layoutPriority(1)
                 }
                 .minimumScaleFactor(0.75)
-                .padding(.leading, m.u(6.5))
-                .padding(.trailing, m.u(7))
+                .padding(.leading, m.u(5.5))
+                .padding(.trailing, m.u(7.5))
                 .connBaseline(m.u(13.5))
-                ConnContributionGrid(counts: s?.series ?? [], columns: 13, rows: 4, dot: m.u(7))
+                ConnContributionGrid(counts: s?.series ?? [], columns: 14, rows: 4, dot: m.u(7))
                     .frame(height: m.u(34))
                     .padding(.horizontal, m.u(8))
                     .padding(.top, m.u(19.5))
@@ -398,8 +414,8 @@ private struct ConnGitHubTile: View {
 
     private func stat(_ v: Double?, _ label: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: m.u(2.5)) {
-            T(v.map { Fmt.int(Int($0)) } ?? dash).dock(8.5, .bold, mono: true)
-            Text(label).dock(8.5, .bold, p.secondary)
+            T(v.map { Fmt.int(Int($0)) } ?? dash).dock(9, .bold)
+            Text(label).dock(8, .semibold, p.secondary)
         }
     }
 }
@@ -417,16 +433,20 @@ private struct ConnSocialTile: View {
             ConnCanvas {
                 ConnBrandMark(brand: ConnService.brand(w), size: 44)
                     .padding(.leading, m.u(3))
+                    .padding(.top, m.u(1))
                     .frame(maxHeight: .infinity)
+                    .connNudge(w.kind, .icon)
                 T(s?.value.map(Fmt.compact) ?? dash)
-                    .dock(20, .bold, s == nil ? p.tertiary : nil, mono: true)
+                    .dock(20, .bold, s == nil ? p.tertiary : nil)
                     .minimumScaleFactor(0.6)
                     .frame(maxWidth: m.u(w.kind.spec.width - 64), alignment: .leading)
                     .padding(.leading, m.u(56.5))
-                    .connBaseline(m.u(33))
-                ConnCaption(text: w.kind == .socialYouTube ? L("subscribers") : L("followers"), size: 9.5, stale: state.stale)
+                    .connBaseline(m.u(32.5))
+                    .connNudge(w.kind, .value)
+                ConnCaption(text: w.kind == .socialYouTube ? L("subscribers") : L("followers"), stale: state.stale)
                     .padding(.leading, m.u(56.5))
                     .connBaseline(m.u(47.5))
+                    .connNudge(w.kind, .caption)
             }
         }
     }
@@ -445,20 +465,20 @@ private struct ConnAITile: View {
             let width = w.kind.spec.width
             ConnCanvas {
                 T(s?.value.map(Fmt.compact) ?? dash)
-                    .dock(20, .bold, s == nil ? p.tertiary : nil, mono: true)
+                    .dock(20, .bold, s == nil ? p.tertiary : nil)
                     .frame(maxWidth: m.u(width - 36), alignment: .leading)
                     .padding(.leading, m.u(6))
-                    .connBaseline(m.u(26))
+                    .connBaseline(m.u(25.5))
                 ConnCaption(text: "\(L("tokens")) · \(ConnService.range(w).caption)", stale: state.stale)
                     .padding(.leading, m.u(6))
                     .connBaseline(m.u(41.5))
-                Text(costLine(s)).dock(8.25, .semibold, p.tertiary)
+                Text(costLine(s)).dock(8, .semibold, p.tertiary)
                     .frame(maxWidth: m.u(width - 12), alignment: .leading)
-                    .padding(.leading, m.u(6))
+                    .padding(.leading, m.u(5))
                     .connBaseline(m.u(53.5))
                 ConnBrandMark(brand: ConnService.brand(w), size: 18)
                     .padding(.top, m.u(7))
-                    .padding(.trailing, m.u(7.5))
+                    .padding(.trailing, m.u(7))
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
