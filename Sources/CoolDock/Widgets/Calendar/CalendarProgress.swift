@@ -32,19 +32,21 @@ struct CalProgressGridWidget: View {
 
     var body: some View {
         TimelineView(.everyMinute) { ctx in
-            let g = layout(ctx.date)
+            let now = ReferenceScene.date(ctx.date)
+            let g = layout(now)
             Tile(width: w.kind.spec.width) {
                 VStack(spacing: 0) {
-                    CalDotGrid(total: g.total, filled: g.filled, columns: g.columns, pitch: m.u(g.pitch))
+                    CalDotGrid(total: g.total, filled: g.filled, columns: g.columns, pitch: m.u(g.pitch),
+                               rowPitch: g.rowPitch.map { m.u($0) }, dotRatio: g.dotRatio)
                         .frame(height: m.u(36))
-                        .padding(.top, m.u(7))
+                        .padding(.top, m.u(g.top))
                     Spacer(minLength: 0)
                     HStack(alignment: .firstTextBaseline, spacing: m.u(4)) {
-                        Text(verbatim: g.label).dock(9, .bold, p.secondary).minimumScaleFactor(0.75)
+                        Text(verbatim: g.label).dock(8.1, .semibold, p.secondary).minimumScaleFactor(0.75)
                         Spacer(minLength: 0)
-                        Text(verbatim: g.period.percentText(ctx.date)).dock(9.5, .bold, mono: true)
+                        Text(verbatim: g.period.percentText(now)).dock(9.1, .bold, mono: true)
                     }
-                    .padding(EdgeInsets(top: 0, leading: m.u(6), bottom: m.u(4.5), trailing: m.u(5.5)))
+                    .padding(EdgeInsets(top: 0, leading: m.u(5.75), bottom: m.u(6.1), trailing: m.u(5)))
                 }
             }
         }
@@ -57,6 +59,9 @@ struct CalProgressGridWidget: View {
         var columns: Int
         var label: String
         var pitch: CGFloat
+        var rowPitch: CGFloat? = nil
+        var dotRatio: CGFloat = 0.82
+        var top: CGFloat = 7
     }
 
     private func layout(_ now: Date) -> Layout {
@@ -69,8 +74,9 @@ struct CalProgressGridWidget: View {
             let days = cal.range(of: .day, in: .month, for: now)?.count ?? 30
             let columns = Int(ceil(Double(days) / 3))
             let f = CalPeriod.month.fraction(now)
+            let pitch = min(10.15, 101.5 / CGFloat(columns))
             return Layout(period: .month, total: days, filled: lit(f, days), columns: columns, label: Fmt.date(now, "MMMMy"),
-                          pitch: min(10.1, 101 / CGFloat(columns)))
+                          pitch: pitch, rowPitch: pitch + 0.1, dotRatio: 0.788, top: 6.75)
         default:
             let f = CalPeriod.year.fraction(now)
             return Layout(period: .year, total: 52, filled: lit(f, 52), columns: 13, label: Fmt.year(now), pitch: 9)
@@ -89,6 +95,8 @@ struct CalDotGrid: View {
     var columns: Int
     /// Centre-to-centre distance; shrinks to fit when the frame is smaller.
     var pitch: CGFloat
+    /// Vertical centre distance when it differs from `pitch`.
+    var rowPitch: CGFloat? = nil
     var dotRatio: CGFloat = 0.82
 
     var body: some View {
@@ -96,15 +104,16 @@ struct CalDotGrid: View {
             guard total > 0, columns > 0 else { return }
             let rows = Int(ceil(Double(total) / Double(columns)))
             let step = min(pitch, size.width / CGFloat(columns), size.height / CGFloat(max(rows, 1)))
+            let rowStep = min(rowPitch ?? step, size.height / CGFloat(max(rows, 1)))
             let d = step * dotRatio
             let x0 = (size.width - step * CGFloat(columns)) / 2
-            let y0 = (size.height - step * CGFloat(rows)) / 2
-            let on = p.primary.opacity(0.88)
-            let off = p.primary.opacity(0.13)
+            let y0 = (size.height - rowStep * CGFloat(rows)) / 2
+            let on = p.primary.opacity(0.935)
+            let off = p.primary.opacity(0.158)
             for i in 0..<total {
                 let r = i / columns, c = i % columns
                 let cx = x0 + (CGFloat(c) + 0.5) * step
-                let cy = y0 + (CGFloat(r) + 0.5) * step
+                let cy = y0 + (CGFloat(r) + 0.5) * rowStep
                 ctx.fill(Path(ellipseIn: CGRect(x: cx - d / 2, y: cy - d / 2, width: d, height: d)), with: .color(i < filled ? on : off))
             }
         }

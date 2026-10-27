@@ -12,7 +12,7 @@ struct CalTodayWidget: View {
         let svc = CalendarService.shared
         Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 13)) {
             HStack(spacing: m.u(12)) {
-                CalAppIcon(size: 36)
+                CalAppIcon(size: 36).offset(y: m.u(0.5))
                 VStack(alignment: .leading, spacing: 0) {
                     Text(L("Today")).dock(10, .semibold, p.secondary)
                         .frame(height: m.u(14), alignment: .bottom)
@@ -66,9 +66,10 @@ private struct CalLine: View {
                 Circle().fill(dot).frame(width: m.u(5), height: m.u(5))
                     .alignmentGuide(.firstTextBaseline) { d in d.height + m.u(0.5) }
             }
-            Text(title).dock(10.25, .semibold, titleColor ?? p.primary).truncationMode(.tail)
+            Text(title).dock(10.1, .semibold, titleColor ?? p.primary).truncationMode(.tail)
+                .offset(y: m.u(0.5))
             Spacer(minLength: m.u(6))
-            if let trailing { Text(trailing).dock(9, .semibold, p.secondary, mono: true).layoutPriority(1) }
+            if let trailing { Text(trailing).dock(9, .semibold, p.secondary, mono: true).layoutPriority(1).offset(y: m.u(0.5)) }
         }
         .frame(height: m.u(16))
     }
@@ -84,11 +85,11 @@ struct CalAgendaWidget: View {
     var body: some View {
         let svc = CalendarService.shared
         TimelineView(.everyMinute) { ctx in
-            let now = ctx.date
+            let now = ReferenceScene.date(ctx.date)
             Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 6.5, leading: 5.5, bottom: 6.5, trailing: 8)) {
-                HStack(spacing: m.u(9)) {
+                HStack(spacing: m.u(8)) {
                     dateBlock(now)
-                    if CalData.hasEvents { events } else { access }
+                    if CalData.hasEvents { events(now) } else { access }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             }
@@ -104,15 +105,16 @@ struct CalAgendaWidget: View {
         VStack(spacing: m.u(1)) {
             Text(verbatim: Fmt.dayNumber(now)).dock(21.5, .bold, mono: true)
             Text(verbatim: Fmt.monthShort(now)).dock(9, .semibold, p.secondary).minimumScaleFactor(0.7)
+                .offset(x: m.u(-0.5))
         }
-        .padding(.top, m.u(2))
+        .padding(.top, m.u(1))
         .frame(width: m.u(43.5))
         .frame(maxHeight: .infinity)
         .background(RoundedRectangle(cornerRadius: m.u(8), style: .continuous).fill(p.calWell))
     }
 
-    @ViewBuilder private var events: some View {
-        let today = CalData.upcoming.filter { Fmt.calendar.isDateInToday($0.start) || $0.isNow }
+    @ViewBuilder private func events(_ now: Date) -> some View {
+        let today = CalData.upcoming.filter { Fmt.calendar.isDate($0.start, inSameDayAs: now) || $0.isNow }
         let shown = Array((today.isEmpty ? CalData.upcoming : today).prefix(2))
         let extra = today.count - shown.count
         if shown.isEmpty {
@@ -122,7 +124,7 @@ struct CalAgendaWidget: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {
-            VStack(alignment: .leading, spacing: m.u(4.5)) {
+            VStack(alignment: .leading, spacing: m.u(4)) {
                 ForEach(shown) { e in
                     VStack(alignment: .leading, spacing: m.u(1)) {
                         Text(e.title).dock(10, .bold, p.accent(e.color))
@@ -132,14 +134,14 @@ struct CalAgendaWidget: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .offset(y: m.u(0.25))
+            .offset(y: m.u(0.5))
             .overlay(alignment: .bottomTrailing) {
                 if extra > 0 {
-                    Text(verbatim: "+" + Fmt.int(extra)).dock(9, .bold, p.secondary)
-                        .padding(.horizontal, m.u(5)).frame(height: m.u(14))
+                    Text(verbatim: "+" + Fmt.int(extra)).dock(8.3, .bold, p.secondary)
+                        .padding(.horizontal, m.u(5.5)).frame(height: m.u(14))
                         .background(Capsule().fill(p.control.opacity(0.65)))
                         .padding(.trailing, m.u(-2))
-                        .offset(y: m.u(1.25))
+                        .offset(y: m.u(0.25))
                 }
             }
         }
@@ -165,20 +167,21 @@ struct CalWeekStripWidget: View {
         let svc = CalendarService.shared
         let city = w.string("city")
         TimelineView(.everyMinute) { ctx in
-            let start = Fmt.calendar.startOfDay(for: ctx.date)
+            let start = Fmt.calendar.startOfDay(for: ReferenceScene.date(ctx.date))
             Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 5, leading: 6, bottom: 4.5, trailing: 6)) {
                 VStack(spacing: m.u(2.5)) {
-                    HStack(spacing: m.u(4)) {
-                        Text(verbatim: Fmt.month(start)).dock(9.5, .bold)
+                    HStack(spacing: m.u(3.5)) {
+                        Text(verbatim: Fmt.month(start)).dock(9.1, .bold).offset(y: m.u(-0.5))
                         Spacer(minLength: 4)
                         if let s = WeatherService.shared.snapshot(city) {
                             Image(systemName: WeatherCode.symbol(s.code, isDay: s.isDay))
-                                .font(.system(size: m.u(12), weight: .medium))
+                                .font(.system(size: m.u(11), weight: .medium))
                                 .foregroundStyle(p.weatherGlyph)
-                            Text(verbatim: Fmt.temp(s.temp)).dock(11.5, .bold)
+                                .offset(x: m.u(0.5), y: m.u(-0.25))
+                            Text(verbatim: Fmt.temp(s.temp)).dock(9, .bold, mono: true).offset(y: m.u(-0.5))
                         }
                     }
-                    .padding(.horizontal, m.u(0.5))
+                    .padding(.trailing, m.u(-0.5))
                     .frame(height: m.u(14))
                     HStack(spacing: m.u(2)) {
                         ForEach(0..<7, id: \.self) { i in
@@ -200,11 +203,13 @@ struct CalWeekStripWidget: View {
 
     private func pill(_ day: Date, today: Bool, events: Bool) -> some View {
         VStack(spacing: m.u(0)) {
-            Text(verbatim: CalText.weekdayNarrow(day)).dock(9, .bold, today ? p.calOnAccent : p.secondary).minimumScaleFactor(0.7)
-            Text(verbatim: Fmt.dayNumber(day)).dock(13.5, .bold, today ? p.calOnAccent : p.primary, mono: true)
+            Text(verbatim: CalText.weekdayNarrow(day)).dock(9, .bold, today ? p.calOnAccent.opacity(0.93) : p.secondary).minimumScaleFactor(0.7)
+                .offset(y: m.u(-1))
+            Text(verbatim: Fmt.dayNumber(day)).dock(12.3, .bold, today ? p.calOnAccent.opacity(0.93) : p.primary, mono: true)
+                .offset(y: m.u(0.6))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: m.u(8), style: .continuous).fill(today ? p.accent(.cdBlue) : p.calWell))
+        .background(RoundedRectangle(cornerRadius: m.u(8), style: .continuous).fill(today ? p.accent(CalBrand.todayBlue) : p.control.opacity(0.4)))
         .overlay(alignment: .bottom) {
             if events {
                 Circle().fill(today ? p.calOnAccent : p.secondary).frame(width: m.u(3), height: m.u(3)).padding(.bottom, m.u(2.5))
@@ -223,6 +228,7 @@ struct CalNextMeetingWidget: View {
     var body: some View {
         let svc = CalendarService.shared
         TimelineView(.everyMinute) { ctx in
+            let now = ReferenceScene.date(ctx.date)
             let next = CalData.hasEvents ? CalData.nextMeeting : nil
             Tile(width: w.kind.spec.width, padding: EdgeInsets(top: 0, leading: 13, bottom: 0, trailing: 11)) {
                 HStack(spacing: m.u(12)) {
@@ -231,9 +237,9 @@ struct CalNextMeetingWidget: View {
                         if let e = next {
                             Text(e.title).dock(11, .bold)
                             HStack(spacing: m.u(4.5)) {
-                                Text(verbatim: CalText.range(e)).dock(8.5, .semibold, p.secondary, mono: true)
-                                Text(verbatim: CalText.countdown(e, now: ctx.date))
-                                    .dock(8.5, .bold, e.start <= ctx.date ? p.accent(.cdGreen) : p.secondary, mono: true)
+                                Text(verbatim: CalText.range(e)).dock(9, .semibold, p.secondary)
+                                Text(verbatim: CalText.countdown(e, now: now))
+                                    .dock(9, .bold, e.start <= now ? p.accent(.cdGreen) : p.secondary)
                             }
                         } else if !CalData.hasEvents {
                             Text(L("Allow Calendar access")).dock(11, .bold)
@@ -260,8 +266,9 @@ struct CalNextMeetingWidget: View {
         let video = e.meetingURL != nil
         return Button { CalendarService.shared.open(e) } label: {
             Image(systemName: video ? "video.fill" : "calendar")
-                .font(.system(size: m.u(video ? 12 : 12.5), weight: .semibold))
+                .font(.system(size: m.u(video ? 11.2 : 12.5), weight: .semibold))
                 .foregroundStyle(video ? p.calOnAccent : p.primary)
+                .offset(y: m.u(video ? 0.75 : 0))
                 .frame(width: m.u(28), height: m.u(28))
                 .background(Circle().fill(video ? p.accent(CalBrand.zoomBlue) : p.control))
                 .contentShape(Circle())

@@ -14,7 +14,10 @@ struct DockEvent: Identifiable, Equatable {
     let meetingURL: URL?
     let location: String?
 
-    var isNow: Bool { start <= Date() && end > Date() }
+    var isNow: Bool {
+        let now = ReferenceScene.date()
+        return start <= now && end > now
+    }
 }
 
 struct DockReminder: Identifiable, Equatable {
@@ -23,7 +26,7 @@ struct DockReminder: Identifiable, Equatable {
     let due: Date?
     let color: Color
     let priority: Int
-    var overdue: Bool { (due.map { $0 < Date() } ?? false) }
+    var overdue: Bool { (due.map { $0 < ReferenceScene.date() } ?? false) }
 }
 
 /// EventKit access for calendar and reminder widgets. Refreshes on store change notifications only.
@@ -106,6 +109,7 @@ final class CalendarService {
     // MARK: Events
 
     func reloadEvents() {
+        guard !ReferenceScene.isActive else { return }
         eventsAccess = EKEventStore.authorizationStatus(for: .event)
         guard hasEventAccess else { upcoming = []; return }
         let cal = Calendar.current
@@ -123,18 +127,22 @@ final class CalendarService {
             }
         let fresh = Array(events)
         if fresh != upcoming { upcoming = fresh }
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy-MM-dd"
-        eventDays = Set(fresh.map { fmt.string(from: $0.start) })
+        eventDays = Self.dayKeys(fresh)
     }
 
-    var todayEvents: [DockEvent] { upcoming.filter { Calendar.current.isDateInToday($0.start) || $0.isNow } }
-    var nextMeeting: DockEvent? { upcoming.first { !$0.allDay && $0.end > Date() } }
+    private static func dayKeys(_ events: [DockEvent]) -> Set<String> {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return Set(events.map { fmt.string(from: $0.start) })
+    }
+
+    var todayEvents: [DockEvent] { upcoming.filter { Calendar.current.isDate($0.start, inSameDayAs: ReferenceScene.date()) || $0.isNow } }
+    var nextMeeting: DockEvent? { upcoming.first { !$0.allDay && $0.end > ReferenceScene.date() } }
 
     /// True when a timed event is ongoing or starts within `minutes`.
     func meetingSoon(within minutes: Double = 15) -> Bool {
         guard let n = nextMeeting else { return false }
-        return n.isNow || n.start.timeIntervalSinceNow < minutes * 60
+        return n.isNow || n.start.timeIntervalSince(ReferenceScene.date()) < minutes * 60
     }
 
     static func meetingURL(_ e: EKEvent) -> URL? {
@@ -156,6 +164,7 @@ final class CalendarService {
     // MARK: Reminders
 
     func reloadReminders() {
+        guard !ReferenceScene.isActive else { return }
         remindersAccess = EKEventStore.authorizationStatus(for: .reminder)
         guard hasReminderAccess else { reminders = []; return }
         let predicate = store.predicateForIncompleteReminders(withDueDateStarting: nil, ending: nil, calendars: nil)
@@ -190,6 +199,18 @@ final class CalendarService {
         r.calendar = store.defaultCalendarForNewReminders()
         try? store.save(r, commit: true)
         reloadReminders()
+    }
+
+    // MARK: Reference scene
+
+    /// Deterministic events and reminders for `--scene reference` renders; EventKit is never queried there.
+    func setSceneData(events: [DockEvent], reminders: [DockReminder]) {
+        guard ReferenceScene.isActive else { return }
+        eventsAccess = .fullAccess
+        remindersAccess = .fullAccess
+        upcoming = events
+        eventDays = Self.dayKeys(events)
+        self.reminders = reminders
     }
 }
 
