@@ -10,7 +10,7 @@ summarised here instead of committed because it shows personal calendar, files a
 | Ready, nothing to show yet (22) | nowPlaying, nowPlayingHero ("Nothing playing"; live helper verified in `now-playing/`), appVolume ("No apps playing"; live taps verified in `app-volume/`), backgroundSounds, youtubeVideo, reminders ("All done"), todo ("Nothing to do"), habitTracker ("Add a habit"), devicesBattery ("No devices"), contactCard ("Choose a contact"), calculator, converter (amount field; rate is network), emoji, colorPicker, voiceMemo, pomodoro, timer, stopwatch, drinkWater, posture, separator, space |
 | Needs a permission, not a blocker (5) | quickContacts (Contacts), windowManager (Accessibility), mail, mailLatest, notes (Automation for counts; the tiles still open the apps) |
 | Needs an account key, not a blocker (18) | githubContributions, linear, stripeRevenue, polarRevenue, dodoRevenue, shopifyChart, shopifyToday, shopifyOverview, plausible, simpleAnalytics, dataFast, visitorsChart, dubStats, resendStats, supabase, socialX, socialTikTok, socialYouTube |
-| Network, held by the Mac's firewall for this build (15) | weatherCompact, weatherHero, weatherLocation, forecastDays, weatherToday, weatherCondition, forecastHourly, sunriseSunset, wind, stockQuote, stockChart, stockWatchlist, cryptoQuote, cryptoChart, cryptoWatchlist — see below |
+| Live network data (15) | weatherCompact, weatherHero, weatherLocation, forecastDays, weatherToday, weatherCondition, forecastHourly, sunriseSunset, wind, stockQuote, stockChart, stockWatchlist, cryptoQuote, cryptoChart, cryptoWatchlist — drawn with live data from the test process (`network/*.png`); the app binary itself is held by this Mac's firewall, see below |
 
 ## Network widgets
 
@@ -28,3 +28,8 @@ against the real services:
 | Stock (`FinService`, Yahoo Finance) | AAPL 343.91 (−1.10 %), 79 intraday points |
 | Crypto (`FinService`) | BTC 79,552.04 (−0.57 %), 40 points. Binance answers 451 / times out from this network, so the Yahoo `BTC-USD` fallback took over after 2.5 s as designed |
 | Currency (`UtilFX`, Frankfurter) | 1 USD = 0.894 EUR. Frankfurter moved to `api.frankfurter.dev/v1` (the old host now answers 301); the converter now calls the new host directly |
+
+`COOLDOCK_LIVE_NET=1 COOLDOCK_EVIDENCE_DIR=$PWD/docs/verification/widgets-live/network swift test --filter NetworkTilesLive`
+fetches through the same services, mounts the 15 tiles like the dock does and draws them (`network/*.png`):
+Tehran 22 °C mostly clear with the 24-hour and 7-day forecast, sunrise 6:21 / sunset 17:14, SW wind 9 km/h gusting
+25; AAPL 343.91 (−1.10 %), MSFT, NVDA; BTC 79,548.48 (−0.58 %), ETH, SOL, with live intraday charts.
