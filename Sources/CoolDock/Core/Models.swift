@@ -169,4 +169,12 @@ struct ConfigField {
     let title: String
     let type: ConfigFieldType
     var help: String? = nil
+    /// Shown only while another field has one of these values (provider-specific fields). Several fields may share
+    /// a key when their conditions never overlap (e.g. one token field per provider with its own placeholder).
+    var shownWhen: (key: String, values: Set<String>)? = nil
+
+    func isShown(in w: WidgetInstance) -> Bool {
+        guard let rule = shownWhen else { return true }
+        return rule.values.contains(w.string(rule.key))
+    }
 }

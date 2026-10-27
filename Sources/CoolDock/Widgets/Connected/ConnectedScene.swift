@@ -30,10 +30,11 @@ enum ConnectedScene {
         case .githubContributions: config = ["user": "cooldock"]
         case .socialX: config = ["user": "cooldock"]
         case .socialYouTube: config = ["channel": "@cooldock"]
-        case .aiUsage: config = ["provider": "claudeCode", "range": "7d"]
+        // `aiUsage-<provider>` renders another source's tile with its sample shape (no reference frame).
+        case .aiUsage: config = ["provider": variant.flatMap(ConnAIProvider.init(rawValue:))?.rawValue ?? "claudeCode", "range": "7d"]
         default: config = [:]
         }
-        let usd = [.polarRevenue, .stripeRevenue, .dodoRevenue].contains(kind)
+        let usd = [.polarRevenue, .stripeRevenue, .dodoRevenue].contains(kind) || (kind == .aiUsage && variant != nil)
         locale = Locale(identifier: usd ? "en_US" : "sv_SE")
         seeded = [:]
         seeded[kind] = ConnSample.snapshot(WidgetInstance(kind: kind, config: config))

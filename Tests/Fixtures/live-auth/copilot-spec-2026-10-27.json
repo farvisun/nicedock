@@ -1,0 +1,45 @@
+{
+ "source": "https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json",
+ "fetched": "2026-10-27",
+ "servers": [
+  "https://api.github.com"
+ ],
+ "operations": [
+  {
+   "method": "GET",
+   "path": "/users/{username}/settings/billing/usage",
+   "security": null,
+   "operationId": "billing/get-github-billing-usage-report-user",
+   "parameters": [
+    {
+     "name": "username",
+     "in": "path",
+     "required": true
+    },
+    {
+     "name": "year",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "month",
+     "in": "query",
+     "required": false
+    },
+    {
+     "name": "day",
+     "in": "query",
+     "required": false
+    }
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/user",
+   "security": null,
+   "operationId": "users/get-authenticated",
+   "parameters": []
+  }
+ ],
+ "version": "1.1.4"
+}

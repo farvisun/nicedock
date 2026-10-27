@@ -243,8 +243,26 @@ func expectSameRequest(_ sent: URLRequest?, _ ex: LiveExchange, volatile: Set<St
             sourceLocation: sourceLocation)
 
     if let recorded = ex.requestBody {
-        let mine = sent.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) } as? NSDictionary
-        let theirs = (try? JSONSerialization.jsonObject(with: Data(recorded.utf8))) as? NSDictionary
+        // Volatile body fields (at any depth) only have to be timestamps / dates / the current time zone.
+        func mask(_ v: Any, check: Bool) -> Any {
+            if let d = v as? [String: Any] {
+                var out: [String: Any] = [:]
+                for (k, x) in d {
+                    guard volatile.contains(k) else { out[k] = mask(x, check: check); continue }
+                    if check {
+                        let ok = k == "timezone" ? (x as? String) == TimeZone.current.identifier
+                            : (x is NSNumber && !(x is String)) || ConnDate.parse(x) != nil
+                        #expect(ok, "\(ex.name): body \(k)=\(x)", sourceLocation: sourceLocation)
+                    }
+                    out[k] = "<volatile>"
+                }
+                return out
+            }
+            if let a = v as? [Any] { return a.map { mask($0, check: check) } }
+            return v
+        }
+        let mine = sent.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) }.map { mask($0, check: true) } as? NSDictionary
+        let theirs = (try? JSONSerialization.jsonObject(with: Data(recorded.utf8))).map { mask($0, check: false) } as? NSDictionary
         #expect(mine != nil && mine == theirs, "\(ex.name): body", sourceLocation: sourceLocation)
     } else {
         #expect(sent.httpBody == nil, "\(ex.name): unexpected body", sourceLocation: sourceLocation)
@@ -286,6 +304,14 @@ func expectSameRequest(_ sent: URLRequest?, _ ex: LiveExchange, volatile: Set<St
         ("anthropic-usage-nokey", "Check your token"), ("anthropic-usage-invalid", "Check your token"),
         ("anthropic-cost-invalid", "Check your token"),
         ("openai-usage-nokey", "Check your token"), ("openai-usage-invalid", "Check your token"), ("openai-cost-invalid", "Check your token"),
+        ("cursor-usage-nokey", "Check your token"), ("cursor-usage-invalid", "Check your token"),
+        ("copilot-usage-nokey", "Check your token"), ("copilot-usage-invalid", "Check your token"), ("copilot-user-invalid", "Check your token"),
+        ("gemini-timeseries-nokey", "Check your token"), ("gemini-timeseries-invalid", "Check your token"),
+        ("gemini-timeseries-apikey", "Check your token"),
+        ("perplexity-credits-nokey", "Check your token"), ("perplexity-credits-invalid", "Check your token"),
+        ("perplexity-queries-invalid", "Check your token"),
+        ("xai-validation-nokey", "Check your token"), ("xai-validation-invalid", "Check your token"), ("xai-usage-invalid", "Check your token"),
+        // Z.ai answers HTTP 200 with the error in the body: see LiveAuthAITests.zai.
     ]
 
     @Test(arguments: liveMessages)
@@ -306,6 +332,11 @@ func expectSameRequest(_ sent: URLRequest?, _ ex: LiveExchange, volatile: Set<St
             WidgetInstance(kind: .socialX, config: ["user": "XDevelopers"]), WidgetInstance(kind: .socialTikTok),
             WidgetInstance(kind: .socialYouTube, config: ["channel": "@GoogleDevelopers"]),
             WidgetInstance(kind: .aiUsage, config: ["provider": "anthropic"]), WidgetInstance(kind: .aiUsage, config: ["provider": "openai"]),
+            WidgetInstance(kind: .aiUsage, config: ["provider": "cursor"]), WidgetInstance(kind: .aiUsage, config: ["provider": "copilot"]),
+            WidgetInstance(kind: .aiUsage, config: ["provider": "perplexity"]), WidgetInstance(kind: .aiUsage, config: ["provider": "xai"]),
+            WidgetInstance(kind: .aiUsage, config: ["provider": "zai"]),
+            // Gemini may borrow the gcloud login, but never without a project (and never runs gcloud then).
+            WidgetInstance(kind: .aiUsage, config: ["provider": "gemini"]),
         ]
         for w in widgets {
             let message = await replay.message { try await ConnProviders.fetch(w, token: nil) }

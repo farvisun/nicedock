@@ -1,0 +1,4 @@
+{"code":200,"msg":"success","success":true,"data":{
+  "x_time":["2026-10-26 08:00","2026-10-26 09:00"],
+  "modelDataList":[{"modelName":"glm-4.6","tokensUsage":[100,null]},
+  {"modelName":"glm-4.5","tokensUsage":[50,25]}]}}

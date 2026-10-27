@@ -1,0 +1,18 @@
+# Live capture Tue, 27 Oct 2026 03:02:41 GMT with curl 8.7.1 (macOS), replaying the app's request: same URL, method, query,
+# headers and body. The credential is a deliberately fake value; cookies, request/trace ids and CDN
+# telemetry headers are removed, ids/IPs inside the body redacted.
+> POST https://management-api.x.ai/v1/billing/teams/65c1e471-205f-4566-9c5a-07198badf4ce/usagez
+> User-Agent: CoolDock/1.0 (macOS)
+> Accept-Encoding: deflate, gzip
+> Accept-Language: en-US,en;q=0.9
+> Accept: application/json
+> Content-Type: application/json
+> Authorization: Bearer xai-mgmt-invalid
+>
+> {"analyticsRequest":{"timeRange":{"startTime":"2026-10-21 00:00:00","endTime":"2026-10-28 00:00:00","timezone":"Asia/Tehran"},"timeUnit":"TIME_UNIT_DAY","values":[{"name":"usd","aggregation":"AGGREGATION_SUM"}],"groupBy":[],"filters":[]}}
+< HTTP/2 404
+< date: Tue, 27 Oct 2026 03:02:41 GMT
+< content-type: application/json
+< vary: Origin
+< server: cloudflare
+<

@@ -69,7 +69,8 @@ struct WidgetSetupView: View {
                 }
                 if !spec.fields.isEmpty {
                     Section(spec.connected ? L("Connection") : L("Options")) {
-                        ForEach(spec.fields, id: \.key) { field in fieldView(field) }
+                        let shown = spec.fields.enumerated().filter { $0.element.isShown(in: draft) }
+                        ForEach(shown, id: \.offset) { fieldView($0.element) }
                     }
                 }
                 if !spec.visibility.isEmpty {
@@ -104,7 +105,13 @@ struct WidgetSetupView: View {
     }
 
     private func save() {
-        for (k, v) in secrets { Secrets.set(v.trimmingCharacters(in: .whitespacesAndNewlines), draft.id, k) }
+        let spec = draft.kind.spec
+        for (k, v) in secrets {
+            // A secret whose fields are all hidden (e.g. a local provider was picked) is not touched.
+            let fields = spec.fields.filter { $0.key == k }
+            guard fields.isEmpty || fields.contains(where: { $0.isShown(in: draft) }) else { continue }
+            Secrets.set(v.trimmingCharacters(in: .whitespacesAndNewlines), draft.id, k)
+        }
         if isNew {
             store.updateActive { p in
                 if let index, index <= p.widgets.count { p.widgets.insert(draft, at: index) } else { p.widgets.append(draft) }

@@ -1,0 +1,17 @@
+{
+  "apiKeyId": "b86ba29d-9f47-4b3a-a6ae-e69432d5f0dc",
+  "teamId": "65c1e471-205f-4566-9c5a-07198badf4ce",
+  "scope": "SCOPE_TEAM",
+  "scopeId": "65c1e471-205f-4566-9c5a-07198badf4ce",
+  "ownerUserId": "4d52c406-6ec6-4361-9b7c-40dc7e8ff284",
+  "createTime": "2025-12-10T23:17:49.460374Z",
+  "modifyTime": "2025-12-10T23:17:49.460374Z",
+  "name": "test key",
+  "acls": [
+    "team-token:endpoint:ListApiKeys",
+    "team-token:endpoint:CheckApiKeyPropagation",
+    "team-token:endpoint:ListPossibleEndpointAcls"
+  ],
+  "reactedApiKey": "xai-...r42q",
+  "ipRanges": null
+}

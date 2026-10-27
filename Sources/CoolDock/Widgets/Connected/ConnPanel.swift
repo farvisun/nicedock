@@ -136,7 +136,8 @@ struct ConnPanel: View {
     // MARK: Text
 
     private var subtitle: String {
-        if ConnService.hasRange(w.kind), w.kind != .shopifyToday { return "\(ConnService.name(w)) · \(ConnService.range(w).title)" }
+        let rangeless = w.kind == .shopifyToday || (w.kind == .aiUsage && ConnAIProvider(w).unit == .quota)
+        if ConnService.hasRange(w.kind), !rangeless { return "\(ConnService.name(w)) · \(ConnService.range(w).title)" }
         switch w.kind {
         case .shopifyToday: return "\(ConnService.name(w)) · \(ConnRange.day.title)"
         case .resendStats: return "\(ConnService.name(w)) · \(L("This month"))"
@@ -171,7 +172,9 @@ enum ConnPanelText {
         switch w.kind {
         case .polarRevenue, .stripeRevenue, .dodoRevenue, .shopifyChart, .shopifyToday, .shopifyOverview:
             return ConnFmt.money(v, s.currency)
-        case .socialX, .socialTikTok, .socialYouTube, .aiUsage:
+        case .aiUsage:
+            return ConnAIText.value(s)
+        case .socialX, .socialTikTok, .socialYouTube:
             return Fmt.compact(v)
         case .supabase:
             return s.value == nil ? ConnStatus.title(s.text[ConnKey.status]) : ConnFmt.count(v)
@@ -193,7 +196,7 @@ enum ConnPanelText {
         case .supabase: return s.value == nil ? (s.text[ConnKey.name] ?? "") : "\(L("API requests")) · \(L("last 24h"))"
         case .socialX, .socialTikTok: return s.text[ConnKey.name].map { "\(L("followers")) · \($0)" } ?? L("followers")
         case .socialYouTube: return s.text[ConnKey.name].map { "\(L("subscribers")) · \($0)" } ?? L("subscribers")
-        case .aiUsage: return "\(L("tokens")) · \(range)"
+        case .aiUsage: return ConnAIText.caption(w, s)
         default: return ""
         }
     }
@@ -248,14 +251,7 @@ enum ConnPanelText {
             }
             return rows
         case .aiUsage:
-            var rows = [(L("Input"), Fmt.compact(s.metric(ConnKey.inputTokens) ?? 0)),
-                        (L("Output"), Fmt.compact(s.metric(ConnKey.outputTokens) ?? 0))]
-            if (s.metric(ConnKey.cacheRead) ?? 0) > 0 || (s.metric(ConnKey.cacheWrite) ?? 0) > 0 {
-                rows.append((L("Cache write / read"), "\(Fmt.compact(s.metric(ConnKey.cacheWrite) ?? 0)) / \(Fmt.compact(s.metric(ConnKey.cacheRead) ?? 0))"))
-            }
-            rows.append((s.estimate ? L("Estimated cost") : L("Cost"), ConnFmt.money(s.metric(ConnKey.cost) ?? 0, "USD", decimals: 2)))
-            if let calls = s.metric(ConnKey.calls), calls > 0 { rows.append((L("Requests"), ConnFmt.count(calls))) }
-            return rows
+            return ConnAIText.rows(s)
         default:
             return []
         }
@@ -279,6 +275,12 @@ enum ConnPanelText {
         case .dodo: return [Color(hex: "#C8F23A")]
         case .supabase: return [Color(hex: "#3ECF8E")]
         case .claude: return [Color(hex: "#DE7356")]
+        case .cursor, .opencode: return [Color(white: 0.85)]
+        case .copilot: return [Color(hex: "#8957E5"), Color(hex: "#C9A8FF")]
+        case .gemini, .antigravity: return [Color(hex: "#1C7DFF"), Color(hex: "#9B72CB")]
+        case .perplexity: return [Color(hex: "#20B8CD")]
+        case .grok: return [Color(white: 0.92)]
+        case .zai: return [Color(hex: "#2D5BFF")]
         case .youtube: return [.cdRed]
         case .tiktok: return [Color(hex: "#25F4EE"), Color(hex: "#FE2C55")]
         case .dataFast: return [.cdOrange]
