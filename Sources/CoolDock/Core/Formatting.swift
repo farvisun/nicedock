@@ -244,19 +244,27 @@ enum Fmt {
         return sign + number(abs(value), decimals: decimals)
     }
 
-    static func bytes(_ value: Double, perSecond: Bool = false) -> String {
+    /// `short` picks abbreviated units for narrow tiles (Persian «ک.ب» instead of «کیلوبایت»).
+    static func bytes(_ value: Double, perSecond: Bool = false, short: Bool = false) -> String {
         let units = ["bytes", "KB", "MB", "GB", "TB"]
         var v = value
         var i = 0
         while v >= 1000 && i < units.count - 1 { v /= 1000; i += 1 }
         let decimals = v < 10 && i > 0 ? 1 : 0
-        let unit = i == 0 ? LD("unit.bytes", "B") : L(units[i])
+        let unit: String
+        if short {
+            unit = [LD("unit.short.B", "B"), LD("unit.short.KB", "KB"), LD("unit.short.MB", "MB"), LD("unit.short.GB", "GB"), LD("unit.short.TB", "TB")][i]
+        } else {
+            unit = i == 0 ? LD("unit.bytes", "B") : L(units[i])
+        }
         return number(v, decimals: decimals) + " " + unit + (perSecond ? L("/s") : "")
     }
 
     static func temperature(_ celsius: Double, unit: TemperatureUnit, symbolOnly: Bool = true) -> String {
         let v = unit == .fahrenheit ? celsius * 9 / 5 + 32 : celsius
-        return int(Int(v.rounded())) + "°"
+        let text = int(Int(v.rounded())) + "°"
+        // LTR isolate keeps "°" right of the digits when the value sits inside right-to-left text.
+        return Localizer.language.isRTL ? "\u{2066}" + text + "\u{2069}" : text
     }
 }
 

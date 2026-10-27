@@ -293,13 +293,25 @@ struct WeatherWindWidget: View {
             HStack(spacing: m.u(12)) {
                 WeatherCompass(direction: s.windDirection, size: 49.5)
                 VStack(alignment: .leading, spacing: m.u(2.5)) {
-                    Text(verbatim: Fmt.speed(s.windSpeed)).dock(18.5, .bold)
-                    Text(L("%@ wind", WeatherCode.compass(s.windDirection))).dock(9, .bold, p.secondary)
-                    Text(L("Gusts %@", Fmt.speed(s.windGusts))).dock(9, .bold, p.tertiary)
+                    speed(Fmt.speed(s.windSpeed))
+                    Text(L("%@ wind", WeatherCode.compass(s.windDirection))).dock(9, .bold, p.secondary).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(L("Gusts %@", Fmt.speed(s.windGusts))).dock(9, .bold, p.tertiary).lineLimit(1).minimumScaleFactor(0.7)
                 }
                 .offset(y: m.u(0.5))
                 Spacer(minLength: 0)
             }
+        }
+    }
+
+    /// Short units ("7 km/h") stay one run; long ones (Persian «کیلومتر/ساعت») drop to a smaller secondary run.
+    @ViewBuilder private func speed(_ text: String) -> some View {
+        if let space = text.firstIndex(of: " "), text.distance(from: space, to: text.endIndex) > 5 {
+            HStack(alignment: .firstTextBaseline, spacing: m.u(3)) {
+                Text(verbatim: String(text[..<space])).dock(18.5, .bold)
+                Text(verbatim: String(text[text.index(after: space)...])).dock(9.5, .bold, p.secondary).lineLimit(1).minimumScaleFactor(0.7)
+            }
+        } else {
+            Text(verbatim: text).dock(18.5, .bold).lineLimit(1).minimumScaleFactor(0.6)
         }
     }
 }
@@ -332,7 +344,8 @@ struct WeatherCompass: View {
                     ctx.stroke(tick, with: .color(p.primary.opacity(0.2)), style: StrokeStyle(lineWidth: max(m.u(0.6), 0.5), lineCap: .round))
                 }
             }
-            ForEach(Self.marks, id: \.0) { label, angle, major in
+            // Intercardinal labels only fit as abbreviations (NE); long localized names leave just the tick.
+            ForEach(Self.marks.filter { $0.2 || L($0.0).count <= 3 }, id: \.0) { label, angle, major in
                 let a = angle * .pi / 180
                 let rr = s * 0.39
                 Text(L(label))

@@ -1066,3 +1066,8 @@
 "profile.copySuffix" = "(کپی)";
 "stock.openPrice" = "بازگشایی";
 "CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "CoolDock اجازهٔ خواندن این پوشه را ندارد. در «حریم خصوصی و امنیت ← فایل‌ها و پوشه‌ها» دسترسی بدهید.";
+"unit.short.B" = "ب";
+"unit.short.KB" = "ک.ب";
+"unit.short.MB" = "م.ب";
+"unit.short.GB" = "گ.ب";
+"unit.short.TB" = "ت.ب";

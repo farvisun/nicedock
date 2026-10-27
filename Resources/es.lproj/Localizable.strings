@@ -1066,3 +1066,8 @@
 "profile.copySuffix" = "copia";
 "stock.openPrice" = "Apertura";
 "CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "CoolDock no puede leer esta carpeta. Permite el acceso en Privacidad y seguridad → Archivos y carpetas.";
+"unit.short.B" = "B";
+"unit.short.KB" = "KB";
+"unit.short.MB" = "MB";
+"unit.short.GB" = "GB";
+"unit.short.TB" = "TB";

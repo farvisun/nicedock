@@ -1066,3 +1066,8 @@
 "profile.copySuffix" = "のコピー";
 "stock.openPrice" = "始値";
 "CoolDock can’t read this folder. Allow access in Privacy & Security → Files & Folders." = "CoolDock はこのフォルダを読み取れません。「プライバシーとセキュリティ → ファイルとフォルダ」でアクセスを許可してください。";
+"unit.short.B" = "バイト";
+"unit.short.KB" = "KB";
+"unit.short.MB" = "MB";
+"unit.short.GB" = "GB";
+"unit.short.TB" = "TB";

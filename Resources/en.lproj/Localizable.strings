@@ -1053,6 +1053,11 @@
 "compact.billion" = "B";
 "compact.million" = "M";
 "compact.thousand" = "K";
+"unit.short.B" = "B";
+"unit.short.KB" = "KB";
+"unit.short.MB" = "MB";
+"unit.short.GB" = "GB";
+"unit.short.TB" = "TB";
 "unit.bytes" = "B";
 "stock.openPrice" = "Open";
 "KB" = "KB";
