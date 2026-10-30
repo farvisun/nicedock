@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [production]
+    paths-ignore: ["site/**", "launch/**", "**.md"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    # The code needs SDK 26 (Liquid Glass).
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - run: swift --version
+      - run: swift test
+      - run: scripts/build-app.sh release
