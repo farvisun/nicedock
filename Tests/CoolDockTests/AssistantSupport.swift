@@ -3,6 +3,9 @@ import Foundation
 
 /// Shared fixtures for the AI Assistant (MCP) tests.
 enum AssistantFixture {
+    /// GitHub Actions (and most CI) sets CI=true.
+    static var onCI: Bool { ProcessInfo.processInfo.environment["CI"] != nil }
+
     static func state(enabled: Bool = true, allowChanges: Bool = true) -> DockState {
         var s = DockState.fresh()
         s.settings.assistantEnabled = enabled
