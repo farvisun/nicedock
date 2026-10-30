@@ -13,7 +13,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: swift --version
       - run: swift build
       # The MCP server must start and exit when stdin closes; if it hangs, sample where.
