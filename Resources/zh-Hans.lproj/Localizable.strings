@@ -1325,3 +1325,5 @@
 "1 app changed" = "已更改 1 个 App";
 "%@ apps changed" = "已更改 %@ 个 App";
 "All Playing Apps…" = "所有正在播放的 App…";
+"Check for Updates…" = "检查更新…";
+"Check for updates automatically" = "自动检查更新";

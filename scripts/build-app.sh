@@ -31,8 +31,21 @@ TMPDIR="$PWD/build/.clang-tmp" clang -dynamiclib -fobjc-arc -O2 -Wall -Werror -a
 rm -rf build/.clang-tmp
 cp Helpers/MediaRemote/mediaremote.pl "$APP/Contents/Resources/MediaRemote/"
 
+# Sparkle (updates from the GitHub release appcast).
+mkdir -p "$APP/Contents/Frameworks"
+ditto "$(swift build -c "$CONFIG" --show-bin-path)/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
+
 if [ "$CONFIG" = "release" ]; then strip -x "$APP/Contents/MacOS/NiceDock" || true; fi
-codesign --force --deep --sign - --timestamp=none "$APP" >/dev/null
+# Sign inside out (no --deep, which would drop the Downloader's entitlements): Sparkle's helpers,
+# the framework, the Now Playing helper, then the app.
+SIGN=(codesign --force --sign - --timestamp=none)
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+"${SIGN[@]}" "$SPARKLE/XPCServices/Installer.xpc"
+"${SIGN[@]}" --preserve-metadata=entitlements "$SPARKLE/XPCServices/Downloader.xpc"
+"${SIGN[@]}" "$SPARKLE/Autoupdate" "$SPARKLE/Updater.app"
+"${SIGN[@]}" "$APP/Contents/Frameworks/Sparkle.framework"
+"${SIGN[@]}" "$APP/Contents/Resources/MediaRemote/libCoolDockMediaRemote.dylib"
+"${SIGN[@]}" "$APP" >/dev/null
 echo "Built $APP ($(du -sh "$APP" | cut -f1))"
 
 if [ "${2:-}" = "--run" ]; then

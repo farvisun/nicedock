@@ -1325,3 +1325,5 @@
 "1 app changed" = "1 app modificada";
 "%@ apps changed" = "%@ apps modificadas";
 "All Playing Apps…" = "Todas las apps con sonido…";
+"Check for Updates…" = "Buscar actualizaciones…";
+"Check for updates automatically" = "Buscar actualizaciones automáticamente";

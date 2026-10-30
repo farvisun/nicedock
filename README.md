@@ -25,8 +25,14 @@ Swift/SwiftUI; the design is inspired by [CoolDock](https://cooldock.app), and N
    `xattr -dr com.apple.quarantine /Applications/NiceDock.app` once.
 3. Pick a layout in the welcome window, then right-click the dock › **Widgets…** to add more.
 
+NiceDock 1.1 and later update themselves: once a day (and from **Check for Updates…** in the menu bar menu or
+Settings › About) it reads `appcast.xml` from the latest GitHub release, and installs a new version after you confirm.
+Updates are verified with an EdDSA signature ([Sparkle](https://sparkle-project.org)). Turn the daily check off in
+Settings › About. Versions before 1.1 need one manual download.
+
 Releases are built by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed;
-each release lists the SHA-256 of its files. The website is `site/` (static, no external requests) and is deployed to
+each release lists the SHA-256 of its files and attaches the update feed, signed with the `SPARKLE_ED_PRIVATE_KEY`
+secret (the key also lives in the login Keychain, Sparkle account `nicedock`). The website is `site/` (static, no external requests) and is deployed to
 GitHub Pages by [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
 ## Build & run

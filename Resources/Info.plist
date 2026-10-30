@@ -19,6 +19,11 @@
     </array>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
+    <key>SUFeedURL</key><string>https://github.com/farvisun/nicedock/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key><string>5NaT257qirPPJ+LGvrqbnYeD53sEeoSHbrhW+2pI3E4=</string>
+    <key>SUEnableAutomaticChecks</key><true/>
+    <key>SUAutomaticallyUpdate</key><false/>
+    <key>SUScheduledCheckInterval</key><integer>86400</integer>
     <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key><true/>

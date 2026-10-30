@@ -1325,3 +1325,5 @@
 "1 app changed" = "1 uygulama değiştirildi";
 "%@ apps changed" = "%@ uygulama değiştirildi";
 "All Playing Apps…" = "Ses Çalan Tüm Uygulamalar…";
+"Check for Updates…" = "Güncellemeleri Denetle…";
+"Check for updates automatically" = "Güncellemeleri otomatik olarak denetle";

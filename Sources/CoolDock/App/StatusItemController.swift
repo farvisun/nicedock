@@ -93,6 +93,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         hm.addItem(action(L("Show Onboarding"), #selector(showOnboarding)))
         help.submenu = hm
         menu.addItem(help)
+        let update = NSMenuItem(title: L("Check for Updates…"), action: #selector(AppUpdater.checkNow), keyEquivalent: "")
+        update.target = AppUpdater.shared
+        menu.addItem(update)
         menu.addItem(.separator())
         menu.addItem(action(L("Quit NiceDock"), #selector(quit), key: "q"))
     }

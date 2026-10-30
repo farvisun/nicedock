@@ -1325,3 +1325,5 @@
 "1 app changed" = "تم تغيير تطبيق واحد";
 "%@ apps changed" = "تم تغيير %@ تطبيقات";
 "All Playing Apps…" = "كل التطبيقات التي تُشغّل صوتًا…";
+"Check for Updates…" = "التحقق من وجود تحديثات…";
+"Check for updates automatically" = "التحقق من التحديثات تلقائيًا";

@@ -813,6 +813,7 @@ struct AboutPane: View {
                 Button(L("Export Diagnostics…")) { Diagnostics.export() }
             }
             .padding(.top, 6)
+            UpdatesRow()
             Divider().padding(.vertical, 10)
             VStack(spacing: 6) {
                 Text(L("Inspired by cooldock.app. Built natively with Swift and SwiftUI.")).font(.ui(11.5)).foregroundStyle(.secondary)
@@ -823,6 +824,21 @@ struct AboutPane: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 20)
+    }
+}
+
+/// Sparkle's daily check and a manual check, under the version in About.
+private struct UpdatesRow: View {
+    @State private var automatic = AppUpdater.shared.automaticallyChecks
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Toggle(L("Check for updates automatically"), isOn: $automatic)
+                .onChange(of: automatic) { _, on in AppUpdater.shared.automaticallyChecks = on }
+            Button(L("Check for Updates…")) { AppUpdater.shared.checkNow() }
+                .disabled(!AppUpdater.isAvailable)
+        }
+        .font(.ui(12))
     }
 }
 

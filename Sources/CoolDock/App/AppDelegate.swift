@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         store.applyAppTheme()
         buildMainMenu()
+        _ = AppUpdater.shared
 
         statusItem = StatusItemController()
         statusItem?.setVisible(store.settings.showMenuBarIcon)
@@ -109,6 +110,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: L("About NiceDock"), action: #selector(showAbout), keyEquivalent: "").target = self
+        appMenu.addItem(withTitle: L("Check for Updates…"), action: #selector(AppUpdater.checkNow), keyEquivalent: "").target = AppUpdater.shared
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: L("Settings…"), action: #selector(showSettings), keyEquivalent: ",").target = self
         appMenu.addItem(.separator())
