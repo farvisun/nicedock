@@ -3,7 +3,8 @@ name: Release
 # Builds NiceDock.app on a macOS runner and publishes it as a GitHub release when a version tag is pushed.
 #   git tag v1.0.1 && git push origin v1.0.1
 # The tag must match CFBundleShortVersionString in Resources/Info.plist. Release notes come from
-# docs/releases/<tag>.md when that file exists.
+# docs/releases/<tag>.md when that file exists. Installed apps update through Sparkle from the
+# appcast.xml attached to the latest release, signed with the SPARKLE_ED_PRIVATE_KEY secret.
 
 on:
   push:
@@ -11,6 +12,9 @@ on:
 
 permissions:
   contents: write
+
+env:
+  SPARKLE_VERSION: "2.10.1"
 
 concurrency:
   group: release-${{ github.ref }}
@@ -50,6 +54,17 @@ jobs:
           shasum -a 256 NiceDock.dmg NiceDock.zip > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
+      - name: Sign the update and write the appcast
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz" | tar -xJ -C "$RUNNER_TEMP" ./bin/sign_update
+          sig="$(echo "$SPARKLE_ED_PRIVATE_KEY" | "$RUNNER_TEMP/bin/sign_update" --ed-key-file - build/NiceDock.zip)"
+          build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' Resources/Info.plist)
+          scripts/appcast.sh "${GITHUB_REF_NAME#v}" "$build" build/NiceDock.zip "$sig" > build/appcast.xml
+          cat build/appcast.xml
+
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
@@ -64,5 +79,5 @@ jobs:
             cat build/SHA256SUMS.txt
             echo '```'
           } >> build/notes.md
-          gh release create "$GITHUB_REF_NAME" build/NiceDock.dmg build/NiceDock.zip build/SHA256SUMS.txt \
+          gh release create "$GITHUB_REF_NAME" build/NiceDock.dmg build/NiceDock.zip build/SHA256SUMS.txt build/appcast.xml \
             --title "NiceDock ${GITHUB_REF_NAME#v}" --notes-file build/notes.md --verify-tag
