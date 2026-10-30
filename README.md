@@ -18,8 +18,10 @@ Swift/SwiftUI; the design is inspired by [CoolDock](https://cooldock.app), and N
 
 ## Install
 
+With [Homebrew](https://brew.sh): `brew install --cask farvisun/tap/nicedock`. Or by hand:
+
 1. Download **NiceDock.dmg** from the [latest release](https://github.com/farvisun/nicedock/releases/latest)
-   (Apple silicon, macOS 14 or later) and drag NiceDock into Applications.
+   (Apple silicon or Intel, macOS 14 or later) and drag NiceDock into Applications.
 2. NiceDock is ad-hoc signed, not notarized by Apple, so macOS stops the first launch. Open
    **System Settings › Privacy & Security** and click **Open Anyway**, or run
    `xattr -dr com.apple.quarantine /Applications/NiceDock.app` once.
@@ -151,3 +153,7 @@ Persian and Arabic switch the whole interface to right-to-left and use the bundl
 ## Credits
 
 Design inspired by [CoolDock](https://cooldock.app) by AppitStudio. Estedad typeface by Amin Abedi.
+
+## License
+
+[MIT](LICENSE). The bundled Estedad typeface is under the SIL Open Font License 1.1.
