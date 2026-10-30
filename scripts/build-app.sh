@@ -1,12 +1,16 @@
 #!/bin/bash
 # Builds NiceDock.app into ./build. Usage: scripts/build-app.sh [debug|release] [--run]
+# UNIVERSAL=1 builds for Apple silicon and Intel (the release workflow does).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CONFIG="${1:-release}"
 APP="build/NiceDock.app"
 
-swift build -c "$CONFIG" --product CoolDock
-BIN="$(swift build -c "$CONFIG" --show-bin-path)/CoolDock"
+ARCHS=()
+if [ "${UNIVERSAL:-0}" = 1 ]; then ARCHS=(--arch arm64 --arch x86_64); fi
+swift build -c "$CONFIG" ${ARCHS[@]+"${ARCHS[@]}"} --product CoolDock
+BIN_PATH="$(swift build -c "$CONFIG" ${ARCHS[@]+"${ARCHS[@]}"} --show-bin-path)"
+BIN="$BIN_PATH/CoolDock"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/Fonts"
@@ -33,7 +37,7 @@ cp Helpers/MediaRemote/mediaremote.pl "$APP/Contents/Resources/MediaRemote/"
 
 # Sparkle (updates from the GitHub release appcast).
 mkdir -p "$APP/Contents/Frameworks"
-ditto "$(swift build -c "$CONFIG" --show-bin-path)/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
+ditto "$BIN_PATH/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 
 if [ "$CONFIG" = "release" ]; then strip -x "$APP/Contents/MacOS/NiceDock" || true; fi
 # Sign inside out (no --deep, which would drop the Downloader's entitlements): Sparkle's helpers,
