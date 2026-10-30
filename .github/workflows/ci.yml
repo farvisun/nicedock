@@ -15,5 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: swift --version
+      - run: swift build
+      # The MCP server must start and exit when stdin closes; if it hangs, sample where.
+      - name: MCP server starts
+        run: |
+          bin="$(swift build --show-bin-path)/CoolDock"
+          : | "$bin" --mcp 2>mcp.err & pid=$!
+          for i in $(seq 1 60); do kill -0 $pid 2>/dev/null || break; sleep 1; done
+          if kill -0 $pid 2>/dev/null; then
+            echo "::error::NiceDock --mcp still running after 60 s"
+            sample $pid 3 -file sample.txt >/dev/null 2>&1; head -80 sample.txt
+            kill -9 $pid; cat mcp.err; exit 1
+          fi
+          cat mcp.err
       - run: swift test
       - run: scripts/build-app.sh release
