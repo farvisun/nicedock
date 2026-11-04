@@ -14,7 +14,7 @@ Swift/SwiftUI; the design is inspired by [CoolDock](https://cooldock.app), and N
 * Local-first: credentials live in the macOS Keychain, no account, no telemetry
 * **AI Assistant**: Claude, Codex, Cursor, VS Code and other MCP clients can read and configure NiceDock
   (`NiceDock --mcp`) and paint wallpapers by mood, season or weather — off by default, read-only until you allow
-  changes in Settings → Privacy & Permissions. Setup and tools: [docs/ai-assistant.md](docs/ai-assistant.md)
+  changes in Settings → Privacy & Permissions.
 
 ## Install
 
@@ -68,22 +68,20 @@ app tile's right-click menu against the real app.
   ≥ 99.90 %). `scripts/pixel-residue.sh` then sorts what is left: 93.2 % of the pixels that still differ (8 % fuzz)
   lie within 1 px of an edge in the reference (anti-aliasing and sub-pixel placement); away from edges 99.96 % of
   pixels match on average, and 99.85 % match when each pixel may be compared with any reference pixel up to 1 px away.
-  `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
+  `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome.
 - **Data providers** — `swift test` runs 489 tests (they pass in any time zone, UTC−11 to UTC+14; live Now Playing, App Volume, Accessibility and network suites are opt-in); the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
   fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,
   Anthropic, OpenAI, Cursor, GitHub Copilot, Gemini API, Perplexity, xAI, Z.ai) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
-  no-key / fake-key answers through the widget's own request and error handling — see
-  [docs/verification/providers.md](docs/verification/providers.md). `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
+  no-key / fake-key answers through the widget's own request and error handling. `COOLDOCK_VERIFY_LOCAL_LOGS=1 swift test --filter
   LocalLogsTests` also checks AI-usage totals against this Mac's Claude Code / Codex logs.
 - **Calendar feeds** — the ICS reader (`Services/ICS.swift`) is tested with handcrafted RFC 5545 snippets and four
   real feeds captured with curl (Google US holidays, iCloud US holidays, the LLVM community calendar, Make WordPress
   meetings); every occurrence in an eight-week window matches an independent python-dateutil expansion
-  (`Tests/Scripts/ics_oracle.py`). Widget renders from real feeds, English and Persian:
-  `docs/verification/calendar-feed/`.
+  (`Tests/Scripts/ics_oracle.py`).
 - **AI Assistant** — `swift test` covers the MCP server (JSON-RPC framing, tool schemas, disabled/read-only gating,
   validation, the state.json path, the app socket bridge, wallpaper determinism) and spawns `NiceDock --mcp` end to end
-  with a temporary home; transcript in [docs/verification/ai-assistant.md](docs/verification/ai-assistant.md).
+  with a temporary home.
 - **Translations** — `python3 scripts/l10n.py check` (every language must report 0 missing).
 
 ## Using it
@@ -143,7 +141,6 @@ Sources/CoolDock
 Performance rules: services are demand-driven (they run only while a visible widget subscribes),
 clocks use `TimelineView` schedules instead of timers, hidden docks unmount their widgets, images are
 downsampled at decode time, and closed windows release their SwiftUI trees.
-See [docs/WIDGET_GUIDE.md](docs/WIDGET_GUIDE.md) for the widget contract.
 
 ## Localization
 
