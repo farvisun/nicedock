@@ -78,7 +78,7 @@ cozy autumn evening wallpaper"*.
 | `move_widget` | yes | `widget_id`, `position` (-1 = end), optional target `profile`. |
 | `update_widget_config` | yes | `widget_id`, `config` (only the given keys change; `null` restores a default), `visibility`. |
 | `set_appearance` | yes | `dock_style`, `widget_surface`, `theme`, `scale` 0.7–1.4, `spacing` 0–20, `corner_radius` 4–22, `overflow`, `monochrome`, `tile_backgrounds`, `shadow`, `reduce_transparency`, `icon_style`, `animations`. |
-| `set_layout` | yes | `scenario`, `position` (switches to `fixed` when given alone), `edge_distance`, `alignment`, `show_delay`, `hide_delay`, `trigger_size`, `hide_on_window_hover`, `hide_during_fullscreen`, `screens`. |
+| `set_layout` | yes | `scenario`, `position` (switches to `fixed` when given alone; `left*`/`right*` positions make a vertical Dock), `reveal_edge` (`revealSide`: left/right), `replace_edge` (replace scenarios: bottom/left/right), `floating_vertical`, `edge_distance`, `alignment`, `show_delay`, `hide_delay`, `trigger_size`, `hide_on_window_hover`, `hide_during_fullscreen`, `screens`. |
 | `set_language` | yes | `language` (code, English or native name), `calendar`, `digits`, `clock`, `use_estedad`. |
 | `switch_profile` | yes | `profile` (id, name or 0-based index). |
 | `create_profile` | yes | `name` (≤ 24, unique), `symbol`, `duplicate_from`, `activate` (default true). Up to 8 profiles. |

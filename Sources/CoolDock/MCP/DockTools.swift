@@ -119,7 +119,9 @@ enum DockTools {
 
     static func layoutJSON(_ s: Settings) -> JSONValue {
         [
-            "scenario": .string(s.scenario.rawValue), "position": .string(s.fixedPosition.rawValue), "edge_distance": .double(s.edgeDistance),
+            "scenario": .string(s.scenario.rawValue), "position": .string(s.fixedPosition.rawValue),
+            "reveal_edge": .string(s.revealSideEdge.rawValue), "replace_edge": .string(s.replaceSide.rawValue),
+            "floating_vertical": .bool(s.floatsVertically), "edge_distance": .double(s.edgeDistance),
             "alignment": .string(s.alignment.rawValue), "show_delay": .double(s.showDelay), "hide_delay": .double(s.hideDelay),
             "trigger_size": .double(s.triggerSize), "hide_on_window_hover": .bool(s.hideOnWindowHover),
             "hide_during_fullscreen": .bool(s.hideDuringFullscreen), "screens": .string(s.screensMode.rawValue)
@@ -325,10 +327,13 @@ enum DockTools {
         var s = state.settings
         var notes: [String] = []
         let scenario = try args.choice("scenario", LayoutScenario.self, aliases: [
-            "swap": .swapBottom, "reveal": .revealBottom, "top": .revealTop, "replace": .replaceDock, "autohide": .replaceAutoHide, "float": .floating
+            "swap": .swapBottom, "reveal": .revealBottom, "top": .revealTop, "side": .revealSide, "replace": .replaceDock,
+            "autohide": .replaceAutoHide, "float": .floating
         ])
         if let scenario { s.scenario = scenario }
-        if let v = try args.choice("position", ScreenPosition.self, aliases: ["top": .topCenter, "bottom": .bottomCenter]) {
+        if let v = try args.choice("position", ScreenPosition.self, aliases: [
+            "top": .topCenter, "bottom": .bottomCenter, "left": .leftCenter, "right": .rightCenter
+        ]) {
             s.fixedPosition = v
             if scenario == nil && s.scenario != .fixed {
                 s.scenario = .fixed
@@ -336,6 +341,20 @@ enum DockTools {
             } else if s.scenario != .fixed {
                 notes.append("position only applies to the fixed scenario.")
             }
+        }
+        if let v = try args.choice("reveal_edge", DockSide.self) {
+            guard v.isVertical else { throw ToolFailure("reveal_edge must be left or right.") }
+            s.revealSideEdge = v
+            if s.scenario != .revealSide { notes.append("reveal_edge only applies to the revealSide scenario.") }
+        }
+        if let v = try args.choice("replace_edge", DockSide.self) {
+            guard v != .top else { throw ToolFailure("replace_edge must be bottom, left or right.") }
+            s.replaceSide = v
+            if !s.scenario.isReplace { notes.append("replace_edge only applies to the replaceDock and replaceAutoHide scenarios.") }
+        }
+        if let v = try args.bool("floating_vertical") {
+            s.floatsVertically = v
+            if s.scenario != .floating { notes.append("floating_vertical only applies to the floating scenario.") }
         }
         if let v = try args.double("edge_distance", in: 0...80, step: 1, unit: "pt") { s.edgeDistance = v }
         if let v = try args.choice("alignment", DockAlignment.self) { s.alignment = v }

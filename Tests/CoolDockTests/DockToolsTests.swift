@@ -244,6 +244,18 @@ import Testing
         #expect(state.settings.screensMode == .all)
         #expect(state.settings.hideOnWindowHover)
         #expect(AssistantFixture.failure("set_layout", ["scenario": "sideways"], on: &state)?.contains("Valid values: swapBottom") == true)
+        // Side Docks.
+        _ = try AssistantFixture.run("set_layout", ["position": "left"], on: &state)
+        #expect(state.settings.scenario == .fixed && state.settings.fixedPosition == .leftCenter)
+        let side = try AssistantFixture.run("set_layout", ["scenario": "side", "reveal_edge": "right"], on: &state)
+        #expect(state.settings.scenario == .revealSide && state.settings.revealSideEdge == .right)
+        #expect(side.result["layout"]?["reveal_edge"] == "right")
+        let vertical = try AssistantFixture.run("set_layout", ["floating_vertical": true], on: &state)
+        #expect(state.settings.floatsVertically && vertical.result["notes"]?.arrayValue?.isEmpty == false)
+        _ = try AssistantFixture.run("set_layout", ["scenario": "replaceDock", "replace_edge": "left"], on: &state)
+        #expect(state.settings.replaceSide == .left)
+        #expect(AssistantFixture.failure("set_layout", ["replace_edge": "top"], on: &state)?.contains("bottom, left or right") == true)
+        #expect(AssistantFixture.failure("set_layout", ["reveal_edge": "bottom"], on: &state)?.contains("left or right") == true)
         #expect(AssistantFixture.failure("set_layout", ["edge_distance": -4], on: &state)?.contains("between 0 and 80") == true)
     }
 
