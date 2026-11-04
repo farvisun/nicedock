@@ -12,20 +12,25 @@ struct DockRootView: View {
 
     var body: some View {
         let s = store.settings
-        let natural = naturalWidth()
-        let fitScale = s.overflow == .adapt && natural > model.availableWidth ? model.availableWidth / natural : 1
+        let natural = naturalLength()
+        let fitScale = s.overflow == .adapt && natural > model.availableLength ? model.availableLength / natural : 1
         let metrics = DockMetrics(scale: s.dockScale * fitScale, spacing: s.widgetSpacing, cornerRadius: s.cornerRadius)
         let showTabs = s.showProfileSwitcher && store.profiles.count > 1 && (model.hovering || store.browserOpen)
+        // Tabs sit on the side facing the screen: above a bottom Dock, below a top one, beside a column.
+        // A right-to-left HStack puts its first view on the right.
+        let tabsFirst = model.vertical ? (model.side == .right) != (store.layoutDirection == .rightToLeft) : model.side == .bottom
+        let stack = model.vertical ? AnyLayout(HStackLayout(spacing: 6)) : AnyLayout(VStackLayout(spacing: 6))
 
-        VStack(spacing: 6) {
-            if !model.atTop { ProfileTabs(model: model).opacity(showTabs ? 1 : 0).allowsHitTesting(showTabs) }
+        stack {
+            if tabsFirst { ProfileTabs(model: model).opacity(showTabs ? 1 : 0).allowsHitTesting(showTabs) }
             DockPlate(model: model)
-            if model.atTop { ProfileTabs(model: model).opacity(showTabs ? 1 : 0).allowsHitTesting(showTabs) }
+            if !tabsFirst { ProfileTabs(model: model).opacity(showTabs ? 1 : 0).allowsHitTesting(showTabs) }
         }
         .animation(s.animations ? .easeOut(duration: 0.18) : nil, value: showTabs)
         .padding(.horizontal, 2)
         .environment(\.palette, store.palette)
         .environment(\.metrics, metrics)
+        .environment(\.dockSide, model.side)
         .environment(\.layoutDirection, store.layoutDirection)
         .environment(\.locale, Fmt.locale)
         .environment(\.calendar, Fmt.calendar)
@@ -33,19 +38,30 @@ struct DockRootView: View {
         .fixedSize()
     }
 
-    /// Width at scale 1 used by "Adapt Size".
-    private func naturalWidth() -> CGFloat {
+    /// Length along the Dock's axis at the chosen scale, used by "Adapt Size": widths in a row, tile heights in a column.
+    private func naturalLength() -> CGFloat {
         let s = store.settings
+        let scale = CGFloat(s.dockScale)
         let widgets = store.activeProfile.widgets
-        var widths = widgets.reduce(CGFloat(0)) { $0 + $1.kind.spec.width * CGFloat(s.dockScale) }
+        var length = widgets.reduce(CGFloat(0)) { $0 + Self.length(of: $1, vertical: model.vertical) * scale }
         var count = widgets.count
         if s.runningApps != .hidden {
             let running = s.runningAppsCollapsed ? 1 : max(1, RunningApps.shared.apps.count)
-            widths += CGFloat(running) * 62 * CGFloat(s.dockScale)
+            length += CGFloat(running) * 62 * scale
             count += 1
         }
-        let gaps = CGFloat(max(0, count - 1)) * CGFloat(s.widgetSpacing * s.dockScale)
-        return widths + gaps + DockMetrics.basePadding * 2 * CGFloat(s.dockScale) + 8
+        let gaps = CGFloat(max(0, count - 1)) * CGFloat(s.widgetSpacing) * scale
+        return length + gaps + DockMetrics.basePadding * 2 * scale + 8
+    }
+
+    /// A widget's length at scale 1 along the Dock's axis.
+    static func length(of w: WidgetInstance, vertical: Bool) -> CGFloat {
+        guard vertical else { return w.kind.spec.width }
+        switch w.kind {
+        case .separator: return 9
+        case .space: return CGFloat(min(200, max(4, w.double("width", 24))))
+        default: return DockMetrics.baseTileHeight
+        }
     }
 }
 
@@ -90,8 +106,9 @@ struct DockPlate: View {
         } else if widgets.isEmpty && store.settings.runningApps == .hidden {
             EmptyDockPrompt()
         } else if store.settings.overflow == .scroll {
-            ScrollView(.horizontal, showsIndicators: false) { WidgetStrip(model: model) }
-                .frame(maxWidth: model.availableWidth - m.padding * 2 - 28)
+            let room = model.availableLength - m.padding * 2 - 28
+            ScrollView(model.vertical ? .vertical : .horizontal, showsIndicators: false) { WidgetStrip(model: model) }
+                .frame(maxWidth: model.vertical ? nil : room, maxHeight: model.vertical ? room : nil)
         } else {
             WidgetStrip(model: model)
                 .background(GeometryReader { g in Color.clear.onAppear { model.lastStripSize = g.size }.onChange(of: g.size) { _, v in model.lastStripSize = v } })
@@ -139,7 +156,8 @@ struct DockPlate: View {
                     DockController.shared.window(for: model.screenID)?.floatingDrag(began: false, ended: true)
                     dragOffset = 0
                 } else if store.settings.dragToSwitchProfiles && !Panels.shared.isOpen && !store.browserOpen && !DragState.reordering {
-                    let dx = v.translation.width * (store.layoutDirection == .rightToLeft ? -1 : 1)
+                    // Swipe along the Dock: left (up in a column) for the next profile.
+                    let dx = model.vertical ? v.translation.height : v.translation.width * (store.layoutDirection == .rightToLeft ? -1 : 1)
                     if abs(dx) > 50 { store.switchProfile(by: dx < 0 ? 1 : -1) }
                 }
             }
@@ -210,19 +228,21 @@ struct WidgetStrip: View {
     private var store: AppStore { .shared }
     @State private var frames: [UUID: CGRect] = [:]
     @State private var dragging: UUID?
-    @State private var dragX: CGFloat = 0
+    /// How far the dragged widget moved along the Dock's axis.
+    @State private var dragDelta: CGFloat = 0
     @State private var target: Int?
     private let visibility = VisibilityEvaluator.shared
 
     var body: some View {
         let shown = withRunningApps(store.activeProfile.widgets.filter { visibility.isVisible($0) })
-        HStack(spacing: m.gap) {
+        let stack = model.vertical ? AnyLayout(VStackLayout(spacing: m.gap)) : AnyLayout(HStackLayout(spacing: m.gap))
+        stack {
             ForEach(shown) { w in
                 WidgetHost(instance: w)
                     .background(GeometryReader { g in
                         Color.clear.preference(key: WidgetFramesKey.self, value: [w.id: g.frame(in: .named("strip"))])
                     })
-                    .offset(x: dragging == w.id ? dragX : 0)
+                    .offset(x: dragging == w.id && !model.vertical ? dragDelta : 0, y: dragging == w.id && model.vertical ? dragDelta : 0)
                     .zIndex(dragging == w.id ? 10 : 0)
                     .scaleEffect(dragging == w.id ? 1.04 : 1)
                     .opacity(dragging == w.id ? 0.92 : 1)
@@ -271,12 +291,13 @@ struct WidgetStrip: View {
                     Panels.shared.close()
                 }
                 guard dragging == w.id, let f = frames[w.id] else { return }
-                dragX = v.translation.width
-                let center = f.midX + v.translation.width
+                let vertical = model.vertical
+                dragDelta = vertical ? v.translation.height : v.translation.width
+                let center = (vertical ? f.midY : f.midX) + dragDelta
                 let ordered = store.activeProfile.widgets.compactMap { inst in frames[inst.id].map { (inst.id, $0) } }
                 var idx = 0
                 for (id, rect) in ordered where id != w.id {
-                    if store.layoutDirection == .rightToLeft ? center < rect.midX : center > rect.midX { idx += 1 }
+                    if vertical ? center > rect.midY : store.layoutDirection == .rightToLeft ? center < rect.midX : center > rect.midX { idx += 1 }
                 }
                 target = idx
             }
@@ -285,7 +306,7 @@ struct WidgetStrip: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { store.moveWidget(id, to: t) }
                 }
                 dragging = nil
-                dragX = 0
+                dragDelta = 0
                 target = nil
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { DragState.reordering = false }
             }
@@ -300,7 +321,10 @@ struct ProfileTabs: View {
     private var store: AppStore { .shared }
 
     var body: some View {
-        HStack(spacing: 2) {
+        // A row of capsules beside a horizontal Dock, a list beside a column. Radius 15 on the 30 pt row is a capsule.
+        let shape = RoundedRectangle(cornerRadius: 15)
+        let stack = model.vertical ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 2))
+        stack {
             ForEach(Array(store.profiles.enumerated()), id: \.element.id) { i, profile in
                 let active = profile.id == store.activeProfileID
                 Button { store.switchProfile(to: i) } label: {
@@ -331,11 +355,11 @@ struct ProfileTabs: View {
         .background {
             ZStack {
                 if !store.reduceTransparency { VisualEffectBlur(material: .hudWindow, appearance: p.isLight ? .aqua : .darkAqua) }
-                Capsule().fill(p.isLight ? Color.white.opacity(0.7) : Color.black.opacity(0.55))
+                shape.fill(p.isLight ? Color.white.opacity(0.7) : Color.black.opacity(0.55))
             }
-            .clipShape(Capsule())
+            .clipShape(shape)
         }
-        .overlay(Capsule().strokeBorder(p.plateStroke, lineWidth: 0.5))
+        .overlay(shape.strokeBorder(p.plateStroke, lineWidth: 0.5))
     }
 }
 

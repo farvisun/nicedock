@@ -99,8 +99,11 @@ final class TriggerWindow: NSPanel {
 @MainActor
 final class DockWindowModel {
     let screenID: String
-    var availableWidth: CGFloat = 1200
-    var atTop = false
+    /// Room along the Dock's axis: the display's width for a row, its height for a column.
+    var availableLength: CGFloat = 1200
+    var side: DockSide = .bottom
+    var atTop: Bool { side == .top }
+    var vertical: Bool { side.isVertical }
     var floating = false
     var hovering = false
     var revealed = true
@@ -168,23 +171,30 @@ final class DockWindow {
 
     // MARK: Layout
 
-    var plateTop: Bool {
+    var side: DockSide { Self.side(settings, screenID: screenID, full: screen.frame) }
+    var plateTop: Bool { side == .top }
+
+    /// The screen edge the Dock lives on for the Layout settings. A floating Dock picks the nearer edge of its axis.
+    nonisolated static func side(_ settings: Settings, screenID: String, full: NSRect) -> DockSide {
         switch settings.scenario {
-        case .revealTop: return true
-        case .fixed: return settings.fixedPosition.isTop
+        case .revealTop: return .top
+        case .revealSide: return settings.revealSideEdge
+        case .replaceDock, .replaceAutoHide: return settings.replaceSide
+        case .fixed: return settings.fixedPosition.edge
         case .floating:
             let o = settings.floatingOrigins[screenID]
-            return o.map { CGFloat($0.y) > screen.frame.midY } ?? false
-        default: return false
+            if settings.floatsVertically { return o.map { CGFloat($0.x) > full.midX ? .right : .left } ?? .left }
+            return o.map { CGFloat($0.y) > full.midY ? .top : .bottom } ?? .bottom
+        case .swapBottom, .revealBottom: return .bottom
         }
     }
 
     /// Applies scenario settings: trigger strips, initial visibility, position.
     func configure() {
         let scenario = settings.scenario
-        model.atTop = plateTop
+        model.side = side
         model.floating = scenario == .floating
-        model.availableWidth = screen.visibleFrame.width - 24
+        model.availableLength = model.vertical ? screen.visibleFrame.height - 24 : screen.visibleFrame.width - 24
         installTrigger()
         layout(animated: false)
         if scenario.isReveal {
@@ -220,7 +230,33 @@ final class DockWindow {
             }
         }
 
+        /// Along a side edge `.left` is the top.
+        func alignY(_ alignment: DockAlignment) -> CGFloat {
+            switch alignment {
+            case .center: return vf.midY - size.height / 2
+            case .left: return vf.maxY - size.height - edge
+            case .right: return vf.minY + edge
+            }
+        }
+
+        /// A column on the left or right edge of `bounds`; hidden reveal Docks wait just off the screen.
+        func column(_ side: DockSide, alignment: DockAlignment, bounds: NSRect) -> NSRect {
+            var x = side == .left ? bounds.minX + edge : bounds.maxX - size.width - edge
+            if !revealed { x = side == .left ? full.minX - size.width - 4 : full.maxX + 4 }
+            return NSRect(x: x.rounded(), y: alignY(alignment).rounded(), width: size.width, height: size.height)
+        }
+
         switch settings.scenario {
+        case .fixed where settings.fixedPosition.edge.isVertical:
+            return column(settings.fixedPosition.edge, alignment: settings.fixedPosition.alignment, bounds: vf)
+        case .revealSide:
+            return column(settings.revealSideEdge, alignment: settings.alignment, bounds: vf)
+        case .replaceDock where settings.replaceSide.isVertical, .replaceAutoHide where settings.replaceSide.isVertical:
+            // The macOS Dock is hidden: measured from the screen edge, like the bottom replace layouts.
+            return column(settings.replaceSide, alignment: settings.alignment, bounds: full)
+        case .floating where settings.floatsVertically && settings.floatingOrigins[screenID] == nil:
+            x = vf.minX + edge
+            y = vf.midY - size.height / 2
         case .fixed:
             x = alignX(settings.fixedPosition.alignment)
             y = settings.fixedPosition.isTop ? vf.maxY - edge - size.height : vf.minY + edge
@@ -270,18 +306,20 @@ final class DockWindow {
 
     private func installTrigger() {
         let scenario = settings.scenario
-        let needsBottom = scenario == .revealBottom || scenario == .replaceAutoHide || scenario == .swapBottom
-        let needsTop = scenario == .revealTop
-        guard needsBottom || needsTop else {
+        guard scenario.isReveal || scenario == .swapBottom else {
             trigger?.orderOut(nil); trigger = nil
             return
         }
         let t = trigger ?? TriggerWindow()
         let h = max(1, CGFloat(settings.triggerSize))
         let f = screen.frame
-        let rect = needsTop
-            ? NSRect(x: f.minX, y: f.maxY - h, width: f.width, height: h)
-            : NSRect(x: f.minX, y: f.minY, width: f.width, height: scenario == .swapBottom ? 2 : h)
+        let rect: NSRect
+        switch side {
+        case .top: rect = NSRect(x: f.minX, y: f.maxY - h, width: f.width, height: h)
+        case .bottom: rect = NSRect(x: f.minX, y: f.minY, width: f.width, height: scenario == .swapBottom ? 2 : h)
+        case .left: rect = NSRect(x: f.minX, y: f.minY, width: h, height: f.height)
+        case .right: rect = NSRect(x: f.maxX - h, y: f.minY, width: h, height: f.height)
+        }
         t.setFrame(rect, display: false)
         t.onEnter = { [weak self] in self?.triggerEntered() }
         t.orderFrontRegardless()
@@ -448,7 +486,7 @@ final class DockWindow {
         if ended {
             dragStart = nil
             store.settings.floatingOrigins[screenID] = CGPointCodable(x: Double(origin.x), y: Double(origin.y))
-            model.atTop = plateTop
+            model.side = side
         }
     }
 }
@@ -667,7 +705,7 @@ final class DockController {
                                    screen: ReserveSpace.quartz(w.screen.frame, primaryHeight: primary),
                                    visible: ReserveSpace.quartz(w.screen.visibleFrame, primaryHeight: primary),
                                    dock: ReserveSpace.quartz(w.plateScreenFrame, primaryHeight: primary),
-                                   edge: w.plateTop ? .top : .bottom)
+                                   edge: DockEdge(w.side))
         }
         .sorted { $0.displayID < $1.displayID }
     }

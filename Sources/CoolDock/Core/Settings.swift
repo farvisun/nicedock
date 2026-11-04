@@ -14,7 +14,7 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable {
 }
 
 enum LayoutScenario: String, Codable, CaseIterable, Identifiable {
-    case swapBottom, revealBottom, fixed, revealTop, replaceDock, replaceAutoHide, floating
+    case swapBottom, revealBottom, fixed, revealTop, revealSide, replaceDock, replaceAutoHide, floating
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -22,6 +22,7 @@ enum LayoutScenario: String, Codable, CaseIterable, Identifiable {
         case .revealBottom: return L("Reveal at the Bottom")
         case .fixed: return L("Fixed")
         case .revealTop: return L("Reveal on Top")
+        case .revealSide: return L("Reveal from the Side")
         case .replaceDock: return L("Replace the macOS Dock")
         case .replaceAutoHide: return L("Replace & Auto-Hide")
         case .floating: return L("Floating")
@@ -31,10 +32,11 @@ enum LayoutScenario: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .swapBottom: return L("NiceDock stays at the bottom; move to the edge and the auto-hiding macOS Dock takes over.")
         case .revealBottom: return L("Hidden until the pointer reaches the bottom edge, then slides up above the macOS Dock.")
-        case .fixed: return L("Always visible at one of six screen positions.")
+        case .fixed: return L("Always visible at one of twelve screen positions.")
         case .revealTop: return L("Hidden until the pointer reaches the top edge, then reveals below the menu bar.")
-        case .replaceDock: return L("Hide the macOS Dock while NiceDock runs and keep NiceDock fixed at the bottom.")
-        case .replaceAutoHide: return L("Hide the macOS Dock and reveal NiceDock only at the bottom edge.")
+        case .revealSide: return L("Hidden until the pointer reaches the left or right edge, then slides in as a column.")
+        case .replaceDock: return L("Hide the macOS Dock while NiceDock runs and keep NiceDock fixed at the bottom or a side.")
+        case .replaceAutoHide: return L("Hide the macOS Dock and reveal NiceDock only at its screen edge.")
         case .floating: return L("Drag NiceDock anywhere on the selected display.")
         }
     }
@@ -44,18 +46,23 @@ enum LayoutScenario: String, Codable, CaseIterable, Identifiable {
         case .revealBottom: return "rectangle.bottomhalf.inset.filled"
         case .fixed: return "pin"
         case .revealTop: return "rectangle.tophalf.inset.filled"
+        case .revealSide: return "rectangle.lefthalf.inset.filled"
         case .replaceDock: return "dock.rectangle"
         case .replaceAutoHide: return "eye.slash"
         case .floating: return "hand.draw"
         }
     }
-    var isReveal: Bool { self == .revealBottom || self == .revealTop || self == .replaceAutoHide }
+    var isReveal: Bool { self == .revealBottom || self == .revealTop || self == .revealSide || self == .replaceAutoHide }
     var isTop: Bool { self == .revealTop }
+    /// Hides the macOS Dock and takes its place at `Settings.replaceSide`.
+    var isReplace: Bool { self == .replaceDock || self == .replaceAutoHide }
     var recommended: Bool { self == .swapBottom }
 }
 
+/// Where a fixed Dock sits. Top and bottom positions are rows; left and right positions are columns along a side edge.
 enum ScreenPosition: String, Codable, CaseIterable, Identifiable {
     case topLeft, topCenter, topRight, bottomLeft, bottomCenter, bottomRight
+    case leftTop, leftCenter, leftBottom, rightTop, rightCenter, rightBottom
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -65,18 +72,49 @@ enum ScreenPosition: String, Codable, CaseIterable, Identifiable {
         case .bottomLeft: return L("Bottom Left")
         case .bottomCenter: return L("Bottom Center")
         case .bottomRight: return L("Bottom Right")
+        case .leftTop: return L("Left Top")
+        case .leftCenter: return L("Left Center")
+        case .leftBottom: return L("Left Bottom")
+        case .rightTop: return L("Right Top")
+        case .rightCenter: return L("Right Center")
+        case .rightBottom: return L("Right Bottom")
         }
     }
     var isTop: Bool { self == .topLeft || self == .topCenter || self == .topRight }
+    var edge: DockSide {
+        switch self {
+        case .topLeft, .topCenter, .topRight: return .top
+        case .bottomLeft, .bottomCenter, .bottomRight: return .bottom
+        case .leftTop, .leftCenter, .leftBottom: return .left
+        case .rightTop, .rightCenter, .rightBottom: return .right
+        }
+    }
+    /// Alignment along the Dock's own axis: `.left` is the start (left of a row, top of a column).
     var alignment: DockAlignment {
         switch self {
-        case .topLeft, .bottomLeft: return .left
-        case .topCenter, .bottomCenter: return .center
-        case .topRight, .bottomRight: return .right
+        case .topLeft, .bottomLeft, .leftTop, .rightTop: return .left
+        case .topCenter, .bottomCenter, .leftCenter, .rightCenter: return .center
+        case .topRight, .bottomRight, .leftBottom, .rightBottom: return .right
         }
     }
 }
 
+/// The screen edge a Dock lives on. Left and right Docks are vertical columns.
+enum DockSide: String, Codable, CaseIterable, Identifiable, Sendable {
+    case bottom, top, left, right
+    var id: String { rawValue }
+    var isVertical: Bool { self == .left || self == .right }
+    var title: String {
+        switch self {
+        case .bottom: return L("Bottom")
+        case .top: return L("Top")
+        case .left: return L("Left")
+        case .right: return L("Right")
+        }
+    }
+}
+
+/// Alignment along the Dock's axis. On a vertical Dock `.left` means top and `.right` means bottom.
 enum DockAlignment: String, Codable, CaseIterable, Identifiable {
     case center, left, right
     var id: String { rawValue }
@@ -85,6 +123,14 @@ enum DockAlignment: String, Codable, CaseIterable, Identifiable {
         case .center: return L("Center")
         case .left: return L("Left")
         case .right: return L("Right")
+        }
+    }
+    func title(vertical: Bool) -> String {
+        guard vertical else { return title }
+        switch self {
+        case .center: return L("Center")
+        case .left: return L("Top")
+        case .right: return L("Bottom")
         }
     }
 }
@@ -237,6 +283,31 @@ struct Settings: Codable, Equatable {
     var reservesAfterDragging: Bool {
         get { reserveAfterDragging ?? false }
         set { reserveAfterDragging = newValue }
+    }
+
+    // Side Docks. Optional for the same reason as `calendarFeeds`; read and bind through the non-optional accessors.
+    /// Edge for Reveal from the Side: left (nil) or right.
+    var revealEdge: DockSide? = nil
+    /// Edge for Replace the macOS Dock and Replace & Auto-Hide: bottom (nil), left or right.
+    var replaceEdge: DockSide? = nil
+    /// Floating Dock laid out as a column.
+    var floatingVertical: Bool? = nil
+
+    /// Left or right; any other stored value reads as left.
+    var revealSideEdge: DockSide {
+        get { revealEdge == .right ? .right : .left }
+        set { revealEdge = newValue == .right ? .right : .left }
+    }
+
+    /// Bottom, left or right; top reads as bottom (the macOS Dock never sits at the top).
+    var replaceSide: DockSide {
+        get { replaceEdge?.isVertical == true ? replaceEdge! : .bottom }
+        set { replaceEdge = newValue.isVertical ? newValue : .bottom }
+    }
+
+    var floatsVertically: Bool {
+        get { floatingVertical ?? false }
+        set { floatingVertical = newValue }
     }
 
     // AI Assistant (MCP). Optional for the same reason as `calendarFeeds`; nil means off.

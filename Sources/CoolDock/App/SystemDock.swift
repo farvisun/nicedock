@@ -15,6 +15,16 @@ final class SystemDock {
         return (CFPreferencesCopyAppValue("autohide" as CFString, domain) as? Bool) ?? false
     }
 
+    /// The screen edge the macOS Dock sits on (Desktop & Dock → Position on Screen). Read only.
+    var orientation: DockSide {
+        CFPreferencesAppSynchronize(domain)
+        switch CFPreferencesCopyAppValue("orientation" as CFString, domain) as? String {
+        case "left": return .left
+        case "right": return .right
+        default: return .bottom
+        }
+    }
+
     /// Height of the macOS Dock when it sits at the bottom (0 if hidden or on a side).
     func reservedBottom(on screen: NSScreen) -> CGFloat { screen.visibleFrame.minY - screen.frame.minY }
 

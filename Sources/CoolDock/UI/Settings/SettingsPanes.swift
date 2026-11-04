@@ -224,6 +224,7 @@ struct DockPreview: View {
 
 struct LayoutPane: View {
     @State private var dockAutohides = SystemDock.shared.autohides
+    @State private var dockOrientation = SystemDock.shared.orientation
     private var store: AppStore { .shared }
 
     var body: some View {
@@ -236,21 +237,40 @@ struct LayoutPane: View {
             .padding(.vertical, 4)
         }
 
+        let side = DockWindow.side(s, screenID: "", full: .zero)
         SettingsGroup(title: L("Placement")) {
             if s.scenario == .fixed {
                 SettingsRow(title: L("Screen Position")) { PositionGrid() }
             }
+            if s.scenario == .revealSide {
+                SettingsRow(title: L("Screen Edge")) {
+                    Picker("", selection: setting(\.revealSideEdge)) { ForEach([DockSide.left, .right]) { Text($0.title).tag($0) } }
+                        .pickerStyle(.segmented).labelsHidden().frame(width: 220)
+                }
+            }
+            if s.scenario.isReplace {
+                SettingsRow(title: L("Screen Edge")) {
+                    Picker("", selection: setting(\.replaceSide)) { ForEach([DockSide.bottom, .left, .right]) { Text($0.title).tag($0) } }
+                        .pickerStyle(.segmented).labelsHidden().frame(width: 220)
+                }
+            }
             if s.scenario != .floating {
-                SliderRow(title: s.scenario.isTop || (s.scenario == .fixed && s.fixedPosition.isTop) ? L("Distance from Top Edge") : L("Distance from Bottom Edge"),
-                          value: setting(\.edgeDistance), range: 0...80, step: 1) { Fmt.int(Int($0)) + " " + L("pt") }
+                SliderRow(title: Self.distanceTitle(side), value: setting(\.edgeDistance), range: 0...80, step: 1) { Fmt.int(Int($0)) + " " + L("pt") }
             }
             if s.scenario != .fixed && s.scenario != .floating {
                 SettingsRow(title: L("Alignment")) {
-                    Picker("", selection: setting(\.alignment)) { ForEach(DockAlignment.allCases) { Text($0.title).tag($0) } }
+                    Picker("", selection: setting(\.alignment)) { ForEach(DockAlignment.allCases) { Text($0.title(vertical: side.isVertical)).tag($0) } }
                         .pickerStyle(.segmented).labelsHidden().frame(width: 220)
                 }
             }
             if s.scenario == .floating {
+                SettingsRow(title: L("Orientation")) {
+                    Picker("", selection: setting(\.floatsVertically)) {
+                        Text(L("Horizontal")).tag(false)
+                        Text(L("Vertical")).tag(true)
+                    }
+                    .pickerStyle(.segmented).labelsHidden().frame(width: 220)
+                }
                 SettingsRow(title: L("Floating position"), subtitle: L("Drag the Dock by its background or the handle next to the profile tabs.")) {
                     Button(L("Recenter")) { store.settings.floatingOrigins = [:] }
                 }
@@ -285,7 +305,22 @@ struct LayoutPane: View {
         switch sc {
         case .swapBottom where !dockAutohides: return L("Swap at the Bottom needs the macOS Dock set to auto-hide.")
         case .revealBottom where dockAutohides: return L("Reveal at the Bottom works best with the macOS Dock always visible.")
-        default: return nil
+        default:
+            // Both Docks on one side edge: their reveal zones and columns overlap.
+            let side = DockWindow.side(store.settings, screenID: "", full: .zero)
+            guard side.isVertical, !sc.isReplace, sc != .floating, side == dockOrientation else { return nil }
+            return side == .left
+                ? L("The macOS Dock is also on the left edge. Move one of them to another edge.")
+                : L("The macOS Dock is also on the right edge. Move one of them to another edge.")
+        }
+    }
+
+    static func distanceTitle(_ side: DockSide) -> String {
+        switch side {
+        case .bottom: return L("Distance from Bottom Edge")
+        case .top: return L("Distance from Top Edge")
+        case .left: return L("Distance from Left Edge")
+        case .right: return L("Distance from Right Edge")
         }
     }
 }
@@ -342,6 +377,9 @@ struct ScenarioDiagram: View {
                 case .revealTop:
                     bar.fill(.black.opacity(0.85)).frame(width: w * 0.55, height: 7).position(x: w / 2, y: 10)
                     Image(systemName: "chevron.down").font(.system(size: 7, weight: .bold)).foregroundStyle(.white).position(x: w / 2, y: 21)
+                case .revealSide:
+                    bar.fill(.black.opacity(0.85)).frame(width: 7, height: h * 0.6).position(x: 8, y: h / 2 + 1.5)
+                    Image(systemName: "chevron.right").font(.system(size: 7, weight: .bold)).foregroundStyle(.white).position(x: 19, y: h / 2 + 1.5)
                 case .replaceDock:
                     bar.fill(.black.opacity(0.85)).frame(width: w * 0.7, height: 8).position(x: w / 2, y: h - 6)
                 case .replaceAutoHide:
@@ -351,32 +389,50 @@ struct ScenarioDiagram: View {
                 }
             }
         }
+        // A screen schematic: left stays left in every language.
+        .environment(\.layoutDirection, .leftToRight)
     }
 }
 
+/// The twelve fixed positions drawn as a screen: rows along the top and bottom edges, columns along the sides.
 struct PositionGrid: View {
     private var store: AppStore { .shared }
     var body: some View {
-        let rows: [[ScreenPosition]] = [[.topLeft, .topCenter, .topRight], [.bottomLeft, .bottomCenter, .bottomRight]]
         VStack(spacing: 4) {
-            ForEach(0..<2) { r in
-                HStack(spacing: 4) {
-                    ForEach(rows[r]) { pos in
-                        let selected = store.settings.fixedPosition == pos
-                        Button { store.settings.fixedPosition = pos } label: {
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(selected ? Color.accentColor : Color.primary.opacity(0.12))
-                                .frame(width: 34, height: 16)
-                        }
-                        .buttonStyle(.plain)
-                        .help(pos.title)
-                        .accessibilityLabel(pos.title)
-                    }
-                }
+            HStack(spacing: 4) { corner; row([.topLeft, .topCenter, .topRight]); corner }
+            HStack(spacing: 4) {
+                column([.leftTop, .leftCenter, .leftBottom])
+                RoundedRectangle(cornerRadius: 3).fill(Color.primary.opacity(0.04)).frame(width: 110, height: 74)
+                column([.rightTop, .rightCenter, .rightBottom])
             }
+            HStack(spacing: 4) { corner; row([.bottomLeft, .bottomCenter, .bottomRight]); corner }
         }
         .padding(5)
         .background(RoundedRectangle(cornerRadius: 6).strokeBorder(Color.primary.opacity(0.15)))
+        // A screen schematic: left stays left in every language.
+        .environment(\.layoutDirection, .leftToRight)
+    }
+
+    private var corner: some View { Color.clear.frame(width: 12, height: 12) }
+
+    private func row(_ positions: [ScreenPosition]) -> some View {
+        HStack(spacing: 4) { ForEach(positions) { spot($0, width: 34, height: 12) } }
+    }
+
+    private func column(_ positions: [ScreenPosition]) -> some View {
+        VStack(spacing: 4) { ForEach(positions) { spot($0, width: 12, height: 22) } }
+    }
+
+    private func spot(_ pos: ScreenPosition, width: CGFloat, height: CGFloat) -> some View {
+        let selected = store.settings.fixedPosition == pos
+        return Button { store.settings.fixedPosition = pos } label: {
+            RoundedRectangle(cornerRadius: 3)
+                .fill(selected ? Color.accentColor : Color.primary.opacity(0.12))
+                .frame(width: width, height: height)
+        }
+        .buttonStyle(.plain)
+        .help(pos.title)
+        .accessibilityLabel(pos.title)
     }
 }
 

@@ -238,6 +238,7 @@ private struct PaletteKey: EnvironmentKey {
     static let defaultValue = DockPalette.make(style: .darkGlass, surface: .glass, monochrome: false, tiles: true, reduceTransparency: false)
 }
 private struct MetricsKey: EnvironmentKey { static let defaultValue = DockMetrics() }
+private struct DockSideKey: EnvironmentKey { static let defaultValue = DockSide.bottom }
 
 extension EnvironmentValues {
     var palette: DockPalette {
@@ -247,6 +248,11 @@ extension EnvironmentValues {
     var metrics: DockMetrics {
         get { self[MetricsKey.self] }
         set { self[MetricsKey.self] = newValue }
+    }
+    /// The screen edge of the Dock showing the view; left and right Docks are columns.
+    var dockSide: DockSide {
+        get { self[DockSideKey.self] }
+        set { self[DockSideKey.self] = newValue }
     }
 }
 

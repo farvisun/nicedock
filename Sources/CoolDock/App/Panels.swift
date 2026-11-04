@@ -27,7 +27,8 @@ final class Panels {
     private var host: DockHostingView<AnyView>?
     private(set) var currentID: AnyHashable?
     private var monitors: [Any] = []
-    private var anchorX: CGFloat = 0
+    /// Pointer location at the click that opened the panel.
+    private var anchor: NSPoint = .zero
     private weak var dock: DockWindow?
     private var size: CGSize = .zero
 
@@ -42,7 +43,7 @@ final class Panels {
         close()
         let store = AppStore.shared
         dock = DockController.shared.activeWindow
-        anchorX = NSEvent.mouseLocation.x
+        anchor = NSEvent.mouseLocation
         currentID = id
         size = .zero
 
@@ -80,10 +81,19 @@ final class Panels {
         let screen = dock?.screen ?? NSScreen.main ?? NSScreen.screens[0]
         let vf = screen.visibleFrame
         let dockFrame = dock?.panel.frame ?? NSRect(x: vf.midX, y: vf.minY, width: 0, height: 80)
-        let atTop = dock?.model.atTop ?? false
-        var x = anchorX - newSize.width / 2
-        x = min(max(x, vf.minX + 8), vf.maxX - newSize.width - 8)
-        var y = atTop ? dockFrame.minY - 8 - newSize.height : dockFrame.maxY + 6
+        var x: CGFloat
+        var y: CGFloat
+        switch dock?.model.side ?? .bottom {
+        case .bottom, .top:
+            x = anchor.x - newSize.width / 2
+            x = min(max(x, vf.minX + 8), vf.maxX - newSize.width - 8)
+            y = dock?.model.atTop == true ? dockFrame.minY - 8 - newSize.height : dockFrame.maxY + 6
+        case .left, .right:
+            // Beside the column, centred on the click.
+            x = dock?.model.side == .left ? dockFrame.maxX + 6 : dockFrame.minX - 8 - newSize.width
+            x = min(max(x, screen.frame.minX), screen.frame.maxX - newSize.width)
+            y = anchor.y - newSize.height / 2
+        }
         if y + newSize.height > vf.maxY { y = vf.maxY - newSize.height - 6 }
         if y < vf.minY { y = vf.minY + 6 }
         panel.setFrame(NSRect(x: x.rounded(), y: y.rounded(), width: newSize.width, height: newSize.height), display: true)

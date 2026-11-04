@@ -266,6 +266,73 @@ struct LayoutPaneBehaviourTests {
         #expect(frame({ $0.scenario = .revealTop }, revealed: false).minY == 879, "parked above the menu bar")
     }
 
+    /// A 100 × 600 column on the 1440 × 900 display (visible 0,70 1440×805: vertical centre 472.5).
+    func column(_ edit: (inout CoolDock.Settings) -> Void, revealed: Bool = true) -> NSRect {
+        var s = CoolDock.Settings()
+        edit(&s)
+        return DockWindow.frame(s, screenID: "D1", size: CGSize(width: 100, height: 600), visible: visible, full: full, revealed: revealed)
+    }
+
+    @Test func sidePositionsAreColumnsAlongTheLeftAndRightEdges() {
+        #expect(column { $0.scenario = .fixed; $0.fixedPosition = .leftCenter } == NSRect(x: 8, y: 173, width: 100, height: 600))
+        #expect(column { $0.scenario = .fixed; $0.fixedPosition = .rightTop } == NSRect(x: 1332, y: 267, width: 100, height: 600))
+        #expect(column { $0.scenario = .fixed; $0.fixedPosition = .leftBottom; $0.edgeDistance = 20 } == NSRect(x: 20, y: 90, width: 100, height: 600))
+        #expect(column { $0.scenario = .fixed; $0.fixedPosition = .rightBottom; $0.edgeDistance = 0 }.maxX == visible.maxX)
+    }
+
+    @Test func revealFromTheSideHidesOffTheSideEdge() {
+        #expect(column { $0.scenario = .revealSide } == NSRect(x: 8, y: 173, width: 100, height: 600), "left by default")
+        #expect(column({ $0.scenario = .revealSide }, revealed: false).maxX == -4, "parked left of the screen")
+        #expect(column { $0.scenario = .revealSide; $0.revealSideEdge = .right; $0.alignment = .left }.origin == CGPoint(x: 1332, y: 267))
+        #expect(column({ $0.scenario = .revealSide; $0.revealSideEdge = .right }, revealed: false).minX == 1444, "parked right of the screen")
+    }
+
+    @Test func replaceLayoutsCanSitOnASide() {
+        #expect(column { $0.scenario = .replaceDock; $0.replaceSide = .right } == NSRect(x: 1332, y: 173, width: 100, height: 600))
+        #expect(column({ $0.scenario = .replaceAutoHide; $0.replaceSide = .left }, revealed: false).maxX == -4)
+        #expect(frame { $0.scenario = .replaceDock }.minY == 8, "bottom by default, as before")
+    }
+
+    @Test func floatingDockCanBeAColumn() {
+        #expect(column { $0.scenario = .floating; $0.floatsVertically = true }.origin == CGPoint(x: 8, y: 173), "starts at the left edge")
+        #expect(column { $0.scenario = .floating; $0.floatsVertically = true; $0.floatingOrigins = ["D1": CGPointCodable(x: 1300, y: 100)] }.origin
+                == CGPoint(x: 1300, y: 100))
+        #expect(column { $0.scenario = .floating; $0.floatsVertically = true; $0.floatingOrigins = ["D1": CGPointCodable(x: 5000, y: 5000)] }.origin
+                == CGPoint(x: 1340, y: 275), "kept on screen")
+    }
+
+    @Test func dockSideFollowsTheLayout() {
+        func side(_ edit: (inout CoolDock.Settings) -> Void) -> DockSide {
+            var s = CoolDock.Settings()
+            edit(&s)
+            return DockWindow.side(s, screenID: "D1", full: full)
+        }
+        #expect(side { $0.scenario = .fixed } == .bottom)
+        #expect(side { $0.scenario = .fixed; $0.fixedPosition = .topLeft } == .top)
+        #expect(side { $0.scenario = .fixed; $0.fixedPosition = .rightCenter } == .right)
+        #expect(side { $0.scenario = .revealSide } == .left)
+        #expect(side { $0.scenario = .revealSide; $0.revealSideEdge = .right } == .right)
+        #expect(side { $0.scenario = .replaceAutoHide } == .bottom)
+        #expect(side { $0.scenario = .replaceDock; $0.replaceSide = .left } == .left)
+        #expect(side { $0.scenario = .floating; $0.floatsVertically = true } == .left)
+        #expect(side { $0.scenario = .floating; $0.floatsVertically = true; $0.floatingOrigins = ["D1": CGPointCodable(x: 1300, y: 100)] } == .right)
+        #expect(side { $0.scenario = .floating; $0.floatingOrigins = ["D1": CGPointCodable(x: 100, y: 800)] } == .top)
+        #expect(side { $0.scenario = .revealBottom; $0.fixedPosition = .leftTop } == .bottom, "the fixed position only applies to fixed")
+    }
+
+    @Test func sideSettingsStayOnTheirAllowedEdges() {
+        var s = CoolDock.Settings()
+        s.replaceSide = .top
+        #expect(s.replaceSide == .bottom, "the macOS Dock is never at the top")
+        s.revealSideEdge = .bottom
+        #expect(s.revealSideEdge == .left)
+        // A state file written before side Docks existed has none of the new keys.
+        let old = try! JSONSerialization.jsonObject(with: JSONEncoder().encode(CoolDock.Settings())) as! [String: Any]
+        #expect(old["revealEdge"] == nil && old["replaceEdge"] == nil && old["floatingVertical"] == nil)
+        let decoded = try! JSONDecoder().decode(CoolDock.Settings.self, from: JSONSerialization.data(withJSONObject: old))
+        #expect(decoded.revealSideEdge == .left && decoded.replaceSide == .bottom && !decoded.floatsVertically)
+    }
+
     @Test func floatingOriginIsKeptOnScreenAndRecenterResetsIt() {
         #expect(frame { $0.scenario = .floating; $0.floatingOrigins = ["D1": CGPointCodable(x: 100, y: 200)] }.origin == CGPoint(x: 100, y: 200))
         #expect(frame { $0.scenario = .floating; $0.floatingOrigins = ["D1": CGPointCodable(x: 5000, y: -300)] }.origin == CGPoint(x: 840, y: 0))

@@ -250,24 +250,37 @@ enum UtilDigits {
 
 // MARK: - Separator & space
 
+/// A hairline across the Dock: vertical in a row, horizontal in a column.
 struct UtilSeparator: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
+    @Environment(\.dockSide) private var side
     var body: some View {
-        Capsule()
-            .fill(p.tertiary)
-            .frame(width: m.u(1), height: m.u(34))
-            .frame(width: m.u(9), height: m.tileHeight)
-            .contentShape(Rectangle())
+        if side.isVertical {
+            Capsule()
+                .fill(p.tertiary)
+                .frame(width: m.u(34), height: m.u(1))
+                .frame(width: m.u(62), height: m.u(9))
+                .contentShape(Rectangle())
+        } else {
+            Capsule()
+                .fill(p.tertiary)
+                .frame(width: m.u(1), height: m.u(34))
+                .frame(width: m.u(9), height: m.tileHeight)
+                .contentShape(Rectangle())
+        }
     }
 }
 
+/// Empty room along the Dock's axis: width in a row, height in a column.
 struct UtilSpace: View {
     let w: WidgetInstance
     @Environment(\.metrics) private var m
+    @Environment(\.dockSide) private var side
     var body: some View {
+        let length = m.u(CGFloat(min(200, max(4, w.double("width", 24)))))
         Color.clear
-            .frame(width: m.u(CGFloat(min(200, max(4, w.double("width", 24))))), height: m.tileHeight)
+            .frame(width: side.isVertical ? m.u(62) : length, height: side.isVertical ? length : m.tileHeight)
             .contentShape(Rectangle())
     }
 }

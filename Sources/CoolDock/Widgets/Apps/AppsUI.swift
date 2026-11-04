@@ -8,6 +8,8 @@ import UniformTypeIdentifiers
 struct AppsBareSlot<Content: View>: View {
     @Environment(\.metrics) private var m
     @Environment(\.palette) private var p
+    @Environment(\.dockSide) private var side
+    @Environment(\.layoutDirection) private var direction
     var dot = false
     var targeted = false
     @ViewBuilder var content: () -> Content
@@ -18,15 +20,33 @@ struct AppsBareSlot<Content: View>: View {
             .brightness(targeted ? 0.06 : 0)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: targeted)
             .frame(width: m.u(62), height: m.tileHeight)
-            .overlay(alignment: .bottom) {
+            .overlay(alignment: dotAlignment) {
                 if dot {
                     Circle()
                         .fill(p.primary.opacity(0.75))
                         .frame(width: m.u(4), height: m.u(4))
-                        .offset(y: -m.u(1.5))
+                        .offset(dotOffset)
                 }
             }
             .contentShape(Rectangle())
+    }
+
+    /// The running dot sits under the icon in a row, and on the screen-edge side of it in a column, like the macOS Dock's.
+    private var dotAlignment: Alignment {
+        switch side {
+        case .bottom, .top: return .bottom
+        case .left: return direction == .leftToRight ? .leading : .trailing
+        case .right: return direction == .leftToRight ? .trailing : .leading
+        }
+    }
+
+    private var dotOffset: CGSize {
+        let inset = m.u(1.5)
+        switch side {
+        case .bottom, .top: return CGSize(width: 0, height: -inset)
+        case .left: return CGSize(width: inset, height: 0)
+        case .right: return CGSize(width: -inset, height: 0)
+        }
     }
 }
 

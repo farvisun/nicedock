@@ -48,6 +48,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
                 fixed.state = s.scenario == .fixed ? .on : .off
                 let positions = NSMenu()
                 for pos in ScreenPosition.allCases {
+                    // Groups of three per edge: top, bottom, left, right.
+                    if pos == .bottomLeft || pos == .leftTop || pos == .rightTop { positions.addItem(.separator()) }
                     let it = NSMenuItem(title: pos.title, action: #selector(pickPosition(_:)), keyEquivalent: "")
                     it.target = self
                     it.representedObject = pos.rawValue

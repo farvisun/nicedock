@@ -330,6 +330,7 @@ private struct AppsRunningIcon: View {
 /// Live cluster of running apps not already pinned in the active profile.
 struct AppsRunningAppsTile: View {
     @Environment(\.metrics) private var m
+    @Environment(\.dockSide) private var side
     let w: WidgetInstance
 
     var body: some View {
@@ -351,9 +352,10 @@ struct AppsRunningAppsTile: View {
             }
             .buttonStyle(PressableStyle())
         } else if apps.isEmpty {
-            Color.clear.frame(width: 0, height: m.tileHeight)
+            Color.clear.frame(width: side.isVertical ? m.u(62) : 0, height: side.isVertical ? 0 : m.tileHeight)
         } else {
-            HStack(spacing: m.gap) {
+            let stack = side.isVertical ? AnyLayout(VStackLayout(spacing: m.gap)) : AnyLayout(HStackLayout(spacing: m.gap))
+            stack {
                 ForEach(apps, id: \.processIdentifier) { app in
                     Button { AppsLaunch.activate(app) } label: {
                         AppsBareSlot(dot: settings.showRunningIndicators) {
