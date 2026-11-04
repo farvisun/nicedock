@@ -3,7 +3,7 @@ name: Release
 # Builds NiceDock.app on a macOS runner and publishes it as a GitHub release when a version tag is pushed.
 #   git tag v1.0.1 && git push origin v1.0.1
 # The tag must match CFBundleShortVersionString in Resources/Info.plist. Release notes come from
-# docs/releases/<tag>.md when that file exists. Installed apps update through Sparkle from the
+# .github/release-notes/<tag>.md when that file exists. Installed apps update through Sparkle from the
 # appcast.xml attached to the latest release, signed with the SPARKLE_ED_PRIVATE_KEY secret.
 
 on:
@@ -73,7 +73,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes="docs/releases/$GITHUB_REF_NAME.md"
+          notes=".github/release-notes/$GITHUB_REF_NAME.md"
           if [ -f "$notes" ]; then cp "$notes" build/notes.md; else echo "NiceDock ${GITHUB_REF_NAME#v}" > build/notes.md; fi
           {
             echo
