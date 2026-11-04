@@ -54,20 +54,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { OnboardingWindow.show() }
         }
         #if DEBUG
-        // Dev aids: `--profile 2` switches profile; `--tap 0.42` clicks the dock at 42% of its width so panels can be inspected without UI scripting.
+        // Dev aids: `--profile 2` switches profile; `--tap 0.42` clicks the dock at 42% of its length (width of a row, height of a
+        // column from the top) so panels can be inspected without UI scripting.
         if let i = args.firstIndex(of: "--profile"), args.count > i + 1, let index = Int(args[i + 1]) {
             store.switchProfile(to: index)
         }
         if let i = args.firstIndex(of: "--tap"), args.count > i + 1, let fraction = Double(args[i + 1]) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { Self.syntheticTap(fraction) }
         }
+        // `--snapshot <dir>` writes dock.png (plus panel.png / window.png for an open widget panel or Settings window) after 4 s,
+        // without Screen Recording.
+        if let i = args.firstIndex(of: "--snapshot"), args.count > i + 1 {
+            let dir = URL(fileURLWithPath: args[i + 1], isDirectory: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { Self.snapshot(to: dir) }
+        }
         #endif
     }
 
     #if DEBUG
+    private static func snapshot(to dir: URL) {
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        var windows: [(String, NSWindow)] = DockController.shared.activeWindow.map { [("dock", $0.panel)] } ?? []
+        if let panel = NSApp.windows.first(where: { $0 is PopPanel && $0.isVisible }) { windows.append(("panel", panel)) }
+        if let settings = NSApp.windows.first(where: { $0.isVisible && $0.styleMask.contains(.titled) }) { windows.append(("window", settings)) }
+        for (name, window) in windows {
+            guard let view = window.contentView, let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { continue }
+            view.cacheDisplay(in: view.bounds, to: rep)
+            try? rep.representation(using: .png, properties: [:])?.write(to: dir.appendingPathComponent("\(name).png"))
+            print("snapshot \(name) frame \(window.frame)")
+        }
+    }
+
     private static func syntheticTap(_ fraction: Double) {
-        guard let window = DockController.shared.activeWindow?.panel, let view = window.contentView else { return }
-        let point = NSPoint(x: view.bounds.width * fraction, y: view.bounds.midY)
+        guard let dock = DockController.shared.activeWindow, let view = dock.panel.contentView else { return }
+        let window = dock.panel
+        let point = dock.model.vertical
+            ? NSPoint(x: view.bounds.midX, y: view.bounds.height * (1 - fraction))
+            : NSPoint(x: view.bounds.width * fraction, y: view.bounds.midY)
         for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
             if let e = NSEvent.mouseEvent(with: type, location: point, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
                                           windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1) {

@@ -52,7 +52,8 @@ Developer launch flags: `--lang <code>`, `--settings <pane>`, `--widgets`, `--on
 no UI; `COOLDOCK_SUPPORT_DIR` points it at another state folder), and the offscreen widget
 renderer `--render <dir> <kinds|all|category:name> [--wait s] [--lang fa] [--style darkGlass]`.
 Debug builds also accept `--profile <index>` and `--tap <0…1>` (clicks the dock at that fraction of its
-width) to inspect widget panels without UI scripting, and `--menu-probe <app> [--perform "Item"]…` to build and fire an
+length) to inspect widget panels without UI scripting, `--snapshot <dir>` (writes the dock, an open panel and an open window as PNG
+after 4 s, no Screen Recording permission needed), and `--menu-probe <app> [--perform "Item"]…` to build and fire an
 app tile's right-click menu against the real app.
 
 ## Verification
@@ -68,7 +69,7 @@ app tile's right-click menu against the real app.
   lie within 1 px of an edge in the reference (anti-aliasing and sub-pixel placement); away from edges 99.96 % of
   pixels match on average, and 99.85 % match when each pixel may be compared with any reference pixel up to 1 px away.
   `scripts/chrome-check.sh` holds the 29 tiles without a site frame to the same chrome. Evidence index: [docs/verification](docs/verification/README.md).
-- **Data providers** — `swift test` runs 476 tests (they pass in any time zone, UTC−11 to UTC+14; live Now Playing, App Volume, Accessibility and network suites are opt-in); the provider suites feed real captured responses (Open-Meteo, Yahoo
+- **Data providers** — `swift test` runs 489 tests (they pass in any time zone, UTC−11 to UTC+14; live Now Playing, App Volume, Accessibility and network suites are opt-in); the provider suites feed real captured responses (Open-Meteo, Yahoo
   Finance, Binance, GitHub contributions, Simple Analytics, redacted OpenCode database rows) and documentation-schema
   fixtures (Stripe, Shopify, Dodo, Polar, Dub, DataFast, Plausible, Resend, Supabase, X, TikTok, YouTube, Linear,
   Anthropic, OpenAI, Cursor, GitHub Copilot, Gemini API, Perplexity, xAI, Z.ai) through the same parsers the widgets use. `LiveAuthTests` replays each keyed provider's real
@@ -119,8 +120,9 @@ CoreWLAN, IOKit, PhotoKit, Contacts and each provider's public API.
 ## Settings
 
 General · Appearance (live preview, six dock styles incl. Liquid Glass, size, spacing, corner
-radius, monochrome, reduce transparency) · Layout (seven scenarios: Swap at the Bottom, Reveal,
-Fixed ×6 positions, Reveal on Top, Replace the macOS Dock, Replace & Auto-Hide, Floating) ·
+radius, monochrome, reduce transparency) · Layout (eight scenarios: Swap at the Bottom, Reveal,
+Fixed ×12 positions, Reveal on Top, Reveal from the Side, Replace the macOS Dock, Replace & Auto-Hide, Floating; left and
+right placements turn the Dock into a vertical column) ·
 Screens (one / attached / all displays, rename, identify) · Dock · Profiles (up to 8) · Widgets (incl. App Volume) ·
 Shortcuts (recorders) · Language & Region (language, calendar, digits, 12/24 h, Estedad) ·
 Privacy & Permissions (incl. Calendar Feeds and the AI Assistant) · Performance (live memory/CPU of NiceDock) · About.
