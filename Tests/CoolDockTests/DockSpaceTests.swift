@@ -22,6 +22,52 @@ import Testing
     static let secondaryDock = DockReservation(displayID: "B", screen: secondary, visible: secondaryVisible,
                                                dock: CGRect(x: 2172, y: 794, width: 600, height: 78), edge: .bottom)
 
+    /// 78 × 600 column 8 pt from the left edge → right edge at 86, limit 92.
+    static let leftDock = DockReservation(displayID: "A", screen: primary, visible: primaryVisible,
+                                          dock: CGRect(x: 8, y: 191, width: 78, height: 600), edge: .left)
+    /// The same column 8 pt from the right edge → left edge at 1426, limit 1420.
+    static let rightDock = DockReservation(displayID: "A", screen: primary, visible: primaryVisible,
+                                           dock: CGRect(x: 1426, y: 191, width: 78, height: 600), edge: .right)
+
+    // MARK: Side docks
+
+    @Test func sideReservationLimitsAreOnX() {
+        #expect(Self.leftDock.limit == 92)
+        #expect(Self.leftDock.keepOut == CGRect(x: 8, y: 191, width: 84, height: 600))
+        #expect(Self.rightDock.limit == 1420)
+        #expect(Self.rightDock.keepOut == CGRect(x: 1420, y: 191, width: 84, height: 600))
+    }
+
+    @Test func zoomedWindowIsNarrowedBesideASideDock() {
+        #expect(ReserveSpace.adjusted(Self.primaryVisible, in: [Self.leftDock]) == CGRect(x: 92, y: 37, width: 1420, height: 941))
+        #expect(ReserveSpace.adjusted(Self.primaryVisible, in: [Self.rightDock]) == CGRect(x: 0, y: 37, width: 1420, height: 941))
+    }
+
+    @Test func windowThatFitsMovesSidewaysAndKeepsItsSize() {
+        #expect(ReserveSpace.adjusted(CGRect(x: 50, y: 200, width: 600, height: 400), in: [Self.leftDock]) == CGRect(x: 92, y: 200, width: 600, height: 400))
+        #expect(ReserveSpace.adjusted(CGRect(x: 1000, y: 300, width: 600, height: 300), in: [Self.rightDock]) == CGRect(x: 820, y: 300, width: 600, height: 300))
+    }
+
+    @Test func sideDocksLeaveOtherWindowsAlone() {
+        // Above the column: no overlap with the plate.
+        #expect(ReserveSpace.adjusted(CGRect(x: 0, y: 37, width: 1512, height: 100), in: [Self.leftDock]) == nil)
+        #expect(ReserveSpace.adjusted(CGRect(x: 92, y: 37, width: 800, height: 941), in: [Self.leftDock]) == nil, "already at the limit")
+        #expect(ReserveSpace.adjusted(Self.primary, in: [Self.leftDock]) == nil, "fullscreen")
+    }
+
+    @Test func sideDocksRespectTheMinimumWidth() {
+        #expect(ReserveSpace.adjusted(Self.primaryVisible, minSize: CGSize(width: 1450, height: 0), in: [Self.leftDock])
+                == CGRect(x: 92, y: 37, width: 1450, height: 941))
+        #expect(ReserveSpace.adjusted(CGRect(x: 0, y: 300, width: 120, height: 300), in: [Self.leftDock]) == CGRect(x: 92, y: 300, width: 120, height: 300))
+    }
+
+    @Test func columnsWithoutAnEdgePickTheNearerSide() {
+        let left = DockReservation(displayID: "A", screen: Self.primary, visible: Self.primaryVisible, dock: CGRect(x: 30, y: 200, width: 80, height: 500))
+        let right = DockReservation(displayID: "A", screen: Self.primary, visible: Self.primaryVisible, dock: CGRect(x: 1400, y: 200, width: 80, height: 500))
+        let row = DockReservation(displayID: "A", screen: Self.primary, visible: Self.primaryVisible, dock: CGRect(x: 400, y: 880, width: 600, height: 78))
+        #expect(left.edge == .left && right.edge == .right && row.edge == .bottom)
+    }
+
     // MARK: Bottom dock
 
     @Test func reservationEdgesAndLimits() {

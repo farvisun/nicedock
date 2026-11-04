@@ -6,6 +6,12 @@ import Testing
 /// Window Manager frame math (`Widgets/Utility/UtilWindowLayout.swift`). Cocoa coordinates: origin at the bottom
 /// left of the primary display, y up.
 @Suite struct WindowManagerTests {
+    @Test func usableAreaLeavesRoomForASideDock() {
+        let visible = CGRect(x: 0, y: 70, width: 1440, height: 805)
+        #expect(UtilWinMath.usable(visible: visible, dock: CGRect(x: 8, y: 173, width: 100, height: 600)) == CGRect(x: 108, y: 70, width: 1332, height: 805))
+        #expect(UtilWinMath.usable(visible: visible, dock: CGRect(x: 1332, y: 173, width: 100, height: 600)) == CGRect(x: 0, y: 70, width: 1332, height: 805))
+    }
+
     /// Primary 1440×900 MacBook: 25 pt menu bar, 70 pt macOS Dock at the bottom.
     let primary = UtilWinScreen(frame: CGRect(x: 0, y: 0, width: 1440, height: 900), usable: CGRect(x: 0, y: 70, width: 1440, height: 805))
     /// 1920×1080 display to the right, its bottom 180 pt lower; menu bar only.

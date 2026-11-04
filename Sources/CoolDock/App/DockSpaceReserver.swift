@@ -5,8 +5,8 @@ import ApplicationServices
 ///
 /// macOS gives third-party apps no way to shrink `NSScreen.visibleFrame`, so NiceDock does what a window manager does:
 /// it listens to Accessibility window notifications (`WindowEventHub`) and, when a standard window of another app
-/// overlaps a visible NiceDock, moves it up (or down for a top Dock) — or shortens it when it is too tall — so it ends at
-/// the Dock's edge. The geometry is `ReserveSpace` (pure, unit-tested).
+/// overlaps a visible NiceDock, moves it up (down for a top Dock, sideways for a left or right one) — or shortens or narrows
+/// it when it is too big — so it ends at the Dock's edge. The geometry is `ReserveSpace` (pure, unit-tested).
 ///
 /// Rules: only standard windows (no panels, sheets, dialogs), never minimized or fullscreen ones, never NiceDock's own.
 /// Notifications are coalesced (180 ms) and a window being dragged or resized is left alone until the mouse button is
@@ -26,7 +26,8 @@ final class DockSpaceReserver {
     /// Windows the user dragged over the Dock while "Also After Dragging" was off.
     private var manual: Set<AXWindowKey> = []
     /// Heights apps refused to go below.
-    private var minHeights: [AXWindowKey: CGFloat] = [:]
+    /// Smallest size each app accepted for a window (0 on an axis it hasn't refused yet).
+    private var minSizes: [AXWindowKey: CGSize] = [:]
     private var limiter = AdjustmentLimiter()
     private var flushWork: DispatchWorkItem?
     private var geometryWork: DispatchWorkItem?
@@ -74,7 +75,7 @@ final class DockSpaceReserver {
         pending.removeAll()
         rescanned.removeAll()
         manual.removeAll()
-        minHeights.removeAll()
+        minSizes.removeAll()
         limiter.reset()
         lastKeepOut = []
     }
@@ -173,8 +174,8 @@ final class DockSpaceReserver {
             manual.remove(key)
         }
 
-        let minHeight = info.canResize ? (minHeights[key] ?? 0) : info.frame.height
-        guard let target = ReserveSpace.adjusted(info.frame, minSize: CGSize(width: 0, height: minHeight), in: res),
+        let minSize = info.canResize ? (minSizes[key] ?? .zero) : info.frame.size
+        guard let target = ReserveSpace.adjusted(info.frame, minSize: minSize, in: res),
               limiter.allow(key, now: now) else { return }
         apply(target, to: window, key: key, from: info, reservations: res)
     }
@@ -182,17 +183,23 @@ final class DockSpaceReserver {
     private func apply(_ target: CGRect, to window: AXUIElement, key: AXWindowKey, from info: AXWindowInfo.Snapshot, reservations res: [DockReservation]) {
         let current = info.frame
         let moves = abs(target.minX - current.minX) > 0.5 || abs(target.minY - current.minY) > 0.5
-        let resizes = info.canResize && abs(target.height - current.height) > 0.5
-        // Shrink before moving up (a tall window can't move first), move before growing.
-        if resizes && target.height < current.height { AXWindowInfo.setSize(window, target.size) }
+        let resizes = info.canResize && (abs(target.height - current.height) > 0.5 || abs(target.width - current.width) > 0.5)
+        let shrinks = target.height < current.height || target.width < current.width
+        // Shrink before moving (a big window can't move first), move before growing.
+        if resizes && shrinks { AXWindowInfo.setSize(window, target.size) }
         if moves && info.canMove { AXWindowInfo.setPosition(window, target.origin) }
-        if resizes && target.height > current.height { AXWindowInfo.setSize(window, target.size) }
+        if resizes && !shrinks { AXWindowInfo.setSize(window, target.size) }
 
-        // Apps may refuse to go below their minimum height: remember it and move the window instead.
+        // Apps may refuse to go below their minimum size: remember it and move the window instead.
         guard let actual = AXWindowInfo.frame(window) else { return }
-        if actual.height > target.height + ReserveSpace.tolerance {
-            minHeights[key] = actual.height
-            if info.canMove, let retry = ReserveSpace.adjusted(actual, minSize: CGSize(width: 0, height: actual.height), in: res) {
+        let tallerThanAsked = actual.height > target.height + ReserveSpace.tolerance
+        let widerThanAsked = actual.width > target.width + ReserveSpace.tolerance
+        if tallerThanAsked || widerThanAsked {
+            var known = minSizes[key] ?? .zero
+            if tallerThanAsked { known.height = actual.height }
+            if widerThanAsked { known.width = actual.width }
+            minSizes[key] = known
+            if info.canMove, let retry = ReserveSpace.adjusted(actual, minSize: known, in: res) {
                 AXWindowInfo.setPosition(window, retry.origin)
             }
         }

@@ -12,7 +12,18 @@ import Foundation
 
 /// Which edge of its display a dock keeps free.
 enum DockEdge: Equatable {
-    case bottom, top
+    case bottom, top, left, right
+
+    init(_ side: DockSide) {
+        switch side {
+        case .bottom: self = .bottom
+        case .top: self = .top
+        case .left: self = .left
+        case .right: self = .right
+        }
+    }
+
+    var isVertical: Bool { self == .left || self == .right }
 }
 
 /// The room one display's NiceDock keeps free.
@@ -34,26 +45,42 @@ struct DockReservation: Equatable {
         self.screen = screen
         self.visible = visible
         self.dock = dock
-        self.edge = edge ?? (dock.midY >= visible.midY ? .bottom : .top)
+        if let edge {
+            self.edge = edge
+        } else if dock.height > dock.width {
+            self.edge = dock.midX >= visible.midX ? .right : .left
+        } else {
+            self.edge = dock.midY >= visible.midY ? .bottom : .top
+        }
         self.gap = gap
     }
 
-    /// Windows have to end above (bottom dock) or start below (top dock) this y.
+    /// Windows have to end above (bottom dock) or start below (top dock) this y; for a side dock they end before
+    /// (right dock) or start after (left dock) this x.
     var limit: CGFloat {
-        edge == .bottom ? dock.minY - gap : dock.maxY + gap
+        switch edge {
+        case .bottom: return dock.minY - gap
+        case .top: return dock.maxY + gap
+        case .left: return dock.maxX + gap
+        case .right: return dock.minX - gap
+        }
     }
 
     /// The plate plus the gap on its window-facing side: a window touching this area gets moved.
     var keepOut: CGRect {
-        edge == .bottom
-            ? CGRect(x: dock.minX, y: dock.minY - gap, width: dock.width, height: dock.height + gap)
-            : CGRect(x: dock.minX, y: dock.minY, width: dock.width, height: dock.height + gap)
+        switch edge {
+        case .bottom: return CGRect(x: dock.minX, y: dock.minY - gap, width: dock.width, height: dock.height + gap)
+        case .top: return CGRect(x: dock.minX, y: dock.minY, width: dock.width, height: dock.height + gap)
+        case .left: return CGRect(x: dock.minX, y: dock.minY, width: dock.width + gap, height: dock.height)
+        case .right: return CGRect(x: dock.minX - gap, y: dock.minY, width: dock.width + gap, height: dock.height)
+        }
     }
 }
 
 enum ReserveSpace {
-    /// Windows are never squeezed below this height, even when the app reports no minimum size.
+    /// Windows are never squeezed below this height (or width, for a side dock), even when the app reports no minimum size.
     static let floorHeight: CGFloat = 80
+    static let floorWidth: CGFloat = 160
     /// Frames closer than this are treated as equal (AX rounds to whole points, apps snap to pixels).
     static let tolerance: CGFloat = 1
 
@@ -81,7 +108,8 @@ enum ReserveSpace {
 
     /// New frame for `window` so it leaves room for the dock it overlaps, or nil when it already fits, covers the whole
     /// display (fullscreen) or doesn't touch any dock. A window that fits in the free height is moved and keeps its size;
-    /// a taller one keeps its top (never above the menu bar) and is shortened, but not below `minSize.height`.
+    /// a taller one keeps its top (never above the menu bar) and is shortened, but not below `minSize.height`. Side docks
+    /// do the same on x: the window moves sideways, or keeps its far edge and gets narrower, not below `minSize.width`.
     static func adjusted(_ window: CGRect, minSize: CGSize = .zero, in reservations: [DockReservation]) -> CGRect? {
         guard let r = reservation(for: window, in: reservations) else { return nil }
         return adjusted(window, minSize: minSize, in: r)
@@ -94,6 +122,7 @@ enum ReserveSpace {
         if window.minX <= r.screen.minX + tolerance, window.maxX >= r.screen.maxX - tolerance,
            window.minY <= r.screen.minY + tolerance, window.maxY >= r.screen.maxY - tolerance { return nil }
         let minHeight = max(minSize.height, min(floorHeight, window.height))
+        let minWidth = max(minSize.width, min(floorWidth, window.width))
         var f = window
         switch r.edge {
         case .bottom:
@@ -117,6 +146,28 @@ enum ReserveSpace {
                 let newBottom = min(bottom, max(window.maxY, limit + minHeight))
                 f.origin.y = limit
                 f.size.height = max(newBottom - limit, minHeight)
+            }
+        case .left:
+            let right = r.visible.maxX
+            let limit = r.limit
+            guard window.minX < limit - tolerance else { return nil }
+            if window.width <= right - limit {
+                f.origin.x = limit
+            } else {
+                let newRight = min(right, max(window.maxX, limit + minWidth))
+                f.origin.x = limit
+                f.size.width = max(newRight - limit, minWidth)
+            }
+        case .right:
+            let left = r.visible.minX
+            let limit = r.limit
+            guard window.maxX > limit + tolerance else { return nil }
+            if window.width <= limit - left {
+                f.origin.x = limit - window.width
+            } else {
+                let newLeft = max(left, min(window.minX, limit - minWidth))
+                f.origin.x = newLeft
+                f.size.width = max(limit - newLeft, minWidth)
             }
         }
         f = f.integral(keepingSize: true)

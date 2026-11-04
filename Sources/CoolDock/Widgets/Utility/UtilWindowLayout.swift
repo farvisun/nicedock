@@ -90,10 +90,21 @@ enum UtilWinMath {
         CGRect(x: r.minX, y: primaryHeight - r.maxY, width: r.width, height: r.height)
     }
 
-    /// `visible` without the strip a docked NiceDock covers at its bottom or top edge.
+    /// `visible` without the strip a docked NiceDock covers at its bottom, top, left or right edge (a Dock taller than it
+    /// is wide is a side column).
     static func usable(visible: CGRect, dock: CGRect?) -> CGRect {
         guard let dock, dock.width > 0, dock.height > 0, dock.intersects(visible) else { return visible }
         var r = visible
+        if dock.height > dock.width {
+            if dock.midX < visible.midX {
+                let left = min(dock.maxX, visible.maxX)
+                r.size.width = visible.maxX - left
+                r.origin.x = left
+            } else {
+                r.size.width = max(0, max(dock.minX, visible.minX) - visible.minX)
+            }
+            return r.width >= 100 ? r : visible
+        }
         if dock.midY < visible.midY {
             let top = min(dock.maxY, visible.maxY)
             r.size.height = visible.maxY - top
