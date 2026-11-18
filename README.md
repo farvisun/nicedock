@@ -155,4 +155,4 @@ Design inspired by [CoolDock](https://cooldock.app) by AppitStudio. Estedad type
 
 ## License
 
-[MIT](LICENSE). The bundled Estedad typeface is under the SIL Open Font License 1.1.
+[Apache-2.0](LICENSE). Keep the [NOTICE](NOTICE) in any copy or derivative work. The bundled Estedad typeface is under the SIL Open Font License 1.1.
